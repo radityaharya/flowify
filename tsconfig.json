@@ -13,6 +13,7 @@
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "checkJs": true,
+    "noImplicitAny": false,
 
     /* Bundled projects */
     "lib": ["dom", "dom.iterable", "ES2022"],
@@ -26,7 +27,8 @@
     /* Path Aliases */
     "baseUrl": ".",
     "paths": {
-      "~/*": ["./src/*"]
+      "~/*": ["./src/*"],
+      "@/*": ["./src/*"],
     }
   },
   "include": [
@@ -36,7 +38,8 @@
     "**/*.tsx",
     "**/*.cjs",
     "**/*.js",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    "node_modules/@types/**/*.ts"
   ],
   "exclude": ["node_modules"]
 }
