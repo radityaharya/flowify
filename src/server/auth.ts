@@ -46,7 +46,8 @@ declare module "next-auth" {
     error?: string;
     user: {
       id: string;
-      // ...other properties
+      providerAccountId: string;
+      spotify_access_token: string;
       // role: UserRole;
     } & DefaultSession["user"];
   }
@@ -91,19 +92,6 @@ export const authOptions: NextAuthOptions = {
 
           if (!response.ok) throw tokens;
 
-          // await prisma.account.update({
-          //   data: {
-          //     access_token: tokens.access_token,
-          //     expires_at: Math.floor(Date.now() / 1000 + tokens.expires_in),
-          //     refresh_token: tokens.refresh_token ?? spotify.refresh_token,
-          //   },
-          //   where: {
-          //     provider_providerAccountId: {
-          //       provider: "spotify",
-          //       providerAccountId: spotify.providerAccountId,
-          //     },
-          //   },
-          // })
           await db
             .update(accounts)
             .set({
@@ -123,6 +111,8 @@ export const authOptions: NextAuthOptions = {
           session.error = "RefreshAccessTokenError";
         }
       }
+
+      session.user.providerAccountId = spotify?.providerAccountId!;
       return session;
     },
   },

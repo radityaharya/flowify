@@ -4,19 +4,34 @@ import { authOptions } from "@/server/auth";
 import { getToken } from "next-auth/jwt";
 import { Runner } from "~/lib/workflow/Workflow";
 import { type Workflow } from "~/lib/workflow/types";
-
-
-const secret = process.env.NEXTAUTH_SECRET;
+import { getAccessTokenFromProviderAccountId } from "~/server/db/helper";
 
 export async function POST(request: NextRequest) {
 
-  const accessToken = {
-    slug: "",
-    access_token: ""
+  const session = await getServerSession({ req: request, ...authOptions });
+  console.log(session)
+
+  if (!session) {
+    return NextResponse.redirect("/api/auth/signin");
   }
-  const runner = new Runner(accessToken);
+
+  const accessToken = await getAccessTokenFromProviderAccountId(session.user.providerAccountId);
+
+  if (!accessToken) {
+    return NextResponse.redirect("/api/auth/signin");
+  }
+
+  console.log(accessToken)
+
+  // TODO: Change accessToken structure
+  const runner = new Runner({
+    slug: "spotify",
+    access_token: accessToken,
+  });
 
   const workflow = await request.json() as Workflow;
+
+  console.log(JSON.parse(JSON.stringify(workflow)));
 
   let res: any
   try {
