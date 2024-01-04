@@ -113,6 +113,7 @@ export const authOptions: NextAuthOptions = {
       }
 
       session.user.providerAccountId = spotify?.providerAccountId!;
+      session.user.id = user.id;
       return session;
     },
   },

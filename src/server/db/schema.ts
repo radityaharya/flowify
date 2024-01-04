@@ -52,7 +52,7 @@ export const accounts = mysqlTable(
     session_state: varchar("session_state", { length: 255 }),
   },
   (account) => ({
-    compoundKey: primaryKey(account.provider, account.providerAccountId),
+    compoundKey: primaryKey({columns: [account.provider, account.providerAccountId]}),
     userIdIdx: index("userId_idx").on(account.userId),
   })
 );
@@ -87,6 +87,27 @@ export const verificationTokens = mysqlTable(
     expires: timestamp("expires", { mode: "date" }).notNull(),
   },
   (vt) => ({
-    compoundKey: primaryKey(vt.identifier, vt.token),
+    compoundKey: primaryKey({columns: [vt.identifier, vt.token]}),
   })
 );
+
+export const workflowJobs = mysqlTable(
+  "workflowJob",
+  {
+    id: varchar("id", { length: 255 }).notNull().primaryKey(),
+    workflow: text("workflow"),
+    status: varchar("status", { length: 255 }),
+    error: text("error"),
+    startedAt: timestamp("startedAt", { mode: "date" }),
+    completedAt: timestamp("completedAt", { mode: "date" }),
+    userId: varchar("userId", { length: 255 }).notNull(),
+  },
+  (workflowJob) => ({
+    userIdIdx: index("userId_idx").on(workflowJob.userId),
+    workflowIdIdx: index("workflowId_idx").on(workflowJob.id),
+  })
+);
+
+export const workflowJobsRelations = relations(workflowJobs, ({ one }) => ({
+  user: one(users, { fields: [workflowJobs.userId], references: [users.id] }),
+}));

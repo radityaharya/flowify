@@ -1,5 +1,5 @@
-import fs from "fs";
-import path from "path";
+// import fs from "fs";
+// import path from "path";
 enum LogLevel {
   DEBUG,
   INFO,
@@ -34,36 +34,36 @@ class Logger {
 
   debug(message: string, data?: any, saveToFile?: boolean): void {
     this.log(LogLevel.DEBUG, message, data);
-    if (false) {
-      const filePath = path.join(__dirname, "debug.json");
-      const logEntry = { message, data, timestamp: new Date().toISOString() };
+    // if (false) {
+    //   const filePath = path.join(__dirname, "debug.json");
+    //   const logEntry = { message, data, timestamp: new Date().toISOString() };
 
-      let json: { message: string; data: any; timestamp: string }[] = [];
+    //   let json: { message: string; data: any; timestamp: string }[] = [];
 
-      try {
-        const fileData = fs.readFileSync(filePath, "utf8");
-        if (fileData.trim() !== "") {
-          json = JSON.parse(fileData);
-        }
-      } catch (e) {
-        console.error("Error reading or parsing file", e);
-      }
+    //   try {
+    //     const fileData = fs.readFileSync(filePath, "utf8");
+    //     if (fileData.trim() !== "") {
+    //       json = JSON.parse(fileData);
+    //     }
+    //   } catch (e) {
+    //     console.error("Error reading or parsing file", e);
+    //   }
 
-      json.push(logEntry);
+    //   json.push(logEntry);
 
-      json.sort(
-        (
-          a: { timestamp: string | number | Date },
-          b: { timestamp: string | number | Date }
-        ) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-      );
+    //   json.sort(
+    //     (
+    //       a: { timestamp: string | number | Date },
+    //       b: { timestamp: string | number | Date }
+    //     ) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+    //   );
 
-      try {
-        fs.writeFileSync(filePath, JSON.stringify(json, null, 2), "utf8");
-      } catch (e) {
-        console.error("Error writing file", e);
-      }
-    }
+    //   try {
+    //     fs.writeFileSync(filePath, JSON.stringify(json, null, 2), "utf8");
+    //   } catch (e) {
+    //     console.error("Error writing file", e);
+    //   }
+    // }
   }
 
   info(message: string, data?: any): void {
