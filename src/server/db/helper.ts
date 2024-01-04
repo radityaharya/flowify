@@ -7,7 +7,7 @@ async function getAccessToken(whereClause: any) {
   const user = await db.query.accounts.findFirst({ where: whereClause });
 
   if (user && user.expires_at! * 1000 < Date.now()) {
-    console.debug("Refreshing access token for user", user.userId);
+    // console.debug("Refreshing access token for user", user.userId);
     try {
       const response = await fetch("https://accounts.spotify.com/api/token", {
         method: "POST",

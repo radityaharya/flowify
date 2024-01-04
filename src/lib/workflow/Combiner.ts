@@ -5,7 +5,9 @@ import { Base } from "./Base";
 import type { Operation } from "./types";
 import _ from "radash";
 import type { AccessToken } from './Base'
+import { Logger } from '../log'
 
+const log = new Logger("Combiner");
 export default class Combiner extends Base {
   constructor(accessToken: AccessToken){
     super(accessToken);
@@ -13,8 +15,8 @@ export default class Combiner extends Base {
 
   static push(sources: any[], params: {}) {
     const startTime = new Date().getTime();
-    console.debug("Push Sources:", sources, true);
-    console.info("Pushing...");
+    log.debug("Push Sources:", sources, true);
+    log.info("Pushing...");
     const result = [] as SpotifyApi.PlaylistTrackObject[];
     sources.forEach((source) => {
       if (source.tracks) {
@@ -22,12 +24,12 @@ export default class Combiner extends Base {
       } else if (Array.isArray(source)) {
         result.push(...source);
       } else {
-        console.error("Invalid source type:", typeof source);
+        log.error("Invalid source type:", typeof source);
       }
     });
-    // //console.log("Result:", result);
+    // //log.log("Result:", result);
     const endTime = new Date().getTime();
-    //console.log("Push time:", endTime - startTime);
+    //log.log("Push time:", endTime - startTime);
     return result;
   }
 
@@ -39,8 +41,8 @@ export default class Combiner extends Base {
 
   static alternate(sources: any[], params: {}) {
     const startTime = new Date().getTime();
-    console.debug("Alternate Sources:", sources, true);
-    console.info("Alternating...");
+    log.debug("Alternate Sources:", sources, true);
+    log.info("Alternating...");
     const result = [] as SpotifyApi.PlaylistTrackObject[];
     let longestSourceLength = 0;
 
@@ -74,7 +76,7 @@ export default class Combiner extends Base {
     }
 
     const endTime = new Date().getTime();
-    //console.log("Alternate time:", endTime - startTime);
+    //log.log("Alternate time:", endTime - startTime);
     return result;
   }
 }

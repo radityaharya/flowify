@@ -21,10 +21,10 @@ class Logger {
       const currentTimestamp = Date.now();
       const timestamp = new Date(currentTimestamp).toISOString();
       console.log(`[${LogLevel[level]}] ${timestamp} ${this.name}: ${message}`);
-      if (this.lastLogTimestamp) {
-        const timeDifference = currentTimestamp - this.lastLogTimestamp;
-        console.log(`Time since last log: ${timeDifference} ms`);
-      }
+      // if (this.lastLogTimestamp) {
+      //   const timeDifference = currentTimestamp - this.lastLogTimestamp;
+      //   console.log(`Time since last log: ${timeDifference} ms`);
+      // }
       this.lastLogTimestamp = currentTimestamp;
       if (data) {
         console.log(data instanceof Object ? JSON.stringify(data) : data);
@@ -33,7 +33,7 @@ class Logger {
   }
 
   debug(message: string, data?: any, saveToFile?: boolean): void {
-    this.log(LogLevel.INFO, message, data);
+    this.log(LogLevel.DEBUG, message, data);
     if (false) {
       const filePath = path.join(__dirname, "debug.json");
       const logEntry = { message, data, timestamp: new Date().toISOString() };

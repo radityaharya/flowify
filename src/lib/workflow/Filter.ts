@@ -4,9 +4,9 @@ import { Base } from "./Base";
 import type { Operation } from "./types";
 import * as _ from "radash";
 import type { AccessToken } from './Base'
-import {Logger} from '../log'
+import { Logger } from '../log'
 
-const log = new Logger("Filter");
+const log = new Logger("Workflow");
 export default class Filter extends Base {
   constructor(accessToken: AccessToken){
     super(accessToken);

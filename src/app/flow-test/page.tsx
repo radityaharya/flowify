@@ -9,7 +9,6 @@ const Page = () => {
     setJsonValue(event.target.value);
   };
 
-
   const workflow = {
     name: "spotify-playlist",
     sources: [
@@ -48,9 +47,7 @@ const Page = () => {
   };
 
   const handleSubmit = () => {
-
     console.log("builtin workflow: ", JSON.stringify(workflow, null, 2));
-
     fetch('/api/workflow', {
       method: 'POST',
       headers: {
@@ -83,7 +80,7 @@ const Page = () => {
         Send JSON
       </button>
       {response && (
-        <div className="mt-4 p-2 bg-gray-200 rounded">
+        <div className="mt-4 p-2 bg-gray-200 rounded  max-h-64 overflow-auto">
           <pre>{JSON.stringify(response, null, 2)}</pre>
         </div>
       )}

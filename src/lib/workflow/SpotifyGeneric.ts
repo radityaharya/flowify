@@ -24,7 +24,7 @@ export default class SpotifyGeneric extends Base {
     const result = await this.spClient.playlists.getPlaylistItems(playlistId);
     const endTime = new Date().getTime();
     console.info("Got playlist tracks");
-    console.debug("Playlist tracks:", result, true);
+    // console.debug("Playlist tracks:", result, true);
     console.info("Get playlist tracks time:", endTime - startTime);
     return result;
   }

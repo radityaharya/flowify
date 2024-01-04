@@ -4,10 +4,52 @@ import { Base } from "./Base";
 import type { AccessToken } from "./Base";
 import Filter from "./Filter";
 import Combiner from "./Combiner";
-// import Utility from "./Utility";
-// import Order from "./Order";
-// import Playlist from "./Playlist";
-// import SpotifyGeneric from "./SpotifyGeneric";
+import Utility from "./Utility";
+import Order from "./Order";
+import Playlist from "./Playlist";
+
+const operationParamsTypesMap = {
+  "Filter.filter": {
+    filterKey: { type: "string", required: true },
+    filterValue: { type: "string", required: true },
+  },
+  "Filter.dedupeTracks": {},
+  "Filter.dedupeArtists": {},
+  "Filter.match": {
+    matchKey: { type: "string", required: true },
+    matchValue: { type: "string", required: true },
+  },
+  "Filter.limit": {
+    limit: { type: "number", required: true },
+  },
+  "Combiner.push": {},
+  "Combiner.alternate": {},
+  "Utility.save": {},
+  "Utility.removeKeys": {
+    keys: { type: "string[]", required: true },
+  },
+  "Utility.includeOnlyKeys": {
+    keys: { type: "string[]", required: true },
+  },
+  "Utility.summary": {},
+  "Order.sort": {
+    sortKey: { type: "string", required: true },
+    sortOrder: { type: "string", required: true },
+  },
+  "Order.shuffle": {},
+  "Playlist.saveAsNew": {
+    name: { type: "string", required: true },
+    isPublic: { type: "boolean" },
+    collaborative: { type: "boolean" },
+    description: { type: "string" },
+  },
+  "Playlist.saveAsAppend": {
+    playlistId: { type: "string", required: true },
+  },
+  "Playlist.saveAsReplace": {
+    playlistId: { type: "string", required: true },
+  },
+} as Record<string, Record<string, { type: string; required?: boolean }>>;
 
 import type {
   Source,
@@ -19,9 +61,9 @@ import * as _ from "radash";
 interface Operations {
   Filter: typeof Filter;
   Combiner: typeof Combiner;
-  // Utility: typeof Utility;
-  // Order: typeof Order;
-  // Playlist: typeof Playlist;
+  Utility: typeof Utility;
+  Order: typeof Order;
+  Playlist: typeof Playlist;
   [key: string]: any;
 }
 export class Runner extends Base {
@@ -32,9 +74,9 @@ export class Runner extends Base {
   operations: Operations = {
     Filter,
     Combiner,
-    // Utility,
-    // Order,
-    // Playlist,
+    Utility,
+    Order,
+    Playlist,
   };
 
   async fetchSourceValues(workflow: Workflow, skipCache = false) {
@@ -58,6 +100,8 @@ export class Runner extends Base {
     return sourceValues;
   };
   
+
+  // TODO: rework source fetching to use the same method as operations
   async fetchSources(
     operation: Operation,
     sourceValues: Map<string, any>,
@@ -89,28 +133,30 @@ export class Runner extends Base {
   async runOperation(
     operationId: string,
     sourceValues: Map<string, any>,
-    workflow: Workflow
+    workflow: Workflow,
   ) {
     const operation = workflow.operations.find((op) => op.id === operationId);
     if (!operation) {
       console.error(`Operation ${operationId} not found.`);
       return;
     }
-  
+
     const sources = await this.fetchSources(operation, sourceValues, workflow);
-  
+
     // Split the operation type into class name and method name
     const [className, methodName] = operation.type.split(".") as [
       keyof Operations,
       keyof Operations[keyof Operations]
     ];
-  
+
     // Get the class from the operations object
     const operationClass = this.operations[className];
-  
-    // Call the method on the class
-    const result = await operationClass[methodName](sources, operation.params);
-  
+
+    // Check if the class is Playlist and pass spClient if it is
+    const result = className === 'Playlist'
+      ? await operationClass[methodName](this.spClient, sources, operation.params)
+      : await operationClass[methodName](sources, operation.params);
+
     sourceValues.set(operationId, result);
     return result;
   };
@@ -138,50 +184,6 @@ export class Runner extends Base {
   
     return sortedOperations;
   };
-  
-  operationParamsTypesMap = {
-    "Filter.filter": {
-      filterKey: { type: "string", required: true },
-      filterValue: { type: "string", required: true },
-    },
-    "Filter.dedupeTracks": {},
-    "Filter.dedupeArtists": {},
-    "Filter.match": {
-      matchKey: { type: "string", required: true },
-      matchValue: { type: "string", required: true },
-    },
-    "Filter.limit": {
-      limit: { type: "number", required: true },
-    },
-    "Combiner.push": {},
-    "Combiner.alternate": {},
-    "Utility.save": {},
-    "Utility.removeKeys": {
-      keys: { type: "string[]", required: true },
-    },
-    "Utility.includeOnlyKeys": {
-      keys: { type: "string[]", required: true },
-    },
-    "Utility.summary": {},
-    "Order.sort": {
-      sortKey: { type: "string", required: true },
-      sortOrder: { type: "string", required: true },
-    },
-    "Order.shuffle": {},
-    "Playlist.saveAsNew": {
-      name: { type: "string", required: true },
-      isPublic: { type: "boolean" },
-      collaborative: { type: "boolean" },
-      description: { type: "string" },
-    },
-    "Playlist.saveAsAppend": {
-      playlistId: { type: "string", required: true },
-    },
-    "Playlist.saveAsReplace": {
-      playlistId: { type: "string", required: true },
-    },
-  } as Record<string, Record<string, { type: string; required?: boolean }>>;
-  
   validateWorkflow(workflow: Workflow, operations: Operations) {
     const sourceIds = new Set(workflow.sources.map((source) => source.id));
     const operationIds = new Set();
@@ -232,7 +234,7 @@ export class Runner extends Base {
         );
       }
   
-      const operationParams = this.operationParamsTypesMap[operation.type] as Record<
+      const operationParams = operationParamsTypesMap[operation.type] as Record<
         string,
         { type: string; required?: boolean }
       >;
