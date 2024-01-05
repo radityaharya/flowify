@@ -21,7 +21,7 @@ import ReactFlow, {
 
 import 'reactflow/dist/style.css';
 
-import Source from './nodes/Source';
+import Playlist from './nodes/Source/Playlist';
 
 let id = 0;
 const getId = () => `dndnode_${id++}`;
@@ -29,7 +29,7 @@ const getId = () => `dndnode_${id++}`;
 const snapGrid = [20, 20];
 
 const nodeTypes = {
-  source: Source,
+  source: Playlist,
 };
 export default function App({
   nodes: initNodes,

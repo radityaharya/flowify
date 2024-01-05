@@ -7,8 +7,7 @@ import Combiner from "./Combiner";
 import Utility from "./Utility";
 import Order from "./Order";
 import Playlist from "./Playlist";
-
-const operationParamsTypesMap = {
+export const operationParamsTypesMap = {
   "Filter.filter": {
     filterKey: { type: "string", required: true },
     filterValue: { type: "string", required: true },
@@ -53,7 +52,7 @@ const operationParamsTypesMap = {
 
 import type { Source, Operation, Workflow } from "./types";
 
-import * as _ from "radash";
+// import * as _ from "radash";
 interface Operations {
   Filter: typeof Filter;
   Combiner: typeof Combiner;

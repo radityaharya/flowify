@@ -9,6 +9,9 @@ const config = {
   experimental: {
     instrumentationHook: true,
   },
+  images: {
+    domains: ["i.scdn.co"],
+  },
 };
 
 export default config;
