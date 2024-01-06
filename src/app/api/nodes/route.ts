@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/server/auth";
 import { getToken } from "next-auth/jwt";
 
-import { type Edge, type Node, type Position } from "reactflow";
+import { type Edge, type Node, type Position } from "@xyflow/react";
 
 // const secret = process.env.NEXTAUTH_SECRET;
 

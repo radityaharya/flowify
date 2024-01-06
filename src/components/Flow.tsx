@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-'use client';
+"use client";
 
-import React, { useState, useRef, useCallback } from 'react';
-import ReactFlow, {
+import React, { useState, useRef, useCallback } from "react";
+import {
+  ReactFlow,
   addEdge,
   type Node,
   type Edge,
@@ -17,65 +18,59 @@ import ReactFlow, {
   useNodesState,
   ReactFlowProvider,
   ReactFlowInstance,
-} from 'reactflow';
+} from "@xyflow/react";
 
-import 'reactflow/dist/style.css';
+import useStore from "~/app/states/store";
 
-import Playlist from './nodes/Source/Playlist';
+import { v4 as uuidv4 } from "uuid";
 
-let id = 0;
-const getId = () => `dndnode_${id++}`;
+import "@xyflow/react/dist/style.css";
 
-const snapGrid = [20, 20];
+import Playlist from "./nodes/Source/Playlist";
+
+import { useShallow } from 'zustand/react/shallow'
 
 const nodeTypes = {
   source: Playlist,
 };
-export default function App({
-  nodes: initNodes,
-  edges: initEdges,
-}: {
-  nodes: Node[];
-  edges: Edge[];
-}) {
+export default function App() {
   const reactFlowWrapper = useRef(null);
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-  const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
+    const {
+    nodes,
+    edges,
+    onNodesChange,
+    onEdgesChange,
+    addEdge,
+    addNode,
+    setNodes,
+    setEdges,
+  } = useStore(useShallow((state) => ({
+    nodes: state.nodes,
+    edges: state.edges,
+    onNodesChange: state.onNodesChange,
+    onEdgesChange: state.onEdgesChange,
+    addEdge: state.addEdge,
+    addNode: state.addNode,
+    setNodes: state.setNodes,
+    setEdges: state.setEdges,
+  })));
 
-  // const onNodesChange: OnNodesChange = useCallback(
-  //   (chs) => {
-  //     setNodes((nds) => applyNodeChanges(chs, nds));
-  //   },
-  //   [setNodes]
-  // );
-
-  // const onEdgesChange: OnEdgesChange = useCallback(
-  //   (chs) => {
-  //     setEdges((eds) => applyEdgeChanges(chs, eds));
-  //   },
-  //   [setEdges]
-  // );
-  
-
-  const onConnect: OnConnect = useCallback(
-    (params) => setEdges((eds) => addEdge(params, eds)),
-    [setEdges]
-  );
+  const [reactFlowInstance, setReactFlowInstance] =
+    useState<ReactFlowInstance | null>(null);
 
   const onDragOver = useCallback((event) => {
     event.preventDefault();
-    event.dataTransfer.dropEffect = 'move';
+    event.dataTransfer.dropEffect = "move";
   }, []);
 
   const onDrop = useCallback(
     (event) => {
       event.preventDefault();
 
-      const type = event.dataTransfer.getData('application/reactflow');
+      const type = event.dataTransfer.getData("application/reactflow");
 
       // check if the dropped element is valid
-      if (typeof type === 'undefined' || !type) {
+      if (typeof type === "undefined" || !type) {
         return;
       }
 
@@ -87,50 +82,41 @@ export default function App({
         y: event.clientY,
       });
       const newNode = {
-        id: getId(),
+        id: uuidv4(),
         type,
         position,
-        data: { label: `${type} node` },
+        data: {},
       };
 
-      setNodes((nds) => nds.concat(newNode));
+      addNode(newNode);
     },
     [reactFlowInstance],
   );
 
-  // return (
-  //     <ReactFlow
-  //       nodes={nodes}
-  //       edges={edges}
-  //       onNodesChange={onNodesChange}
-  //       onEdgesChange={onEdgesChange}
-  //       onConnect={onConnect}
-  //     >
-  //       <Background color="#000" gap={24} />
-  //     </ReactFlow>
-  // );
-
   return (
     <div className="dndflow h-full w-full">
-        <div className="reactflow-wrapper h-full w-full" ref={reactFlowWrapper}>
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            onInit={setReactFlowInstance}
-            onDrop={onDrop}
-            onDragOver={onDragOver}
-            fitView
-            snapToGrid={true}
-            nodeTypes={nodeTypes}
-            snapGrid={[20, 20]}
-          >
-            <Controls />
-            <Background color="#aaa" gap={24} className='dark:bg-gray-800' />
-          </ReactFlow>
-        </div>
+      <div className="reactflow-wrapper h-full w-full" ref={reactFlowWrapper}>
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={addEdge}
+          onInit={setReactFlowInstance}
+          onDrop={onDrop}
+          onDragOver={onDragOver}
+          // fitView
+          // snapToGrid={true}
+          nodeTypes={nodeTypes}
+          // snapGrid={[20, 20]}
+          zoomOnPinch={false}
+          zoomOnScroll={false}
+          zoomOnDoubleClick={false}
+        >
+          <Controls />
+          <Background color="#aaa" gap={24} className="dark:bg-gray-800" />
+        </ReactFlow>
+      </div>
     </div>
   );
 }

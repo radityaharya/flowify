@@ -72,6 +72,7 @@ export const authOptions: NextAuthOptions = {
       // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
       if (spotify?.expires_at! * 1000 < Date.now()) {
         // If the access token has expired, try to refresh it
+        console.log("Refreshing access token for user", user.id);
         try {
           const response = await fetch(
             "https://accounts.spotify.com/api/token",

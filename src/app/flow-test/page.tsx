@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 const Page = () => {
   const [jsonValue, setJsonValue] = useState('');
   const [response, setResponse] = useState('');
+  const [jobId, setJobId] = useState<string | null>(null);
 
   const handleTextareaChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setJsonValue(event.target.value);
@@ -46,6 +47,31 @@ const Page = () => {
     ],
   };
 
+  React.useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+    console.log("jobId: ", jobId);
+    if (jobId) {
+      intervalId = setInterval(() => {
+        console.log("fetching job: ", jobId);
+        fetch(`/api/workflow/${jobId}`)
+          .then(response => response.json())
+          .then(data => {
+            setResponse(data as string);
+          })
+          .catch(error => {
+            console.error(error);
+          });
+      }, 2500);
+    }
+  
+    // Clear interval on component unmount
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [jobId]);
+
   const handleSubmit = () => {
     console.log("builtin workflow: ", JSON.stringify(workflow, null, 2));
     fetch('/api/workflow', {
@@ -59,6 +85,7 @@ const Page = () => {
       .then(data => {
         // Handle the response from the server
         setResponse(data as string);
+        setJobId(data.job.id);
       })
       .catch(error => {
         // Handle any errors
@@ -80,7 +107,7 @@ const Page = () => {
         Send JSON
       </button>
       {response && (
-        <div className="mt-4 p-2 bg-gray-200 rounded  max-h-64 overflow-auto">
+        <div className="mt-4 p-2 bg-gray-200 rounded  max-h-64 max-w-lg overflow-auto">
           <pre>{JSON.stringify(response, null, 2)}</pre>
         </div>
       )}

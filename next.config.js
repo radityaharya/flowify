@@ -10,7 +10,17 @@ const config = {
     instrumentationHook: true,
   },
   images: {
-    domains: ["i.scdn.co"],
+    // domains: ["i.scdn.co", "mosaic.scdn.co", "image-cdn-fa.spotifycdn.com", "image-cdn-ak.spotifycdn.com", "image-cdn-ak.spotifycdn.com"],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "**.scdn.co",
+      },
+      {
+        protocol: "https",
+        hostname: "**.spotifycdn.com",
+      },
+    ],
   },
 };
 
