@@ -84,6 +84,8 @@ type Playlist = {
   name?: string;
   description?: string;
   image?: string;
+  total?:number;
+  owner?:string;
 };
 
 const formSchema = z.object({
@@ -111,8 +113,8 @@ const PlaylistItem = ({
         height={32}
       />
       <div className="flex flex-col">
-        <div className="text-sm font-medium">{playlist.name}</div>
-        <div className="text-xs text-gray-400">{playlist.description}</div>
+        <span className="text-sm font-medium">{playlist.name}</span>
+        <span className="text-xs text-gray-400">{playlist.owner} - {playlist.total} tracks</span>
       </div>
     </div>
   </CommandItem>
@@ -123,6 +125,7 @@ const PlaylistComponent: React.FC<PlaylistProps> = React.memo(({ id, data }) => 
   const [selectedPlaylist, setSelectedPlaylist] = React.useState<Playlist>({});
   const userPlaylists = useStore((state) => state.userPlaylists);
 
+  const nodes = useStore((state) => state.nodes);
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -151,6 +154,7 @@ const PlaylistComponent: React.FC<PlaylistProps> = React.memo(({ id, data }) => 
     if (JSON.stringify(prevWatchRef.current) !== JSON.stringify(watch)) {
       updateNodeData(id, {
         ...watch,
+        ...selectedPlaylist,
       });
     }
     prevWatchRef.current = watch;
@@ -164,6 +168,9 @@ const PlaylistComponent: React.FC<PlaylistProps> = React.memo(({ id, data }) => 
     setOpen(false);
   }, []);
 
+  function getNodeData(id: string) {
+    return nodes.find((node) => node.id === id)?.data;
+  }
 
   return (
     <CardWithHeader
@@ -175,6 +182,11 @@ const PlaylistComponent: React.FC<PlaylistProps> = React.memo(({ id, data }) => 
       <Handle
         type="source"
         position={Position.Right}
+        style={{ background: "#555" }}
+      />
+      <Handle
+        type="target"
+        position={Position.Left}
         style={{ background: "#555" }}
       />
       <Form {...form}>
@@ -194,20 +206,20 @@ const PlaylistComponent: React.FC<PlaylistProps> = React.memo(({ id, data }) => 
                       className="h-[min-content] w-full justify-between"
                     >
                       {selectedPlaylist.image ? (
-                        <div className="flex items-start gap-2">
+                        <div className="flex items-center gap-4 max-w-full">
                           <Image
-                            className="h-8 w-8 rounded-sm"
+                            className="h-10 w-10 rounded-sm"
                             src={selectedPlaylist.image}
                             alt=""
-                            width={32}
-                            height={32}
+                            width={40}
+                            height={40}
                           />
-                          <div className="flex flex-col items-start">
-                            <div className="text-sm font-medium text-white">
+                          <div className="flex flex-col items-start w-[160px]">
+                            <div className="text-sm font-medium max-w-full overflow-hidden whitespace-nowrap overflow-ellipsis">
                               {selectedPlaylist.name}
                             </div>
-                            <div className="text-xs text-gray-400">
-                              {selectedPlaylist.description}
+                            <div className="text-xs opacity-80">
+                              {selectedPlaylist.owner} - {selectedPlaylist.total} tracks
                             </div>
                           </div>
                         </div>
@@ -242,6 +254,8 @@ const PlaylistComponent: React.FC<PlaylistProps> = React.memo(({ id, data }) => 
                                   name: "loading",
                                   description: "loading",
                                   image: "",
+                                  owner: "loading",
+                                  total: 0,
                                 });
                                 setOpen(false);
                               }}
@@ -249,10 +263,10 @@ const PlaylistComponent: React.FC<PlaylistProps> = React.memo(({ id, data }) => 
                               <div className="flex items-center gap-2">
                                 <div className="h-8 w-8 animate-pulse rounded-md bg-gray-700"></div>
                                 <div className="flex animate-pulse flex-col">
-                                  <div className="animate-pulse text-sm font-medium text-white">
+                                  <div className="animate-pulse text-sm font-medium">
                                     loading...
                                   </div>
-                                  <div className="animate-pulse text-xs text-gray-400">
+                                  <div className="animate-pulse text-xs opacity-80">
                                     loading...
                                   </div>
                                 </div>
@@ -307,20 +321,39 @@ const PlaylistComponent: React.FC<PlaylistProps> = React.memo(({ id, data }) => 
           </Accordion>
         </form>
       </Form>
+      <Separator />
+          <div className="whitespace-pre-wrap rounded-md bg-red-500 p-2 py-2">
+            <pre className="whitespace-pre-wrap text-sm font-bold">
+              Debug info
+            </pre>
+            <pre>
+              <pre className="text-xs">id: {id}</pre>
+              <pre className="text-xs">isValid: {formState.isValid.toString()}</pre>
+              <pre className="text-xs whitespace-pre-wrap break-all">data: {JSON.stringify(getNodeData(id), null, 2)}</pre>
+            </pre>
+            <ScrollArea className="nodrag flex max-h-[200px] flex-col gap-2 overflow-auto overflow-x-hidden py-2">
+              <pre className="text-xs">TargetConnections:</pre>
+              {TargetConnections?.map((connection) => (
+                <pre key={connection.source} className="py-1 text-xs">
+                  <pre>source: {connection.source}</pre>
+                  <pre className="whitespace-pre-wrap break-all">
+                    {JSON.stringify(getNodeData(connection.source), null, 2)}
+                  </pre>
+                </pre>
+              ))}
+
+              <pre className="text-xs">SourceConnections:</pre>
+              {SourceConnections?.map((connection) => (
+                <pre key={connection.source} className="py-1 text-xs">
+                  <pre>source: {connection.source}</pre>
+                  <pre className="whitespace-pre-wrap break-all">
+                    {JSON.stringify(getNodeData(connection.target), null, 2)}
+                  </pre>
+                </pre>
+              ))}
+            </ScrollArea>
+          </div>
       <CardFooter>
-        {/* <Button
-          variant="default"
-          className="w-full"
-          onClick={() => {
-            console.log("nodeData", nodeData);
-            console.log("TargetConnections", TargetConnections);
-            console.log("SourceConnections", SourceConnections);
-            console.log("errors", formState.errors);
-          }}
-        >
-          <Check className="mr-2 h-4 w-4" />
-          debug
-        </Button> */}
       </CardFooter>
     </CardWithHeader>
   );

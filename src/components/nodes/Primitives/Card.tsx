@@ -44,20 +44,21 @@ export function CardWithHeader({
   className,
 }: CardWithHeaderProps) {
   return (
-    <Card className={cn("w-[350px] border dark:border-gray-100 flex flex-col gap-2", className)}>
+    <Card className={cn("w-[350px] border dark:border-gray-600 flex flex-col gap-2", className)}>
       <div className="flex w-full flex-row gap-2 rounded-lg bg-purple-100 p-2 dark:bg-gray-800">
         <DotIcon
           size={24}
           className={cn("text-gray-500", {
             "text-red-400": status === "error",
             "text-green-400": status === "success",
+            "text-gray-500": status === "loading",
           })}
         />
         <span className="text-sm font-medium">{type} :</span>
         <span className="text-sm font-medium">{title}</span>
       </div>
       {info && (
-        <div className="flex flex-col gap-6 p-6">
+        <div className="flex flex-col gap-6 p-6 py-3">
           <div className="flex flex-row gap-2">
             <InfoIcon size={16} className="mt-[4px] min-w-4" />
             <p className="text-sm font-medium opacity-80">

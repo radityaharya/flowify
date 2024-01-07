@@ -55,6 +55,8 @@ export async function GET(
     name: playlist.name,
     description: playlist.description,
     image: playlist.images[0]?.url,
+    total: playlist.tracks.total,
+    owner: playlist.owner.display_name,
   }));
 
   return NextResponse.json(playlists);

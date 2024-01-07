@@ -31,7 +31,6 @@ export async function GET(request: NextRequest) {
       position: { x: 250, y: 5 },
       width: 100,
       height: 40,
-      // @ts-expect-error v12 feature
       handles: [
         {
           type: "source",
@@ -49,24 +48,24 @@ export async function GET(request: NextRequest) {
       position: { x: 100, y: 100 },
       width: 100,
       height: 40,
-      // handles: [
-      //   {
-      //     type: 'source',
-      //     position: 'bottom' as Position,
-      //     x: nodeSize.width * 0.5,
-      //     y: nodeSize.height,
-      //     width: 1,
-      //     height: 1,
-      //   },
-      //   {
-      //     type: 'target',
-      //     position: 'top' as Position,
-      //     x: nodeSize.width * 0.5,
-      //     y: 0,
-      //     width: 1,
-      //     height: 1,
-      //   },
-      // ],
+      handles: [
+        {
+          type: 'source',
+          position: 'bottom' as Position,
+          x: nodeSize.width * 0.5,
+          y: nodeSize.height,
+          width: 1,
+          height: 1,
+        },
+        {
+          type: 'target',
+          position: 'top' as Position,
+          x: nodeSize.width * 0.5,
+          y: 0,
+          width: 1,
+          height: 1,
+        },
+      ],
     },
     {
       id: "3",
@@ -74,24 +73,24 @@ export async function GET(request: NextRequest) {
       position: { x: 400, y: 100 },
       width: 100,
       height: 40,
-      // handles: [
-      //   {
-      //     type: 'source',
-      //     position: 'bottom' as Position,
-      //     x: nodeSize.width * 0.5,
-      //     y: nodeSize.height,
-      //     width: 1,
-      //     height: 1,
-      //   },
-      //   {
-      //     type: 'target',
-      //     position: 'top' as Position,
-      //     x: nodeSize.width * 0.5,
-      //     y: 0,
-      //     width: 1,
-      //     height: 1,
-      //   },
-      // ],
+      handles: [
+        {
+          type: 'source',
+          position: 'bottom' as Position,
+          x: nodeSize.width * 0.5,
+          y: nodeSize.height,
+          width: 1,
+          height: 1,
+        },
+        {
+          type: 'target',
+          position: 'top' as Position,
+          x: nodeSize.width * 0.5,
+          y: 0,
+          width: 1,
+          height: 1,
+        },
+      ],
     },
   ];
 

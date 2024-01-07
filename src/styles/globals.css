@@ -74,3 +74,19 @@
     @apply bg-background text-foreground;
   }
 }
+
+.react-flow__controls-button {
+  background-color: var(--card) !important;
+  color: var(--card-foreground) !important;
+  border-color: var(--card-foreground) !important;
+}
+
+.react-flow__controls-button:hover {
+  background-color: var(--card) !important;
+  color: var(--card-foreground) !important;
+  border-color: var(--border) !important;
+}
+
+.react-flow__controls-button path {
+  fill: var(--card-foreground) !important;
+}

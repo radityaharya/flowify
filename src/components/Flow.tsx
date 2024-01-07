@@ -27,11 +27,13 @@ import { v4 as uuidv4 } from "uuid";
 import "@xyflow/react/dist/style.css";
 
 import Playlist from "./nodes/Source/Playlist";
+import Alternate from "./nodes/Combiner/Alternate";
 
 import { useShallow } from 'zustand/react/shallow'
 
 const nodeTypes = {
-  source: Playlist,
+  "Source.playlist": Playlist,
+  "Combiner.alternate": Alternate,
 };
 export default function App() {
   const reactFlowWrapper = useRef(null);

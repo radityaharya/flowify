@@ -9,22 +9,22 @@ import {
   useEdgesState,
 } from "@xyflow/react";
 
-import styles from "./page.module.css";
+// import styles from "./page.module.css";
 import Flow from "../../components/Flow";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { Input } from "src/components/ui/input";
-import {
-  CardTitle,
-  CardDescription,
-  CardHeader,
-  CardContent,
-  Card,
-} from "src/components/ui/card";
-import { Button } from "src/components/ui/button";
+// import {
+//   CardTitle,
+//   CardDescription,
+//   CardHeader,
+//   CardContent,
+//   Card,
+// } from "src/components/ui/card";
+// import { Button } from "src/components/ui/button";
 
-import { useCallback } from "react";
-import { useReactFlow } from "@xyflow/react";
+// import { useCallback } from "react";
+// import { useReactFlow } from "@xyflow/react";
 import { useShallow } from 'zustand/react/shallow'
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -76,7 +76,7 @@ function Builder() {
   } , [session?.user?.providerAccountId]);
 
   return (
-    <div className="flex h-screen flex-col dark">
+    <div className="flex h-screen flex-col">
       <main className="grid h-screen grid-cols-4">
         <aside className="col-span-1 flex max-h-screen flex-col border-r dark:border-gray-800 bg-gray-50 dark:bg-gray-900">
           <div className="flex-none px-4 pt-4">
@@ -106,8 +106,8 @@ function Builder() {
           </div>
           <div className="flex flex-col flex-grow overflow-auto border-r gap-4 p-4 dark:border-gray-800">
             <DragableNode nodeType="input" />
-            <DragableNode nodeType="source" />
-            <DragableNode nodeType="source" />
+            <DragableNode nodeType="Source.playlist" />
+            <DragableNode nodeType="Combiner.alternate" />
             <DragableNode nodeType="source" />
             <DragableNode nodeType="source" />
             <DragableNode nodeType="source" />
