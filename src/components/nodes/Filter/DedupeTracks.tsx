@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
@@ -94,7 +95,7 @@ export function AlertComponent({
   );
 }
 
-const AlternateComponent: React.FC<PlaylistProps> = React.memo(
+const DedupeTracksComponent: React.FC<PlaylistProps> = React.memo(
   ({ id, data }) => {
     const nodes = useStore(useShallow((state) => state.nodes));
     const [state, setState] = React.useState<State>({
@@ -118,32 +119,50 @@ const AlternateComponent: React.FC<PlaylistProps> = React.memo(
 
     const { updateNodeData } = useReactFlow();
     React.useEffect(() => {
-      let valid = false;
-      let playlists: Playlist[] = [];
+      let valid = true;
+      const playlists: Playlist[] = [];
       let invalidNodesCount = 0;
+      const playlistIds: string[] = [];
+      const playlistIdsFromTargetConnection: string[] = [];
+      const playlistsFromTargetConnection: Playlist[] = [];
 
       if (TargetConnections?.length > 0) {
-        const targetConnections = TargetConnections.map((connection) =>
-          getNodeData(connection.source),
-        );
-        valid = targetConnections.every((target) => target?.playlistId);
-        playlists = valid ? (targetConnections as Playlist[]) : [];
-        invalidNodesCount = targetConnections.filter(
-          (target) => !target?.playlistId,
-        ).length;
+        TargetConnections.forEach((connection) => {
+          const target = getNodeData(connection.source);
+          if (target) {
+            valid = valid && (target.playlistId || target.playlistIds?.length > 0);
+            if (!target.playlistId && (!target.playlistIds || target.playlistIds.length === 0)) {
+              invalidNodesCount++;
+            }
+            playlists.push({
+              playlistId: target.playlistId,
+              name: target.name,
+              description: target.description,
+              image: target.image,
+              owner: target.owner,
+              total: target.total,
+            });
+            playlistIds.push(target?.playlistId as string);
+            playlistIdsFromTargetConnection.push(...(target.playlistIds || []));
+            playlistsFromTargetConnection.push(...(target.playlists || []));
+          }
+        });
       }
-      const total = playlists.reduce(
+
+      const combinedPlaylistIds = [...new Set([...playlistIds, ...playlistIdsFromTargetConnection])].filter(Boolean);
+      let combinedPlaylists = [...new Set([...playlists, ...playlistsFromTargetConnection])].filter(Boolean);
+
+      // remove empty playlists
+      combinedPlaylists = combinedPlaylists.filter((playlist) => (playlist?.total ?? 0) > 0);
+
+      const total = Array.isArray(combinedPlaylists) ? combinedPlaylists.reduce(
         (acc, curr) => acc + (curr.total ?? 0),
         0,
-      );
-
-      // only get playlist ids only
-      const playlistIds = playlists.map((playlist) => playlist.playlistId) as string[];
-
+      ) : 0;
       setIsValid(valid);
       setState({
-        playlistIds,
-        playlists,
+        playlistIds: combinedPlaylistIds,
+        playlists: combinedPlaylists,
         invalidNodesCount,
         summary: {
           total,
@@ -164,8 +183,8 @@ const AlternateComponent: React.FC<PlaylistProps> = React.memo(
 
     return (
       <CardWithHeader
-        title="Alternate"
-        type="Combiner"
+        title="Filter"
+        type="Dedupe Tracks"
         status={isValid === null ? "loading" : isValid ? "success" : "error"}
         info="Interleaves the tracks from multiple playlists"
       >
@@ -204,23 +223,26 @@ const AlternateComponent: React.FC<PlaylistProps> = React.memo(
           </div>
 
           <div className="flex flex-col gap-2">
-            {state.playlists?.map((playlist) => (
-              <div className="flex items-center gap-2">
-                <Image
-                  className="h-8 w-8 rounded-sm"
-                  src={playlist.image ?? "/images/spotify.png"}
-                  alt=""
-                  width={32}
-                  height={32}
-                />
-                <div className="flex flex-col">
-                  <div className="text-sm font-medium">{playlist.name}</div>
-                  <div className="text-xs text-gray-400">
-                    {playlist.owner} - {playlist.total} tracks
+            {state.playlists ? (state.playlists?.map((playlist) => (
+              playlist && isValid ? (
+                <div className="flex items-center gap-2">
+                  <Image
+                    className="h-8 w-8 rounded-sm"
+                    src={playlist.image ?? "/images/spotify.png"}
+                    alt=""
+                    width={32}
+                    height={32}
+                  />
+                  <div className="flex flex-col">
+                    <div className="text-sm font-medium">{playlist.name}</div>
+                    <div className="text-xs text-gray-400">
+                      {playlist.owner} - {playlist.total} tracks
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ) : null
+            ))) : ("No playlists found")}
+
           </div>
           <Separator />
           <div className="whitespace-pre-wrap rounded-md bg-red-500 p-2 py-2">
@@ -261,4 +283,4 @@ const AlternateComponent: React.FC<PlaylistProps> = React.memo(
   },
 );
 
-export default React.memo(AlternateComponent);
+export default React.memo(DedupeTracksComponent)

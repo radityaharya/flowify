@@ -73,6 +73,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { useShallow } from "zustand/react/shallow";
+import { debounce } from 'radash'
 
 type PlaylistProps = {
   id: string;
@@ -80,7 +82,7 @@ type PlaylistProps = {
 };
 
 type Playlist = {
-  id?: string;
+  playlistId?: string;
   name?: string;
   description?: string;
   image?: string;
@@ -103,7 +105,7 @@ const PlaylistItem = ({
   playlist: Playlist;
   onSelect: () => void;
 }) => (
-  <CommandItem key={playlist.id} value={playlist.name} onSelect={onSelect}>
+  <CommandItem key={playlist.playlistId} value={playlist.name} onSelect={onSelect}>
     <div className="flex items-center gap-2">
       <Image
         className="h-8 w-8 rounded-sm"
@@ -111,6 +113,7 @@ const PlaylistItem = ({
         alt=""
         width={32}
         height={32}
+        unoptimized
       />
       <div className="flex flex-col">
         <span className="text-sm font-medium">{playlist.name}</span>
@@ -124,8 +127,11 @@ const PlaylistComponent: React.FC<PlaylistProps> = React.memo(({ id, data }) => 
   const [open, setOpen] = React.useState(false);
   const [selectedPlaylist, setSelectedPlaylist] = React.useState<Playlist>({});
   const userPlaylists = useStore((state) => state.userPlaylists);
+  const [search, setSearch] = React.useState('')
 
   const nodes = useStore((state) => state.nodes);
+
+  const {session} = useStore(useShallow((state) => ({ session: state.session })));
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -160,8 +166,50 @@ const PlaylistComponent: React.FC<PlaylistProps> = React.memo(({ id, data }) => 
     prevWatchRef.current = watch;
   }, [watch]);
 
+  React.useEffect(() => {
+    const searchPlaylist = async () => {
+      if (search.length > 0) {
+        try {
+          const response = await fetch(`/api/user/${session.user.providerAccountId}/playlists?q=${search}`);
+          const data = await response.json();
+          console.log(data);
+          useStore.setState({ userPlaylists: data });
+        } catch (err) {
+          console.error(err);
+        }
+      }
+    };
+
+    const userPlaylists = async () => {
+      try {
+        const response = await fetch(`/api/user/${session.user.providerAccountId}/playlists`);
+        const data = await response.json();
+        console.log(data);
+        useStore.setState({ userPlaylists: data });
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function setUserPlaylists() {
+    if (search.length > 0) {
+      searchPlaylist().catch((err) => {
+        console.error(err);
+      }
+      );
+    }
+    else {
+      userPlaylists().catch((err) => {
+        console.error(err);
+      });
+    }
+  }
+
+  debounce({delay: 500}, setUserPlaylists)();
+  }, [search]);
+
   const handleSelect = React.useCallback((playlist) => {
-    form.setValue("playlistId", playlist.id, {
+    form.setValue("playlistId", playlist.playlistId, {
       shouldValidate: true,
     });
     setSelectedPlaylist(playlist as Playlist);
@@ -213,6 +261,7 @@ const PlaylistComponent: React.FC<PlaylistProps> = React.memo(({ id, data }) => 
                             alt=""
                             width={40}
                             height={40}
+                            unoptimized
                           />
                           <div className="flex flex-col items-start w-[160px]">
                             <div className="text-sm font-medium max-w-full overflow-hidden whitespace-nowrap overflow-ellipsis">
@@ -232,46 +281,48 @@ const PlaylistComponent: React.FC<PlaylistProps> = React.memo(({ id, data }) => 
 
                   <PopoverContent className="w-[300px] p-0">
                     <Command>
-                      <CommandInput placeholder="Search playlist..." />
+                      <CommandInput placeholder="Search playlist..." value={search} onValueChange={(e) => setSearch(e)} />
                       <CommandEmpty>No playlist found.</CommandEmpty>
                       <CommandGroup>
                         <ScrollArea className="h-[200px] w-full rounded-md">
                           {userPlaylists.length > 0 ? (
                             userPlaylists.map((playlist) => (
                               <PlaylistItem
-                                key={playlist.id}
+                                key={playlist.playlistId}
                                 playlist={playlist}
                                 onSelect={() => handleSelect(playlist)}
                               />
                             ))
                           ) : (
-                            <CommandItem
-                              key="loading"
-                              value="loading"
-                              onSelect={() => {
-                                setSelectedPlaylist({
-                                  id: "loading",
-                                  name: "loading",
-                                  description: "loading",
-                                  image: "",
-                                  owner: "loading",
-                                  total: 0,
-                                });
-                                setOpen(false);
-                              }}
-                            >
-                              <div className="flex items-center gap-2">
-                                <div className="h-8 w-8 animate-pulse rounded-md bg-gray-700"></div>
-                                <div className="flex animate-pulse flex-col">
-                                  <div className="animate-pulse text-sm font-medium">
-                                    loading...
-                                  </div>
-                                  <div className="animate-pulse text-xs opacity-80">
-                                    loading...
+                            Array.from({ length: 3 }).map((_, index) => (
+                              <CommandItem
+                                key={`loading-${index}`}
+                                value="loading"
+                                onSelect={() => {
+                                  setSelectedPlaylist({
+                                    playlistId: "loading",
+                                    name: "loading",
+                                    description: "loading",
+                                    image: "",
+                                    owner: "loading",
+                                    total: 0,
+                                  });
+                                  setOpen(false);
+                                }}
+                              >
+                                <div className="flex items-center gap-2">
+                                  <div className="h-8 w-8 animate-pulse rounded-md bg-gray-700"></div>
+                                  <div className="flex animate-pulse flex-col">
+                                    <div className="animate-pulse text-sm font-medium">
+                                      loading...
+                                    </div>
+                                    <div className="animate-pulse text-xs opacity-80">
+                                      loading...
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                            </CommandItem>
+                              </CommandItem>
+                            ))
                           )}
                         </ScrollArea>
                       </CommandGroup>

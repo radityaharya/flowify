@@ -31,6 +31,9 @@ export const env = createEnv({
     SPOTIFY_CLIENT_ID: z.string(),
     SPOTIFY_CLIENT_SECRET: z.string(),
     REDIS_URL: z.string().url(),
+    IMGPROXY_KEY: z.string(),
+    IMGPROXY_SALT: z.string(),
+    IMGPROXY_URL: z.string().url(),
   },
 
   /**
@@ -54,6 +57,9 @@ export const env = createEnv({
     SPOTIFY_CLIENT_ID: process.env.SPOTIFY_CLIENT_ID,
     SPOTIFY_CLIENT_SECRET: process.env.SPOTIFY_CLIENT_SECRET,
     REDIS_URL: process.env.REDIS_URL,
+    IMGPROXY_KEY: process.env.IMGPROXY_KEY,
+    IMGPROXY_SALT: process.env.IMGPROXY_SALT,
+    IMGPROXY_URL: process.env.IMGPROXY_URL,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

@@ -28,12 +28,14 @@ import "@xyflow/react/dist/style.css";
 
 import Playlist from "./nodes/Source/Playlist";
 import Alternate from "./nodes/Combiner/Alternate";
+import DedupeTracks from "./nodes/Filter/DedupeTracks";
 
 import { useShallow } from 'zustand/react/shallow'
 
 const nodeTypes = {
   "Source.playlist": Playlist,
   "Combiner.alternate": Alternate,
+  "Filter.dedupeTracks": DedupeTracks
 };
 export default function App() {
   const reactFlowWrapper = useRef(null);
@@ -44,18 +46,16 @@ export default function App() {
     onEdgesChange,
     addEdge,
     addNode,
-    setNodes,
-    setEdges,
-  } = useStore(useShallow((state) => ({
+    onNodesDelete,
+  } = useStore((state) => ({
     nodes: state.nodes,
     edges: state.edges,
     onNodesChange: state.onNodesChange,
     onEdgesChange: state.onEdgesChange,
     addEdge: state.addEdge,
     addNode: state.addNode,
-    setNodes: state.setNodes,
-    setEdges: state.setEdges,
-  })));
+    onNodesDelete: state.onNodesDelete
+  }));
 
   const [reactFlowInstance, setReactFlowInstance] =
     useState<ReactFlowInstance | null>(null);
@@ -107,6 +107,7 @@ export default function App() {
           onInit={setReactFlowInstance}
           onDrop={onDrop}
           onDragOver={onDragOver}
+          // onNodesDelete={onNodesDelete}
           // fitView
           // snapToGrid={true}
           nodeTypes={nodeTypes}
@@ -114,6 +115,8 @@ export default function App() {
           zoomOnPinch={false}
           zoomOnScroll={false}
           zoomOnDoubleClick={false}
+          deleteKeyCode={["Backspace","Delete"]}
+          // onPaneContextMenu={(e)=>{e.preventDefault();addNode(e)}}
         >
           <Controls />
           <Background color="#aaa" gap={24} className="dark:bg-gray-800" />

@@ -11,6 +11,10 @@ import {
   type OnConnect,
   applyNodeChanges,
   applyEdgeChanges,
+  getIncomers,
+  getOutgoers,
+  getConnectedEdges,
+  type OnNodesDelete
 } from "@xyflow/react";
 
 import { v4 as uuidv4 } from 'uuid';
@@ -28,14 +32,16 @@ type RFState = {
   addNode: (data: any) => void;
   addEdge: (data: any) => void;
   updateNodeData: (id: string, data: any) => void;
+  onNodesDelete: (deleted: Node[]) => void;
 
   userPlaylists: any[];
   setUserPlaylists: (playlists: any[]) => void;
   getUserPlaylists: () => any[];
+
+  session: any;
+  setSession: (session: any) => void;
 };
 
-
-// this is our useStore hook that we can use in our components to get parts of the store and call actions
 const useStore = create<RFState>((set, get) => ({
   nodes: [],
   edges: [],
@@ -61,7 +67,6 @@ const useStore = create<RFState>((set, get) => ({
     if (!Array.isArray(changes) || !Array.isArray(get().nodes)) {
       throw new Error('onNodesChange must be called with an array of changes and nodes must be an array');
     }
-  
     set({
       nodes: applyNodeChanges(changes, get().nodes),
     });
@@ -109,6 +114,25 @@ const useStore = create<RFState>((set, get) => ({
       });
     }
   },
+  onNodesDelete: (deleted) => {
+    set({
+      edges: deleted.reduce((acc, node) => {
+        const incomers = getIncomers(node, get().nodes, get().edges);
+        const outgoers = getOutgoers(node, get().nodes, get().edges);
+        const connectedEdges = getConnectedEdges([node], get().edges);
+
+        const remainingEdges = acc.filter((edge) => !connectedEdges.includes(edge));
+
+        const createdEdges = incomers.flatMap(({ id: source }) =>
+          outgoers.map(({ id: target }) => ({ id: `${source}->${target}`, source, target }))
+        );
+
+        return [...remainingEdges, ...createdEdges];
+      }, get().edges),
+
+      nodes: get().nodes.filter((node) => !deleted.includes(node)), 
+    });
+  },
   // user playlists
   userPlaylists: [],
   setUserPlaylists: (playlists) => {
@@ -118,7 +142,15 @@ const useStore = create<RFState>((set, get) => ({
   },
   getUserPlaylists: () => {
     return get().userPlaylists;
-  }
+  },
+
+  // session
+  session: null,
+  setSession: (session) => {
+    set({
+      session: session,
+    });
+  },
 }));
 
 export default useStore;

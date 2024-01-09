@@ -36,9 +36,9 @@ export const register = async () => {
           console.error("Error running workflow", e);
           throw e;
         }
-        console.log("Workflow executed successfully", res);
+        // console.log("Workflow executed successfully", res);
         const updated = await updateWorkflowJob(job.id!, "completed");
-        console.log("Updated job", updated);
+        // console.log("Updated job", updated);
         // console.log(data);
         return res;
       },

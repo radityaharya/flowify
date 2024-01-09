@@ -23,32 +23,71 @@ import { Input } from "src/components/ui/input";
 // } from "src/components/ui/card";
 // import { Button } from "src/components/ui/button";
 
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { ScrollArea } from "@/components/ui/scroll-area"
+
 // import { useCallback } from "react";
 // import { useReactFlow } from "@xyflow/react";
-import { useShallow } from 'zustand/react/shallow'
+import { useShallow } from "zustand/react/shallow";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DragableNode } from "@/components/DragableNode";
 
 import useStore from "../states/store";
 
+import Sidebar from "./Sidebar";
+
 type Data = {
   nodes: Node[];
   edges: Edge[];
 };
 
-// eslint-disable-next-line @next/next/no-async-client-component
+const nodeTypes = [
+  {
+    type: "Source.playlist",
+    title: "Source",
+    description: "Playlist source",
+  },
+  {
+    type: "Combiner.alternate",
+    title: "Alternate",
+    description: "Alternate between playlists",
+  },
+  {
+    type: "Filter.dedupeTracks",
+    title: "Dedupe Tracks",
+    description: "Remove duplicate tracks",
+  },
+];
+
 function Builder() {
   const { data: session } = useSession();
   console.log(session);
 
-  const {
-    setNodes,
-    setEdges
-  } = useStore(useShallow((state) => ({
-    setNodes: state.setNodes,
-    setEdges: state.setEdges,
-  })));
+  const { setSessionStore } = useStore(
+    useShallow((state) => ({
+      sessionStore: state.session,
+      setSessionStore: state.setSession,
+    })),
+  );
+
+  useEffect(() => {
+    if (session) {
+      setSessionStore(session);
+    }
+  }, [session]);
+
+  const { setNodes, setEdges } = useStore(
+    useShallow((state) => ({
+      setNodes: state.setNodes,
+      setEdges: state.setEdges,
+    })),
+  );
 
   useEffect(() => {
     fetch("/api/nodes")
@@ -64,58 +103,27 @@ function Builder() {
   }, []);
 
   useEffect(() => {
+
+    if (!session?.user?.providerAccountId) {
+      return;
+    }
     fetch(`/api/user/${session?.user?.providerAccountId}/playlists`)
       .then((response) => response.json())
       .then((data) => {
         console.log(data);
         useStore.setState({ userPlaylists: data });
-      }).catch((err) => {
+      })
+      .catch((err) => {
         console.error(err);
-      }
-    );
-  } , [session?.user?.providerAccountId]);
+      });
+  }, [session?.user?.providerAccountId]);
 
   return (
     <div className="flex h-screen flex-col">
-      <main className="grid h-screen grid-cols-4">
-        <aside className="col-span-1 flex max-h-screen flex-col border-r dark:border-gray-800 bg-gray-50 dark:bg-gray-900">
-          <div className="flex-none px-4 pt-4">
-            <div className="flex flex-col justify-between gap-6">
-              <div className="flex flex-row justify-between">
-                <div id="logo" className="text-2xl font-bold text-foreground">
-                  <span>flowify</span>
-                </div>
-                <div className="flex flex-row gap-4 items-center">
-                  <span className="text-foreground">
-                    {session ? `${session.user.name}` : "Login"}
-                  </span>
-                  <Avatar>
-                    <AvatarImage src={session?.user?.image ?? ""} />
-                    <AvatarFallback>
-                      {session?.user?.name?.split(" ").map((n) => n[0])}
-                    </AvatarFallback>
-                  </Avatar>
-                </div>
-              </div>
-              <Input
-                className="mb-4 w-full"
-                id="search"
-                placeholder="Search..."
-              />
-            </div>
-          </div>
-          <div className="flex flex-col flex-grow overflow-auto border-r gap-4 p-4 dark:border-gray-800">
-            <DragableNode nodeType="input" />
-            <DragableNode nodeType="Source.playlist" />
-            <DragableNode nodeType="Combiner.alternate" />
-            <DragableNode nodeType="source" />
-            <DragableNode nodeType="source" />
-            <DragableNode nodeType="source" />
-            <DragableNode nodeType="source" />
-          </div>
-        </aside>
-        <div className="col-span-3 h-full overflow-auto">
-          <Flow/>
+      <main className="grid h-screen grid-cols-5">
+        <Sidebar />
+        <div className="col-span-4 h-full overflow-auto">
+          <Flow />
         </div>
       </main>
     </div>

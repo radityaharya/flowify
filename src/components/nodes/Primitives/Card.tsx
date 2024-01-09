@@ -45,7 +45,7 @@ export function CardWithHeader({
 }: CardWithHeaderProps) {
   return (
     <Card className={cn("w-[350px] border dark:border-gray-600 flex flex-col gap-2", className)}>
-      <div className="flex w-full flex-row gap-2 rounded-lg bg-purple-100 p-2 dark:bg-gray-800">
+      <div className="flex w-full flex-row gap-2 rounded-lg p-2 bg-accent">
         <DotIcon
           size={24}
           className={cn("text-gray-500", {

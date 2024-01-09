@@ -48,6 +48,19 @@ export const operationParamsTypesMap = {
   "Playlist.saveAsReplace": {
     playlistId: { type: "string", required: true },
   },
+  "Playlist.getTracksRecomendation": {
+    limit: { type: "number", required: true },
+    market: { type: "string" },
+    seedTracks: { type: "string[]" },
+    seedArtists: { type: "string[]" },
+    seedGenres: { type: "string[]" },
+    minAcousticness: { type: "number" },
+    maxAcousticness: { type: "number" },
+    targetAcousticness: { type: "number" },
+    minDanceability: { type: "number" },
+    maxDanceability: { type: "number" },
+    targetDanceability: { type: "number" },
+  }
 } as Record<string, Record<string, { type: string; required?: boolean }>>;
 
 import type { Source, Operation, Workflow } from "./types";
@@ -79,22 +92,32 @@ export class Runner extends Base {
     const promises = workflow.sources.map(
       (source, index) =>
         new Promise<void>(
-          (resolve) =>
-            setTimeout(
-              () =>
-                this.spClient
-                  .getPlaylistTracks(source.params.playlistId as string)
-                  .then((res) => {
-                    const tracks = res.body.items;
-                    // console.log(tracks)
-                    console.info(`Loaded ${tracks.length} tracks.`);
-                    source.tracks = tracks;
-                    sourceValues.set(source.id, source);
-                    sourceValues.set(`${source.id}.tracks`, tracks);
-                    resolve();
-                  }),
-              index * 1000,
-            ), // delay of 1 second between each request
+          async (resolve) => {
+            let offset = 0;
+            let tracks: SpotifyApi.PlaylistTrackObject[] = [];
+            let result;
+
+            do {
+              result = await new Promise((resolve) =>
+                setTimeout(
+                  () =>
+                    this.spClient
+                      .getPlaylistTracks(source.params.playlistId as string, { limit: 50, offset })
+                      .then(resolve),
+                  index * 1000,
+                ),
+              );
+
+              tracks = [...tracks, ...result.body.items];
+              offset += 50;
+            } while (result.body.next);
+
+            console.info(`Loaded ${tracks.length} tracks.`);
+            source.tracks = tracks;
+            sourceValues.set(source.id, source);
+            sourceValues.set(`${source.id}.tracks`, tracks);
+            resolve();
+          }
         ),
     );
 

@@ -90,3 +90,14 @@
 .react-flow__controls-button path {
   fill: var(--card-foreground) !important;
 }
+
+#gradient-canvas {
+  width: 100%;
+  height: 100%;
+  --gradient-color-1: #020817;
+  --gradient-color-2: #020817;
+  --gradient-color-3: #020817;
+  --gradient-color-4: #502887;
+  background-color: var(--background);
+  /* z-index: -1; */
+}

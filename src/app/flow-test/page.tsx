@@ -97,18 +97,18 @@ const Page = () => {
   return (
     <div className="flex flex-col items-center justify-center h-screen">
       <textarea
-        className="w-64 h-32 p-2 border border-gray-300 rounded"
+        className="w-64 h-32 p-2 border border-gray-300 rounded text-black"
         value={jsonValue}
         onChange={handleTextareaChange}
       />
       <button
-        className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
+        className="mt-4 px-4 py-2 bg-blue-500 rounded"
         onClick={handleSubmit}
       >
         Send JSON
       </button>
       {response && (
-        <div className="mt-4 p-2 bg-gray-200 rounded  max-h-64 max-w-lg overflow-auto">
+        <div className="mt-4 p-2 rounded max-h-64 max-w-lg overflow-auto">
           <pre>{JSON.stringify(response, null, 2)}</pre>
         </div>
       )}
