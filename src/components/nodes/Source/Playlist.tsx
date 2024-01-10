@@ -126,12 +126,11 @@ const PlaylistItem = ({
 const PlaylistComponent: React.FC<PlaylistProps> = React.memo(({ id, data }) => {
   const [open, setOpen] = React.useState(false);
   const [selectedPlaylist, setSelectedPlaylist] = React.useState<Playlist>({});
-  const userPlaylists = useStore((state) => state.userPlaylists);
   const [search, setSearch] = React.useState('')
 
   const nodes = useStore((state) => state.nodes);
 
-  const {session} = useStore(useShallow((state) => ({ session: state.session })));
+  const {session, updateNodeData, userPlaylists} = useStore(useShallow((state) => ({ session: state.session, updateNodeData:state.updateNodeData, userPlaylists:state.userPlaylists })));
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -140,7 +139,7 @@ const PlaylistComponent: React.FC<PlaylistProps> = React.memo(({ id, data }) => 
   });
   const { formState, register } = form;
 
-  const { updateNodeData } = useReactFlow();
+  // const { updateNodeData } = useReactFlow();
   const TargetConnections = useHandleConnections({
     type: "target",
   });
@@ -222,7 +221,7 @@ const PlaylistComponent: React.FC<PlaylistProps> = React.memo(({ id, data }) => 
 
   return (
     <CardWithHeader
-      title="Playlist"
+      title={`Playlist`}
       type="Source"
       status={formState.isValid ? "success" : "error"}
       info="Get a list of the songs in a playlist."

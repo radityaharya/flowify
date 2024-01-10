@@ -95,7 +95,7 @@ export function AlertComponent({
   );
 }
 
-const AlternateComponent: React.FC<PlaylistProps> = React.memo(
+const DedupeArtistsComponent: React.FC<PlaylistProps> = React.memo(
   ({ id, data }) => {
     const { nodes, updateNodeData } = useStore(useShallow((state) => ({ nodes: state.nodes, updateNodeData: state.updateNodeData })));
     const [state, setState] = React.useState<State>({
@@ -181,10 +181,10 @@ const AlternateComponent: React.FC<PlaylistProps> = React.memo(
 
     return (
       <CardWithHeader
-        title={`Alternate`}
-        type="Combiner"
+        title="Dedupe Artists"
+        type="Filter"
         status={isValid === null ? "loading" : isValid ? "success" : "error"}
-        info="Interleaves the tracks from multiple playlists"
+        info="Dedupe artists across multiple sources. only one track per artist will be kept"
       >
         <Handle
           type="source"
@@ -221,23 +221,26 @@ const AlternateComponent: React.FC<PlaylistProps> = React.memo(
           </div>
 
           <div className="flex flex-col gap-2">
-            {state.playlists?.map((playlist) => (
-              <div className="flex items-center gap-2">
-                <Image
-                  className="h-8 w-8 rounded-sm"
-                  src={playlist.image ?? "/images/spotify.png"}
-                  alt=""
-                  width={32}
-                  height={32}
-                />
-                <div className="flex flex-col">
-                  <div className="text-sm font-medium">{playlist.name}</div>
-                  <div className="text-xs text-gray-400">
-                    {playlist.owner} - {playlist.total} tracks
+            {state.playlists ? (state.playlists?.map((playlist) => (
+              playlist && isValid ? (
+                <div className="flex items-center gap-2">
+                  <Image
+                    className="h-8 w-8 rounded-sm"
+                    src={playlist.image ?? "/images/spotify.png"}
+                    alt=""
+                    width={32}
+                    height={32}
+                  />
+                  <div className="flex flex-col">
+                    <div className="text-sm font-medium">{playlist.name}</div>
+                    <div className="text-xs text-gray-400">
+                      {playlist.owner} - {playlist.total} tracks
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ) : null
+            ))) : ("No playlists found")}
+
           </div>
           <Separator />
           <div className="whitespace-pre-wrap rounded-md bg-red-500 p-2 py-2">
@@ -278,4 +281,4 @@ const AlternateComponent: React.FC<PlaylistProps> = React.memo(
   },
 );
 
-export default React.memo(AlternateComponent);
+export default React.memo(DedupeArtistsComponent)

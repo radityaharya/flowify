@@ -97,7 +97,7 @@ export function AlertComponent({
 
 const DedupeTracksComponent: React.FC<PlaylistProps> = React.memo(
   ({ id, data }) => {
-    const nodes = useStore(useShallow((state) => state.nodes));
+    const { nodes, updateNodeData } = useStore(useShallow((state) => ({ nodes: state.nodes, updateNodeData: state.updateNodeData })));
     const [state, setState] = React.useState<State>({
       playlists: [],
       playlistIds: [],
@@ -117,9 +117,8 @@ const DedupeTracksComponent: React.FC<PlaylistProps> = React.memo(
 
     const [isValid, setIsValid] = React.useState(false);
 
-    const { updateNodeData } = useReactFlow();
     React.useEffect(() => {
-      let valid = true;
+      let valid = false;
       const playlists: Playlist[] = [];
       let invalidNodesCount = 0;
       const playlistIds: string[] = [];
@@ -130,7 +129,7 @@ const DedupeTracksComponent: React.FC<PlaylistProps> = React.memo(
         TargetConnections.forEach((connection) => {
           const target = getNodeData(connection.source);
           if (target) {
-            valid = valid && (target.playlistId || target.playlistIds?.length > 0);
+            valid = (target.playlistId || target.playlistIds?.length > 0);
             if (!target.playlistId && (!target.playlistIds || target.playlistIds.length === 0)) {
               invalidNodesCount++;
             }
@@ -180,13 +179,22 @@ const DedupeTracksComponent: React.FC<PlaylistProps> = React.memo(
       }
     }, [state.playlistIds, getNodeData, id, updateNodeData]);
 
+    React.useEffect(() => {
+      const currentNodeData = getNodeData(id);
+      if (JSON.stringify(currentNodeData?.playlistIds) !== JSON.stringify(state.playlistIds)) {
+        updateNodeData(id, {
+          playlistIds: state.playlistIds,
+          playlists: state.playlists,
+        });
+      }
+    }, [state.playlistIds, getNodeData, id, updateNodeData]);
 
     return (
       <CardWithHeader
-        title="Filter"
-        type="Dedupe Tracks"
+        title="Dedupe Tracks"
+        type="Filter"
         status={isValid === null ? "loading" : isValid ? "success" : "error"}
-        info="Interleaves the tracks from multiple playlists"
+        info="Remove duplicate tracks from multiple playlists"
       >
         <Handle
           type="source"

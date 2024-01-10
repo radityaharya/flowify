@@ -67,14 +67,7 @@ const nodeTypes = [
 
 function Builder() {
   const { data: session } = useSession();
-  console.log(session);
-
-  const { setSessionStore } = useStore(
-    useShallow((state) => ({
-      sessionStore: state.session,
-      setSessionStore: state.setSession,
-    })),
-  );
+  // console.log(session);
 
   useEffect(() => {
     if (session) {
@@ -82,11 +75,15 @@ function Builder() {
     }
   }, [session]);
 
-  const { setNodes, setEdges } = useStore(
-    useShallow((state) => ({
+  const { setNodes, setEdges, sessionStore, setSessionStore, nodes, edges } = useStore(
+    (state) => ({
+      nodes: state.nodes,
+      edges: state.edges,
+      sessionStore: state.session,
       setNodes: state.setNodes,
       setEdges: state.setEdges,
-    })),
+      setSessionStore: state.setSession
+    }),
   );
 
   useEffect(() => {

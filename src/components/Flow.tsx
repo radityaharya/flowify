@@ -17,12 +17,10 @@ import {
   useEdgesState,
   useNodesState,
   ReactFlowProvider,
-  ReactFlowInstance,
+  type ReactFlowInstance,
 } from "@xyflow/react";
 
 import useStore from "~/app/states/store";
-
-import { v4 as uuidv4 } from "uuid";
 
 import "@xyflow/react/dist/style.css";
 
@@ -30,32 +28,29 @@ import Playlist from "./nodes/Source/Playlist";
 import Alternate from "./nodes/Combiner/Alternate";
 import DedupeTracks from "./nodes/Filter/DedupeTracks";
 
-import { useShallow } from 'zustand/react/shallow'
+import { useShallow } from "zustand/react/shallow";
+import RemoveMatch from "./nodes/Filter/RemoveMatch";
+import DedupeArtists from "./nodes/Filter/DedupeArtists";
 
 const nodeTypes = {
   "Source.playlist": Playlist,
   "Combiner.alternate": Alternate,
-  "Filter.dedupeTracks": DedupeTracks
+  "Filter.dedupeTracks": DedupeTracks,
+  "Filter.dedupeArtists": DedupeArtists,
+  "Filter.filter": RemoveMatch,
 };
 export default function App() {
   const reactFlowWrapper = useRef(null);
-    const {
-    nodes,
-    edges,
-    onNodesChange,
-    onEdgesChange,
-    addEdge,
-    addNode,
-    onNodesDelete,
-  } = useStore((state) => ({
-    nodes: state.nodes,
-    edges: state.edges,
-    onNodesChange: state.onNodesChange,
-    onEdgesChange: state.onEdgesChange,
-    addEdge: state.addEdge,
-    addNode: state.addNode,
-    onNodesDelete: state.onNodesDelete
-  }));
+  const { nodes, edges, onNodesChange, onEdgesChange, addEdge, addNode, onNodesDelete } =
+    useStore(useShallow((state) => ({
+      nodes: state.nodes,
+      edges: state.edges,
+      onNodesChange: state.onNodesChange,
+      onEdgesChange: state.onEdgesChange,
+      addEdge: state.addEdge,
+      addNode: state.addNode,
+      onNodesDelete: state.onNodesDelete,
+    })));
 
   const [reactFlowInstance, setReactFlowInstance] =
     useState<ReactFlowInstance | null>(null);
@@ -84,7 +79,6 @@ export default function App() {
         y: event.clientY,
       });
       const newNode = {
-        id: uuidv4(),
         type,
         position,
         data: {},
@@ -107,7 +101,7 @@ export default function App() {
           onInit={setReactFlowInstance}
           onDrop={onDrop}
           onDragOver={onDragOver}
-          // onNodesDelete={onNodesDelete}
+          onNodesDelete={onNodesDelete}
           // fitView
           // snapToGrid={true}
           nodeTypes={nodeTypes}
@@ -115,7 +109,7 @@ export default function App() {
           zoomOnPinch={false}
           zoomOnScroll={false}
           zoomOnDoubleClick={false}
-          deleteKeyCode={["Backspace","Delete"]}
+          deleteKeyCode={["Backspace", "Delete"]}
           // onPaneContextMenu={(e)=>{e.preventDefault();addNode(e)}}
         >
           <Controls />

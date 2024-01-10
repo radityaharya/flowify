@@ -6,16 +6,19 @@ import ProviderButtons from "../providerButtons";
 
 import GradientBackground from "~/components/animatedBackground/GradientsBackground";
 import { notFound } from "next/navigation";
-
 export default function Page({
   params,
+  searchParams
 }: {
   params: { route: "login" | "signup" };
+  searchParams: any;
 }) {
   if (["login", "signup"].includes(params.route) === false) {
     return notFound();
   }
   const isLogin = params.route === "login";
+  const error = searchParams.error;
+
   return (
     <div className="h-[100svh]">
       <div className="container relative hidden h-full flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
@@ -81,6 +84,13 @@ export default function Page({
               </Link>
               .
             </p>
+            {
+              error && (
+                <div className="p-2 rounded-md text-center text-sm text-muted-foreground bg-red-400">
+                  {error}
+                </div>
+              )
+            }
           </div>
         </div>
       </div>

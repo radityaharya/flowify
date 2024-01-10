@@ -119,11 +119,9 @@ const AlternateComponent: React.FC<PlaylistProps> = React.memo(
 
     React.useEffect(() => {
       let valid = false;
-      const playlists: Playlist[] = [];
       let invalidNodesCount = 0;
-      const playlistIds: string[] = [];
-      const playlistIdsFromTargetConnection: string[] = [];
-      const playlistsFromTargetConnection: Playlist[] = [];
+      const playlistIdsSet = new Set<string>();
+      const playlistsSet = new Set<Playlist>();
 
       if (TargetConnections?.length > 0) {
         TargetConnections.forEach((connection) => {
@@ -133,26 +131,26 @@ const AlternateComponent: React.FC<PlaylistProps> = React.memo(
             if (!target.playlistId && (!target.playlistIds || target.playlistIds.length === 0)) {
               invalidNodesCount++;
             }
-            playlists.push({
-              playlistId: target.playlistId,
-              name: target.name,
-              description: target.description,
-              image: target.image,
-              owner: target.owner,
-              total: target.total,
-            });
-            playlistIds.push(target?.playlistId as string);
-            playlistIdsFromTargetConnection.push(...(target.playlistIds || []));
-            playlistsFromTargetConnection.push(...(target.playlists || []));
+            if ((target.total ?? 0) > 0) { // Only add playlist if it's not empty
+              const playlist = {
+                playlistId: target.playlistId,
+                name: target.name,
+                description: target.description,
+                image: target.image,
+                owner: target.owner,
+                total: target.total,
+              };
+              playlistsSet.add(playlist);
+              playlistIdsSet.add(target?.playlistId as string);
+              (target.playlistIds || []).forEach(id => playlistIdsSet.add(id));
+              (target.playlists || []).forEach(pl => playlistsSet.add(pl));
+            }
           }
         });
       }
 
-      const combinedPlaylistIds = [...new Set([...playlistIds, ...playlistIdsFromTargetConnection])].filter(Boolean);
-      let combinedPlaylists = [...new Set([...playlists, ...playlistsFromTargetConnection])].filter(Boolean);
-
-      // remove empty playlists
-      combinedPlaylists = combinedPlaylists.filter((playlist) => (playlist?.total ?? 0) > 0);
+      const combinedPlaylistIds = Array.from(playlistIdsSet).filter(Boolean);
+      const combinedPlaylists = Array.from(playlistsSet).filter(Boolean);
 
       const total = Array.isArray(combinedPlaylists) ? combinedPlaylists.reduce(
         (acc, curr) => acc + (curr.total ?? 0),
@@ -181,10 +179,10 @@ const AlternateComponent: React.FC<PlaylistProps> = React.memo(
 
     return (
       <CardWithHeader
-        title={`Alternate`}
+        title={`Push`}
         type="Combiner"
         status={isValid === null ? "loading" : isValid ? "success" : "error"}
-        info="Interleaves the tracks from multiple playlists"
+        info="Appends source tracks"
       >
         <Handle
           type="source"

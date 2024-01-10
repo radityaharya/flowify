@@ -137,7 +137,10 @@ export const authOptions: NextAuthOptions = {
      */
   ],
   // session: { strategy: "jwt" },
-};
+  pages: {
+    signIn: "/auth/login",
+  }
+}
 
 /**
  * Wrapper for `getServerSession` so that you don't need to import the `authOptions` in every file.

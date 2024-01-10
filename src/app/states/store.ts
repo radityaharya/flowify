@@ -18,8 +18,6 @@ import {
 } from "@xyflow/react";
 
 import { v4 as uuidv4 } from 'uuid';
-// import initialNodes from './nodes';
-// import initialEdges from './edges';
 
 type RFState = {
   nodes: Node[];
@@ -40,33 +38,35 @@ type RFState = {
 
   session: any;
   setSession: (session: any) => void;
+
+  alert: {
+    message: string;
+    title: string;
+    type: string;
+  } | null;
+  setAlert: (alert: {
+    message: string;
+    title: string;
+    type: string;
+  } | null) => void;
 };
 
 const useStore = create<RFState>((set, get) => ({
   nodes: [],
   edges: [],
   setNodes: (nodes) => {  
-    if (!Array.isArray(nodes)) {
-      return;
-    }
     console.log('setNodes', nodes);
     set({
       nodes: nodes,
     });
   },
   setEdges: (edges) => {
-    if (!Array.isArray(edges)) {
-      return;
-    }
     console.log('setEdges', edges);
     set({
       edges: edges,
     });
   },
   onNodesChange(changes) {
-    if (!Array.isArray(changes) || !Array.isArray(get().nodes)) {
-      throw new Error('onNodesChange must be called with an array of changes and nodes must be an array');
-    }
     set({
       nodes: applyNodeChanges(changes, get().nodes),
     });
@@ -84,11 +84,10 @@ const useStore = create<RFState>((set, get) => ({
   addNode(data) {
     const id = uuidv4();
     const node = { id, ...data };
-
     set({ nodes: [node, ...get().nodes] });
   },
   addEdge(data) {
-    const id = uuidv4();
+    const id = `${data.source}->${data.target}`
     const edge = { id, ...data };
 
     set({ edges: [edge, ...get().edges] });
@@ -129,10 +128,10 @@ const useStore = create<RFState>((set, get) => ({
 
         return [...remainingEdges, ...createdEdges];
       }, get().edges),
-
-      nodes: get().nodes.filter((node) => !deleted.includes(node)), 
+      // nodes: get().nodes.filter((node) => !deleted.includes(node)),
     });
   },
+
   // user playlists
   userPlaylists: [],
   setUserPlaylists: (playlists) => {
@@ -149,6 +148,18 @@ const useStore = create<RFState>((set, get) => ({
   setSession: (session) => {
     set({
       session: session,
+    });
+  },
+
+  // alert
+  alert: null,
+  setAlert: (alert: {
+    message: string;
+    title: string;
+    type: string;
+  } | null) => {
+    set({
+      alert: alert,
     });
   },
 }));
