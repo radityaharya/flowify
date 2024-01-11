@@ -27,6 +27,9 @@ import "@xyflow/react/dist/style.css";
 import Playlist from "./nodes/Source/Playlist";
 import Alternate from "./nodes/Combiner/Alternate";
 import DedupeTracks from "./nodes/Filter/DedupeTracks";
+import LikedTracks from "./nodes/Source/LikedTracks";
+
+import SaveAsNew from "./nodes/Target/SaveAsNew";
 
 import { useShallow } from "zustand/react/shallow";
 import RemoveMatch from "./nodes/Filter/RemoveMatch";
@@ -38,6 +41,8 @@ const nodeTypes = {
   "Filter.dedupeTracks": DedupeTracks,
   "Filter.dedupeArtists": DedupeArtists,
   "Filter.filter": RemoveMatch,
+  "Library.likedTracks": LikedTracks,
+  "Playlist.saveAsNew": SaveAsNew,
 };
 export default function App() {
   const reactFlowWrapper = useRef(null);

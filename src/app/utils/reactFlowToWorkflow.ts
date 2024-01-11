@@ -21,7 +21,7 @@ export default async function reactFlowToWorkflow({
     operations: [],
   } as Workflow;
 
-  // remove node types that doesnt match this pattern: *.*
+  // remove node types that doesn't match this pattern: *.*
   nodes = nodes.filter((node) => node.type?.match(/\w+\.\w+/));
 
   // remove "playlists" and "playlistIds" from nodes data except for Source nodes
@@ -33,8 +33,11 @@ export default async function reactFlowToWorkflow({
     delete node.data.playlistIds;
   });
 
+  let hasSource = false;
+
   nodes.forEach((node) => {
     if (node.type!.startsWith("Source.")) {
+      hasSource = true;
       workflow.sources.push({
         id: node.id,
         type: node.type!,
@@ -58,16 +61,23 @@ export default async function reactFlowToWorkflow({
       operation.sources.push(edge.source);
     }
   });
+  
+  // Set nodes that have no sources as a source
+  workflow.operations.forEach((operation) => {
+    if (operation.sources.length === 0) {
+      workflow.sources.push({
+        id: operation.id,
+        type: operation.type,
+        params: operation.params,
+      });
+      // Remove the operation from the operations array
+      workflow.operations = workflow.operations.filter((op) => op.id !== operation.id);
+    }
+  });
 
   const { errors } = await validateWorkflow(workflow);
 
   if (errors?.length > 0) {
-    // setAlert({
-    //   message: `Workflow is not valid because of the following errors: ${errors}`,
-    //   title: "Error",
-    //   type: "error",
-    // });
-
     useStore.setState({
       alert: {
         message: `Workflow is not valid because of the following errors: \n${errors
@@ -82,6 +92,20 @@ export default async function reactFlowToWorkflow({
           .join("")}`,
         title: "Error",
         type: "error",
+      },
+    });
+  } else {
+    const res = await fetch("/api/workflow", {
+      method: "POST",
+      body: JSON.stringify(workflow),
+    });
+    const data = await res.json();
+    console.log("data", data);
+    useStore.setState({
+      alert: {
+        message: `Workflow is valid`,
+        title: "Success",
+        type: "success",
       },
     });
   }

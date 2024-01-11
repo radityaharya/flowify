@@ -1,73 +1,30 @@
 "use client";
 
-import {
-  type Edge,
-  type Node,
-  type Position,
-  ReactFlowProvider,
-  useNodesState,
-  useEdgesState,
-} from "@xyflow/react";
+import { type Edge, type Node, ReactFlowProvider } from "@xyflow/react";
 
 // import styles from "./page.module.css";
 import Flow from "../../components/Flow";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { Input } from "src/components/ui/input";
-// import {
-//   CardTitle,
-//   CardDescription,
-//   CardHeader,
-//   CardContent,
-//   Card,
-// } from "src/components/ui/card";
-// import { Button } from "src/components/ui/button";
-
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { ScrollArea } from "@/components/ui/scroll-area"
-
-// import { useCallback } from "react";
-// import { useReactFlow } from "@xyflow/react";
-import { useShallow } from "zustand/react/shallow";
-
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { DragableNode } from "@/components/DragableNode";
 
 import useStore from "../states/store";
 
 import Sidebar from "./Sidebar";
+import { notFound, redirect } from "next/navigation";
+
+import { useRouter } from "next/navigation";
 
 type Data = {
   nodes: Node[];
   edges: Edge[];
 };
 
-const nodeTypes = [
-  {
-    type: "Source.playlist",
-    title: "Source",
-    description: "Playlist source",
-  },
-  {
-    type: "Combiner.alternate",
-    title: "Alternate",
-    description: "Alternate between playlists",
-  },
-  {
-    type: "Filter.dedupeTracks",
-    title: "Dedupe Tracks",
-    description: "Remove duplicate tracks",
-  },
-];
-
-function Builder() {
+function Builder({ searchParams }: { searchParams: any }) {
   const { data: session } = useSession();
-  // console.log(session);
+
+  const flowId = searchParams.id;
+
+  const router = useRouter();
 
   useEffect(() => {
     if (session) {
@@ -75,32 +32,43 @@ function Builder() {
     }
   }, [session]);
 
-  const { setNodes, setEdges, sessionStore, setSessionStore, nodes, edges } = useStore(
-    (state) => ({
-      nodes: state.nodes,
-      edges: state.edges,
-      sessionStore: state.session,
+  const { setNodes, setEdges, setSessionStore, setUserPlaylists, setAlert } =
+    useStore((state) => ({
       setNodes: state.setNodes,
       setEdges: state.setEdges,
-      setSessionStore: state.setSession
-    }),
-  );
+      setSessionStore: state.setSession,
+      setUserPlaylists: state.setUserPlaylists,
+      setAlert: state.setAlert,
+    }));
 
   useEffect(() => {
-    fetch("/api/nodes")
-      .then((response) => response.json() as Promise<Data>)
-      .then((initData) => {
-        console.log(initData);
-        setNodes(initData.nodes);
-        setEdges(initData.edges);
-      })
-      .catch((err) => {
-        console.error(err);
-      });
+    if (flowId) {
+      fetch(`/api/nodes/${flowId}`)
+        .then(async (response) => {
+          if (response.status === 404) {
+            setAlert({
+              title: "Error",
+              type: "error",
+              message: `Flow '${flowId}' not found`,
+            });
+            router.replace("/flow");
+            return { nodes: [], edges: [] };
+          } else {
+            return response.json() as Promise<Data>;
+          }
+        })
+        .then((initData) => {
+          console.log(initData);
+          setNodes(initData.nodes);
+          setEdges(initData.edges);
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+    }
   }, []);
 
   useEffect(() => {
-
     if (!session?.user?.providerAccountId) {
       return;
     }
@@ -108,7 +76,7 @@ function Builder() {
       .then((response) => response.json())
       .then((data) => {
         console.log(data);
-        useStore.setState({ userPlaylists: data });
+        setUserPlaylists(data as any[]);
       })
       .catch((err) => {
         console.error(err);
@@ -127,10 +95,10 @@ function Builder() {
   );
 }
 
-export default function Page() {
+export default function Page({ searchParams }: { searchParams: any }) {
   return (
     <ReactFlowProvider>
-      <Builder />
+      <Builder searchParams={searchParams} />
     </ReactFlowProvider>
   );
 }

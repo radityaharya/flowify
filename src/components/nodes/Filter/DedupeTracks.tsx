@@ -199,12 +199,12 @@ const DedupeTracksComponent: React.FC<PlaylistProps> = React.memo(
         <Handle
           type="source"
           position={Position.Right}
-          style={{ background: "#555" }}
+          style={{ background: "#fff", padding: "0.2rem", borderRadius: "0.5px", border: "1px solid #555" }}
         />
         <Handle
           type="target"
           position={Position.Left}
-          style={{ background: "#555" }}
+          style={{ background: "#fff", padding: "0.2rem", borderRadius: "0.5px", border: "1px solid #555" }}
         />
         <div className="flex flex-col gap-4">
           <div className="flex flex-col text-sm font-medium">

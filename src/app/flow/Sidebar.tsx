@@ -116,31 +116,33 @@ export default function Sidebar() {
             </div>
           </div>
         </div>
-        <Accordion type="single" collapsible className="p-4">
+        <Accordion type="single" collapsible className="p-4" defaultValue="item-1">
           <AccordionItem value="item-1">
             <AccordionTrigger>Sources</AccordionTrigger>
             <AccordionContent className="flex flex-col gap-2">
-              <ScrollArea>
                 <DragableNode
                   nodeType="Source.playlist"
                   title="Playlist"
                   description="Playlist source"
                   type="Source"
                 />
-              </ScrollArea>
+                <DragableNode
+                  nodeType="Library.likedTracks"
+                  title="Liked Tracks"
+                  description="Liked tracks"
+                  type="Source"
+                />
             </AccordionContent>
           </AccordionItem>
           <AccordionItem value="item-2">
             <AccordionTrigger>Combiners</AccordionTrigger>
             <AccordionContent className="flex flex-col gap-2">
-              <ScrollArea>
                 <DragableNode
                   nodeType="Combiner.alternate"
                   title="Alternate"
                   description="Alternate between playlists"
                   type="Combiner"
                 />
-              </ScrollArea>
             </AccordionContent>
           </AccordionItem>
           <AccordionItem value="item-3">
@@ -163,6 +165,17 @@ export default function Sidebar() {
                 title="Remove Match"
                 description="Match and remove tracks"
                 type="Filter"
+              />
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem value="item-4">
+            <AccordionTrigger>Targets</AccordionTrigger>
+            <AccordionContent className="flex flex-col gap-2">
+              <DragableNode
+                nodeType="Playlist.saveAsNew"
+                title="Save as new"
+                description="Saves workflow output to a new playlist"
+                type="Target"
               />
             </AccordionContent>
           </AccordionItem>

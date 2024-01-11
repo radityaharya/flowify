@@ -44,7 +44,14 @@ type InputPrimitiveProps = {
   }[];
 };
 
-const SelectInput = ({ control, name, placeholder, selectOptions, label, description }: InputPrimitiveProps) => (
+const SelectInput = ({
+  control,
+  name,
+  placeholder,
+  selectOptions,
+  label,
+  description,
+}: InputPrimitiveProps) => (
   <FormItem>
     <FormLabel>{label}</FormLabel>
     <FormField
@@ -67,12 +74,28 @@ const SelectInput = ({ control, name, placeholder, selectOptions, label, descrip
         </Select>
       )}
     />
-    {description && <FormDescription>{description}</FormDescription>}
+    {description && (
+      <FormDescription>
+        {description.split("\n").map((line, index) => (
+          <p key={index} className={index === 0 ? "font-medium" : ""}>
+            {line}
+          </p>
+        ))}
+      </FormDescription>
+    )}
     <FormMessage />
   </FormItem>
 );
 
-const DefaultInput = ({ control, inputType, label, name, placeholder, description, register }: InputPrimitiveProps) => {
+const DefaultInput = ({
+  control,
+  inputType,
+  label,
+  name,
+  placeholder,
+  description,
+  register,
+}: InputPrimitiveProps) => {
   const castInputValue = (value: string, inputType: string) => {
     switch (inputType) {
       case "number":
@@ -136,7 +159,11 @@ const DefaultInput = ({ control, inputType, label, name, placeholder, descriptio
  * @returns {JSX.Element} The rendered input component.
  */
 const InputPrimitive = (props: InputPrimitiveProps): JSX.Element => {
-  return props.inputType === "select" && props.selectOptions ? <SelectInput {...props} /> : <DefaultInput {...props} />;
+  return props.inputType === "select" && props.selectOptions ? (
+    <SelectInput {...props} />
+  ) : (
+    <DefaultInput {...props} />
+  );
 };
 
 export default InputPrimitive;

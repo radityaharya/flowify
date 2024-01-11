@@ -7,6 +7,7 @@ import Combiner from "./Combiner";
 import Utility from "./Utility";
 import Order from "./Order";
 import Playlist from "./Playlist";
+import Library from "./Library";
 export const operationParamsTypesMap = {
   "Filter.filter": {
     filterKey: { type: "string", required: true },
@@ -60,7 +61,11 @@ export const operationParamsTypesMap = {
     minDanceability: { type: "number" },
     maxDanceability: { type: "number" },
     targetDanceability: { type: "number" },
-  }
+  },
+  "Library.likedTracks": {
+    limit: { type: "number" },
+    offset: { type: "number" },
+  },
 } as Record<string, Record<string, { type: string; required?: boolean }>>;
 
 import type { Source, Operation, Workflow } from "./types";
@@ -72,6 +77,7 @@ interface Operations {
   Utility: typeof Utility;
   Order: typeof Order;
   Playlist: typeof Playlist;
+  Library: typeof Library;
   [key: string]: any;
 }
 
@@ -81,6 +87,7 @@ export const operations: Operations = {
   Utility,
   Order,
   Playlist,
+  Library,
 };
 export class Runner extends Base {
   constructor(accessToken: AccessToken) {
@@ -93,24 +100,30 @@ export class Runner extends Base {
       (source, index) =>
         new Promise<void>(
           async (resolve) => {
-            let offset = 0;
             let tracks: SpotifyApi.PlaylistTrackObject[] = [];
-            let result;
-
-            do {
-              result = await new Promise((resolve) =>
-                setTimeout(
-                  () =>
-                    this.spClient
-                      .getPlaylistTracks(source.params.playlistId as string, { limit: 50, offset })
-                      .then(resolve),
-                  index * 1000,
-                ),
-              );
-
-              tracks = [...tracks, ...result.body.items];
-              offset += 50;
-            } while (result.body.next);
+            console.log(`Loading source ${source.id} of type ${source.type} with params ${JSON.stringify(source.params)}`);
+            if (source.type === "Source.playlist"){
+              console.log(`Loading playlist ${source.params.id}`);
+              let result;
+              let offset = 0;
+              do {
+                result = await new Promise((resolve) =>
+                  setTimeout(
+                    () =>
+                      this.spClient
+                        .getPlaylistTracks(source.params.id as string, { limit: 50, offset })
+                        .then(resolve),
+                    index * 1500,
+                  ),
+                );
+  
+                tracks = [...tracks, ...result.body.items];
+                offset += 50;
+              } while (result.body.next);
+            } else if ( source.type === "Library.likedTracks") {
+              const limit= source.params.limit ?? 50;
+              tracks = await operations.Library.likedTracks(this.spClient, { limit: 50, offset: 0 });
+            } 
 
             console.info(`Loaded ${tracks.length} tracks.`);
             source.tracks = tracks;
@@ -246,7 +259,7 @@ export class Runner extends Base {
         errors.push(
           `Invalid operation type: ${
             operation.type
-          } in operation: ${JSON.stringify(operation)}`,
+          } in operation: ${JSON.stringify(operation)} its type is ${typeof operation.type}`,
         );
       }
 
@@ -388,6 +401,9 @@ export class Runner extends Base {
   }
 
   async runWorkflow(workflow: Workflow) {
+    const sortedOperations = this.sortOperations(workflow);
+
+    workflow.operations = sortedOperations;
     const [valid, errors] = this.validateWorkflow(
       workflow,
     ) as [boolean, string[] | null];
@@ -400,7 +416,6 @@ export class Runner extends Base {
       string,
       any
     >;
-    const sortedOperations = this.sortOperations(workflow);
 
     let result: any;
     for (const operation of sortedOperations) {

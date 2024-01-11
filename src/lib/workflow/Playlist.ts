@@ -129,6 +129,54 @@ export default class Playlist extends Base {
     return Playlist._getPlaylistWithTracks(spClient, playlistId);
   }
 
+
+  static async saveAsNew(
+    spClient: SpotifyWebApi,
+    sources: any[],
+    params: { name: string, isPublic?: boolean, collaborative?: boolean, description?: string },
+  ) {
+    log.info("Saving as new playlist...");
+    log.debug("SaveAsNew Sources:", sources, true);
+
+    const playlistName = params.name;
+
+    let tracks = [] as any;
+
+    if (
+      Array.isArray(sources) &&
+      Array.isArray(sources[0]) &&
+      Playlist.isPlaylistTrackObjectArray(sources[0])
+    ) {
+      // If the first source is an array of PlaylistTrackObjects, assume all sources are
+      tracks = sources.flat();
+    } else if (Array.isArray(sources) && sources[0]!.hasOwnProperty("tracks")) {
+      // If the first source has a 'tracks' property that is an array, assume all sources do
+      for (const source of sources) {
+        tracks.push(...source.tracks);
+      }
+    } else if (Playlist.isPlaylistTrackObjectArray(sources)) {
+      tracks = sources;
+    } else {
+      throw new Error(
+        `Invalid source type: ${typeof sources[0]} in ${
+          sources[0]
+        } located in sources: ${JSON.stringify(sources)}`,
+      );
+    }
+
+    const trackUris = tracks.map((track: any) => track.track.uri) as string[];
+
+    const response = await spClient.createPlaylist(playlistName, {
+      public: params.isPublic ?? false,
+      collaborative: params.collaborative ?? false,
+      description: params.description ?? "",
+    });
+
+    await Playlist.addTracksBatch(spClient, response.body.id, trackUris);
+
+    return Playlist._getPlaylistWithTracks(spClient, response.body.id);
+  }
+
   /**
    * The function `saveAsReplace` takes in a Spotify client, an array of sources, and a playlist ID,
    * and replaces the tracks in the playlist with the tracks from the sources.
