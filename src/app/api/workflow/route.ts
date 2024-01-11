@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/server/auth";
 // import { Runner } from "~/lib/workflow/Workflow";
+import { operations } from '../../../lib/workflow/Workflow';
 import { type Workflow } from "~/lib/workflow/types";
 import { getAccessTokenFromProviderAccountId } from "~/server/db/helper";
 import { createWorkflowQueue } from "./workflowQueue";
@@ -36,6 +37,8 @@ export async function POST(request: NextRequest) {
     access_token: accessToken,
   });
 
+  const operations = runner.sortOperations(workflow);
+  workflow.operations = operations;
   runner.validateWorkflow(workflow);
 
   let res: any;

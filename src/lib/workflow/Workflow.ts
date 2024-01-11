@@ -94,6 +94,13 @@ export class Runner extends Base {
     super(accessToken);
   }
 
+  /**
+   * Fetches the source values for a given workflow.
+   * 
+   * @param workflow - The workflow object.
+   * @param skipCache - Optional. Indicates whether to skip the cache. Default is false.
+   * @returns A map of source values.
+   */
   async fetchSourceValues(workflow: Workflow, skipCache = false) {
     const sourceValues = new Map();
     const promises = workflow.sources.map(
@@ -122,7 +129,7 @@ export class Runner extends Base {
               } while (result.body.next);
             } else if ( source.type === "Library.likedTracks") {
               const limit= source.params.limit ?? 50;
-              tracks = await operations.Library.likedTracks(this.spClient, { limit: 50, offset: 0 });
+              tracks = await operations.Library.likedTracks(this.spClient, { limit, offset: 0 });
             } 
 
             console.info(`Loaded ${tracks.length} tracks.`);
@@ -139,6 +146,14 @@ export class Runner extends Base {
   }
 
   // TODO: rework source fetching to use the same method as operations
+  /**
+   * Fetches the sources for a given operation.
+   * 
+   * @param operation - The operation for which to fetch the sources.
+   * @param sourceValues - A map of source values.
+   * @param workflow - The workflow containing the operations.
+   * @returns An array of SpotifyApi.PlaylistTrackObject representing the sources.
+   */
   async fetchSources(
     operation: Operation,
     sourceValues: Map<string, any>,
@@ -177,6 +192,13 @@ export class Runner extends Base {
     return sources;
   }
 
+  /**
+   * Runs the specified operation in the workflow.
+   * @param operationId - The ID of the operation to run.
+   * @param sourceValues - A map of source values.
+   * @param workflow - The workflow object.
+   * @returns A Promise that resolves to the result of the operation.
+   */
   async runOperation(
     operationId: string,
     sourceValues: Map<string, any>,
@@ -213,6 +235,12 @@ export class Runner extends Base {
     return result;
   }
 
+  /**
+   * Sorts the operations in the workflow based on their dependencies.
+   * 
+   * @param workflow - The workflow to sort the operations for.
+   * @returns An array of sorted operations.
+   */
   sortOperations(workflow: Workflow) {
     const sortedOperations = [] as Operation[];
     const operations = [...workflow.operations] as Operation[];
@@ -236,6 +264,12 @@ export class Runner extends Base {
 
     return sortedOperations;
   }
+  /**
+   * Validates a workflow.
+   * 
+   * @param workflow - The workflow to validate.
+   * @returns A tuple containing a boolean indicating whether the validation passed or not, and an array of error messages if validation failed.
+   */
   validateWorkflow(workflow: Workflow) {
     const sourceIds = new Set(workflow.sources.map((source) => source.id));
     const operationIds = new Set();
@@ -399,7 +433,13 @@ export class Runner extends Base {
 
     return [true, null];
   }
-
+  /**
+   * Runs the given workflow.
+   * 
+   * @param workflow - The workflow to be executed.
+   * @returns The result of the workflow execution.
+   * @throws Error if the workflow is invalid.
+   */
   async runWorkflow(workflow: Workflow) {
     const sortedOperations = this.sortOperations(workflow);
 
