@@ -1,15 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import {
-  Handle,
-  Position,
-} from "@xyflow/react";
+import { Handle, Position } from "@xyflow/react";
 import React from "react";
 
-import {
-  CardFooter,
-} from "@/components/ui/card";
+import { CardFooter } from "@/components/ui/card";
 
 import {
   Accordion,
@@ -26,9 +21,7 @@ import InputPrimitive from "../Primitives/Input";
 
 import * as z from "zod";
 
-import {
-  Form,
-} from "@/components/ui/form";
+import { Form } from "@/components/ui/form";
 import useBasicNodeState from "~/hooks/useBasicNodeState";
 import Debug from "../Primitives/Debug";
 
@@ -94,49 +87,51 @@ const PlaylistComponent: React.FC<PlaylistProps> = React.memo(
         />
         <Form {...form!}>
           <form onSubmit={form!.handleSubmit((data) => console.log(data))}>
-            <Accordion type="single" collapsible className="border-none">
-              <AccordionItem value="item-1">
-                <AccordionTrigger className="text-sm">Config</AccordionTrigger>
-                <AccordionContent className="flex w-full flex-col gap-4 p-1">
-                  <InputPrimitive
-                    control={form!.control}
-                    name="limit"
-                    inputType={"number"}
-                    label={"Limit"}
-                    placeholder="20"
-                    register={register!}
-                    description={`The maximum number of items to return. Default: 20. Minimum: 1. 
+            <div className="flex flex-col gap-4">
+              <Accordion type="single" collapsible className="border-none">
+                <AccordionItem value="item-1">
+                  <AccordionTrigger className="text-sm">
+                    Config
+                  </AccordionTrigger>
+                  <AccordionContent className="flex w-full flex-col gap-4 p-1">
+                    <InputPrimitive
+                      control={form!.control}
+                      name="limit"
+                      inputType={"number"}
+                      label={"Limit"}
+                      placeholder="20"
+                      register={register!}
+                      description={`The maximum number of items to return. Default: 20. Minimum: 1. 
                               
                   Maximum: 50.
                   Default: limit=20
                   Range: 0 - 50
                   Example: limit=10`}
-                  />
-                  <InputPrimitive
-                    control={form!.control}
-                    name="offset"
-                    inputType={"number"}
-                    label={"Offset"}
-                    placeholder="0"
-                    register={register!}
-                    description={`The index of the first item to return. Default: 0 (the first item). Use with limit to get the next set of items.
+                    />
+                    <InputPrimitive
+                      control={form!.control}
+                      name="offset"
+                      inputType={"number"}
+                      label={"Offset"}
+                      placeholder="0"
+                      register={register!}
+                      description={`The index of the first item to return. Default: 0 (the first item). Use with limit to get the next set of items.
 
                   Default: offset=0
                   Example: offset=5`}
-                  />
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
+                    />
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </div>
           </form>
         </Form>
-        <Separator />
         <Debug
           id={id}
           isValid={nodeValid}
           TargetConnections={targetConnections}
           SourceConnections={sourceConnections}
         />
-        <CardFooter></CardFooter>
       </CardWithHeader>
     );
   },

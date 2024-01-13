@@ -12,9 +12,7 @@ import React from "react";
 import { ChevronsUpDown } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import {
-  CardFooter,
-} from "@/components/ui/card";
+import { CardFooter } from "@/components/ui/card";
 import {
   Command,
   CommandEmpty,
@@ -48,12 +46,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-} from "@/components/ui/form";
+import { Form, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { useShallow } from "zustand/react/shallow";
 import Debug from "../Primitives/Debug";
 
@@ -111,73 +104,58 @@ const PlaylistItem = ({
 );
 
 function PlaylistComponent({ id, data }: PlaylistProps) {
-    const [open, setOpen] = React.useState(false);
-    const [selectedPlaylist, setSelectedPlaylist] = React.useState<Playlist>(
-      {},
-    );
-    const [search, setSearch] = React.useState("");
+  const [open, setOpen] = React.useState(false);
+  const [selectedPlaylist, setSelectedPlaylist] = React.useState<Playlist>({});
+  const [search, setSearch] = React.useState("");
 
-    const { session, updateNodeData, userPlaylists, nodes } = useStore(
-      (state) => ({
-        session: state.session,
-        updateNodeData: state.updateNodeData,
-        userPlaylists: state.userPlaylists,
-        nodes: state.nodes,
-      }),
-    );
+  const { session, updateNodeData, userPlaylists, nodes } = useStore(
+    (state) => ({
+      session: state.session,
+      updateNodeData: state.updateNodeData,
+      userPlaylists: state.userPlaylists,
+      nodes: state.nodes,
+    }),
+  );
 
-    const form = useForm({
-      resolver: zodResolver(formSchema),
-      mode: "all",
-      shouldUnregister: false,
-    });
-    const { formState, register } = form;
+  const form = useForm({
+    resolver: zodResolver(formSchema),
+    mode: "all",
+    shouldUnregister: false,
+  });
+  const { formState, register } = form;
 
-    const TargetConnections = useHandleConnections({
-      type: "target",
-    });
-    const SourceConnections = useHandleConnections({
-      type: "source",
-    });
+  const TargetConnections = useHandleConnections({
+    type: "target",
+  });
+  const SourceConnections = useHandleConnections({
+    type: "source",
+  });
 
-    const watch = form.watch();
-    const prevWatchRef = React.useRef(watch);
-    const prevSelectedPlaylistRef = React.useRef(selectedPlaylist);
+  const watch = form.watch();
+  const prevWatchRef = React.useRef(watch);
+  const prevSelectedPlaylistRef = React.useRef(selectedPlaylist);
 
-    React.useEffect(() => {
-      if (
-        JSON.stringify(prevWatchRef.current) !== JSON.stringify(watch) ||
-        JSON.stringify(prevSelectedPlaylistRef.current) !== JSON.stringify(selectedPlaylist)
-      ) {
-        updateNodeData(id, {
-          ...watch,
-          ...selectedPlaylist,
-        });
-      }
-      prevWatchRef.current = watch;
-      prevSelectedPlaylistRef.current = selectedPlaylist;
-    }, [watch, selectedPlaylist]);
+  React.useEffect(() => {
+    if (
+      JSON.stringify(prevWatchRef.current) !== JSON.stringify(watch) ||
+      JSON.stringify(prevSelectedPlaylistRef.current) !==
+        JSON.stringify(selectedPlaylist)
+    ) {
+      updateNodeData(id, {
+        ...watch,
+        ...selectedPlaylist,
+      });
+    }
+    prevWatchRef.current = watch;
+    prevSelectedPlaylistRef.current = selectedPlaylist;
+  }, [watch, selectedPlaylist]);
 
-    React.useEffect(() => {
-      const searchPlaylist = async () => {
-        if (search.length > 0) {
-          try {
-            const response = await fetch(
-              `/api/user/${session.user.providerAccountId}/playlists?q=${search}`,
-            );
-            const data = await response.json();
-            console.log(data);
-            useStore.setState({ userPlaylists: data });
-          } catch (err) {
-            console.error(err);
-          }
-        }
-      };
-
-      const userPlaylists = async () => {
+  React.useEffect(() => {
+    const searchPlaylist = async () => {
+      if (search.length > 0) {
         try {
           const response = await fetch(
-            `/api/user/${session.user.providerAccountId}/playlists`,
+            `/api/user/${session.user.providerAccountId}/playlists?q=${search}`,
           );
           const data = await response.json();
           console.log(data);
@@ -185,62 +163,73 @@ function PlaylistComponent({ id, data }: PlaylistProps) {
         } catch (err) {
           console.error(err);
         }
-      };
-
-      function setUserPlaylists() {
-        if (search.length > 0) {
-          searchPlaylist().catch((err) => {
-            console.error(err);
-          });
-        } else {
-          userPlaylists().catch((err) => {
-            console.error(err);
-          });
-        }
       }
-
-      // debounce({delay: 500}, setUserPlaylists)();
-      setUserPlaylists();
-    }, [search]);
-
-    function getNodeData(id: string) {
-      const node = nodes.find((node) => node.id === id);
-      return node?.data;
-    }
-
-    const handleSelect = (playlist) => {
-      console.log("handle select", playlist)
-      form.setValue("playlistId", playlist.playlistId, {
-        shouldValidate: true,
-      });
-      updateNodeData(id, {
-        ...watch,
-        ...playlist,
-      });
-      console.log("data after update", getNodeData(id));
-      setSelectedPlaylist(playlist as Playlist);
-      setOpen(false);
     };
 
-    return (
-      <CardWithHeader
-        title={`Playlist`}
-        type="Source"
-        status={formState.isValid ? "success" : "error"}
-        info="Get a list of the songs in a playlist."
-      >
-        <Handle
-          type="source"
-          position={Position.Right}
-          style={{ background: "#555" }}
-        />
-        <Handle
-          type="target"
-          position={Position.Left}
-          style={{ background: "#555" }}
-        />
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit((data) => console.log(data))}>
+    const userPlaylists = async () => {
+      try {
+        const response = await fetch(
+          `/api/user/${session.user.providerAccountId}/playlists`,
+        );
+        const data = await response.json();
+        console.log(data);
+        useStore.setState({ userPlaylists: data });
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    function setUserPlaylists() {
+      if (search.length > 0) {
+        searchPlaylist().catch((err) => {
+          console.error(err);
+        });
+      } else {
+        userPlaylists().catch((err) => {
+          console.error(err);
+        });
+      }
+    }
+
+    // debounce({delay: 500}, setUserPlaylists)();
+    setUserPlaylists();
+  }, [search]);
+
+  function getNodeData(id: string) {
+    const node = nodes.find((node) => node.id === id);
+    return node?.data;
+  }
+
+  const handleSelect = (playlist) => {
+    console.log("handle select", playlist);
+    form.setValue("playlistId", playlist.playlistId, {
+      shouldValidate: true,
+    });
+    console.log("data after update", getNodeData(id));
+    setSelectedPlaylist(playlist as Playlist);
+    setOpen(false);
+  };
+
+  return (
+    <CardWithHeader
+      title={`Playlist`}
+      type="Source"
+      status={formState.isValid ? "success" : "error"}
+      info="Get a list of the songs in a playlist."
+    >
+      <Handle
+        type="source"
+        position={Position.Right}
+        style={{ background: "#555" }}
+      />
+      <Handle
+        type="target"
+        position={Position.Left}
+        style={{ background: "#555" }}
+      />
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit((data) => console.log(data))}>
+          <div className="flex flex-col gap-4">
             <FormField
               control={form.control}
               name="playlistId"
@@ -371,18 +360,17 @@ function PlaylistComponent({ id, data }: PlaylistProps) {
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
-          </form>
-        </Form>
-        <Separator />
-        <Debug
-          id={id}
-          isValid={formState.isValid}
-          TargetConnections={TargetConnections}
-          SourceConnections={SourceConnections}
-        />
-        <CardFooter></CardFooter>
-      </CardWithHeader>
-    );
+          </div>
+        </form>
+      </Form>
+      <Debug
+        id={id}
+        isValid={formState.isValid}
+        TargetConnections={TargetConnections}
+        SourceConnections={SourceConnections}
+      />
+    </CardWithHeader>
+  );
 }
 
 export default PlaylistComponent;

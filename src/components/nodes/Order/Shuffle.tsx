@@ -46,7 +46,6 @@ const DedupeArtistsComponent: React.FC<PlaylistProps> = React.memo(
             isValid={isValid}
             operationType="Shuffling"
           />
-          <Separator />
           <Debug
             id={id}
             isValid={isValid}
@@ -54,7 +53,6 @@ const DedupeArtistsComponent: React.FC<PlaylistProps> = React.memo(
             SourceConnections={sourceConnections}
           />
         </div>
-        <CardFooter></CardFooter>
       </CardWithHeader>
     );
   },

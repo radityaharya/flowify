@@ -44,7 +44,6 @@ const AlternateComponent: React.FC<PlaylistProps> = React.memo(
         />
         <div className="flex flex-col gap-4">
           <SourceList state={state} isValid={isValid} operationType="Combining" />
-          <Separator />
           <Debug
             id={id}
             isValid={isValid}
@@ -52,7 +51,6 @@ const AlternateComponent: React.FC<PlaylistProps> = React.memo(
             SourceConnections={sourceConnections}
           />
         </div>
-        <CardFooter></CardFooter>
       </CardWithHeader>
     );
   },

@@ -52,7 +52,6 @@ const AlternateComponent: React.FC<PlaylistProps> = ({ id, data }) => {
           SourceConnections={sourceConnections}
         />
       </div>
-      <CardFooter></CardFooter>
     </CardWithHeader>
   );
 };

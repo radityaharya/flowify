@@ -17,11 +17,13 @@ export function SourceList({
           <AlertComponent
             variant="destructive"
             title="Error"
-            description="No playlist component set as input"
+            description="No track source set as input"
           />
         ) : isValid ? (
           <div className="flex flex-col">
-            <span>{operationType} {state.playlistIds.length} playlists</span>
+            <span>
+              {operationType} {state.playlistIds.length} playlists
+            </span>
             <span className="text-xs font-normal opacity-80">
               Total of {state.summary.total} tracks
             </span>
@@ -30,7 +32,7 @@ export function SourceList({
           <AlertComponent
             variant="destructive"
             title="Error"
-            description={`${state.invalidNodesCount} nodes do not have a playlist component connected`}
+            description={`${state.invalidNodesCount} nodes connected do not have a track source`}
           />
         )}
       </div>
@@ -41,15 +43,17 @@ export function SourceList({
                 <div className="flex items-center gap-2">
                   <Image
                     className="h-8 w-8 rounded-sm"
-                    src={playlist.image ?? "/images/spotify.png"}
+                    src={playlist.image}
                     alt=""
                     width={32}
                     height={32}
                     unoptimized
                   />
-                  <div className="flex flex-col">
-                    <div className="text-sm font-medium">{playlist.name}</div>
-                    <div className="text-xs text-gray-400">
+                  <div className="flex w-[160px] flex-col items-start">
+                    <div className="max-w-full overflow-hidden overflow-ellipsis whitespace-nowrap text-sm font-medium">
+                      {playlist.name}
+                    </div>
+                    <div className="text-xs opacity-80">
                       {playlist.owner} - {playlist.total} tracks
                     </div>
                   </div>

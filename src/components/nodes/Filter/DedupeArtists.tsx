@@ -53,7 +53,6 @@ const DedupeArtistsComponent: React.FC<PlaylistProps> = React.memo(
         />
         <div className="flex flex-col gap-4">
           <SourceList state={state} isValid={isValid} operationType="Filtering" />
-          <Separator />
           <Debug
             id={id}
             isValid={isValid}
@@ -61,7 +60,6 @@ const DedupeArtistsComponent: React.FC<PlaylistProps> = React.memo(
             SourceConnections={sourceConnections}
           />
         </div>
-        <CardFooter></CardFooter>
       </CardWithHeader>
     );
   },

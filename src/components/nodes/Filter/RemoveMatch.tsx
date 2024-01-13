@@ -182,7 +182,6 @@ const RemoveMatch: React.FC<PlaylistProps> = React.memo(({ id, data }) => {
         TargetConnections={targetConnections}
         SourceConnections={sourceConnections}
       />
-      <CardFooter></CardFooter>
     </CardWithHeader>
   );
 });

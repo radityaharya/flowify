@@ -132,7 +132,6 @@ const saveAsNewComponent: React.FC<PlaylistProps> = React.memo(
           TargetConnections={targetConnections}
           SourceConnections={sourceConnections}
         />
-        <CardFooter></CardFooter>
       </CardWithHeader>
     );
   },

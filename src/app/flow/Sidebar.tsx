@@ -17,7 +17,7 @@ import { useShallow } from "zustand/react/shallow";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DragableNode } from "@/components/DragableNode";
 import { Button } from "@/components/ui/button";
-import { PlayIcon } from "lucide-react";
+import { InfoIcon, PlayIcon } from "lucide-react";
 
 import {
   AlertDialog,
@@ -84,7 +84,7 @@ function Sidebar() {
       onDragOver={onDragOver}
       onDrop={onDrop}
     >
-      <div className="flex-col ">
+      <div className="flex flex-col gap-6">
         <div className="flex-none px-4 pt-4">
           <div className="flex flex-col justify-between gap-6">
             <div className="flex flex-row justify-between">
@@ -117,7 +117,15 @@ function Sidebar() {
             </div>
           </div>
         </div>
-        <Accordion type="single" collapsible className="p-4" defaultValue="item-1">
+        <div className="flex flex-col gap-1 px-4">
+          <h2 className="font-bold tracking-wider">
+            Workflow Builder
+          </h2>
+          <p className="text-xs font-normal opacity-80 flex flex-row gap-1">
+            Drag and drop nodes to the canvas to create a workflow
+          </p>
+        </div>
+        <Accordion type="single" collapsible className="px-4" defaultValue="item-1">
           <AccordionItem value="item-1">
             <AccordionTrigger>Library</AccordionTrigger>
             <AccordionContent className="flex flex-col gap-2">

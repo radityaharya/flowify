@@ -138,12 +138,21 @@ const usePlaylistLogic = (id: string, formSchema?: ZodObject<any>) => {
         playlists: state.playlists,
       });
     }
-  }, [targetConnections, getNodeData, total, targetConnections, sourceConnections]);
+  }, [
+    targetConnections,
+    getNodeData,
+    total,
+    targetConnections,
+    sourceConnections,
+  ]);
 
   return {
     state,
     setState,
-    isValid: isValid && state.invalidNodesCount === 0,
+    isValid:
+      isValid &&
+      state.invalidNodesCount === 0 &&
+      targetConnections.length > 0,
     targetConnections,
     sourceConnections,
     nodeData: getNodeData(id),
