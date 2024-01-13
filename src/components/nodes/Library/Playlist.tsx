@@ -110,22 +110,20 @@ const PlaylistItem = ({
   </CommandItem>
 );
 
-const PlaylistComponent: React.FC<PlaylistProps> = React.memo(
-  ({ id, data }) => {
+function PlaylistComponent({ id, data }: PlaylistProps) {
     const [open, setOpen] = React.useState(false);
     const [selectedPlaylist, setSelectedPlaylist] = React.useState<Playlist>(
       {},
     );
     const [search, setSearch] = React.useState("");
 
-    const nodes = useStore((state) => state.nodes);
-
-    const { session, updateNodeData, userPlaylists } = useStore(
-      useShallow((state) => ({
+    const { session, updateNodeData, userPlaylists, nodes } = useStore(
+      (state) => ({
         session: state.session,
         updateNodeData: state.updateNodeData,
         userPlaylists: state.userPlaylists,
-      })),
+        nodes: state.nodes,
+      }),
     );
 
     const form = useForm({
@@ -142,23 +140,23 @@ const PlaylistComponent: React.FC<PlaylistProps> = React.memo(
       type: "source",
     });
 
-    const nodeData = useNodesData(id);
     const watch = form.watch();
     const prevWatchRef = React.useRef(watch);
+    const prevSelectedPlaylistRef = React.useRef(selectedPlaylist);
 
     React.useEffect(() => {
-      console.log("nodeData", nodeData);
-      console.log("TargetConnections", TargetConnections);
-      console.log("SourceConnections", SourceConnections);
-      console.log("errors", formState.errors);
-      if (JSON.stringify(prevWatchRef.current) !== JSON.stringify(watch)) {
+      if (
+        JSON.stringify(prevWatchRef.current) !== JSON.stringify(watch) ||
+        JSON.stringify(prevSelectedPlaylistRef.current) !== JSON.stringify(selectedPlaylist)
+      ) {
         updateNodeData(id, {
           ...watch,
           ...selectedPlaylist,
         });
       }
       prevWatchRef.current = watch;
-    }, [watch]);
+      prevSelectedPlaylistRef.current = selectedPlaylist;
+    }, [watch, selectedPlaylist]);
 
     React.useEffect(() => {
       const searchPlaylist = async () => {
@@ -205,17 +203,24 @@ const PlaylistComponent: React.FC<PlaylistProps> = React.memo(
       setUserPlaylists();
     }, [search]);
 
-    const handleSelect = React.useCallback((playlist) => {
+    function getNodeData(id: string) {
+      const node = nodes.find((node) => node.id === id);
+      return node?.data;
+    }
+
+    const handleSelect = (playlist) => {
+      console.log("handle select", playlist)
       form.setValue("playlistId", playlist.playlistId, {
         shouldValidate: true,
       });
+      updateNodeData(id, {
+        ...watch,
+        ...playlist,
+      });
+      console.log("data after update", getNodeData(id));
       setSelectedPlaylist(playlist as Playlist);
       setOpen(false);
-    }, []);
-
-    function getNodeData(id: string) {
-      return nodes.find((node) => node.id === id)?.data;
-    }
+    };
 
     return (
       <CardWithHeader
@@ -378,7 +383,6 @@ const PlaylistComponent: React.FC<PlaylistProps> = React.memo(
         <CardFooter></CardFooter>
       </CardWithHeader>
     );
-  },
-);
+}
 
 export default PlaylistComponent;

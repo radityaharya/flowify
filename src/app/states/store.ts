@@ -89,7 +89,7 @@ const useStore = create<RFState>((set, get) => ({
   addEdge(data) {
     const id = `${data.source}->${data.target}`
     const edge = { id, ...data };
-
+    edge.type = 'smoothstep';
     set({ edges: [edge, ...get().edges] });
   },
   updateNode: (node: Node) => {

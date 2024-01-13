@@ -1,17 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import {
-  Handle,
-  Position,
-} from "@xyflow/react";
+import { Handle, Position } from "@xyflow/react";
 import React from "react";
 
 import { InfoIcon } from "lucide-react";
 
-import {
-  CardFooter,
-} from "@/components/ui/card";
+import { CardFooter } from "@/components/ui/card";
 
 import { Separator } from "~/components/ui/separator";
 
@@ -20,9 +15,7 @@ import InputPrimitive from "../Primitives/Input";
 
 import * as z from "zod";
 
-import {
-  Form,
-} from "@/components/ui/form";
+import { Form } from "@/components/ui/form";
 import Link from "next/link";
 import useBasicNodeState from "~/hooks/useBasicNodeState";
 import Debug from "../Primitives/Debug";
@@ -57,12 +50,17 @@ const RemoveMatch: React.FC<PlaylistProps> = React.memo(({ id, data }) => {
     updateNodeData,
   } = useBasicNodeState(id, formSchema);
 
+
   const watch = form!.watch();
+  const prevWatchRef = React.useRef(watch);
 
   React.useEffect(() => {
-    updateNodeData(id, {
-      ...watch,
-    });
+    if (JSON.stringify(prevWatchRef.current) !== JSON.stringify(watch)) {
+      updateNodeData(id, {
+        ...watch,
+      });
+    }
+    prevWatchRef.current = watch;
   }, [watch]);
 
   return (

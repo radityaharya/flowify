@@ -112,9 +112,10 @@ const usePlaylistLogic = (id: string, formSchema?: ZodObject<any>) => {
     });
 
     const combinedPlaylistIds = Array.from(playlistIdsSet).filter(Boolean);
-    const combinedPlaylists = Array.from(playlistsSet).filter(Boolean).filter(
-      (playlist) => Object.keys(playlist).length !== 0
-    );
+    const combinedPlaylists = Array.from(playlistsSet)
+      .filter(Boolean)
+      .filter((playlist) => Object.keys(playlist).length !== 0)
+      .filter((playlist) => playlist.playlistId);
 
     setState({
       playlistIds: combinedPlaylistIds,

@@ -43,6 +43,7 @@ export const env = createEnv({
    */
   client: {
     // NEXT_PUBLIC_CLIENTVAR: z.string(),
+    NEXT_PUBLIC_ENV: z.enum(["development", "production"]).default("development"),
   },
 
   /**
@@ -60,6 +61,7 @@ export const env = createEnv({
     IMGPROXY_KEY: process.env.IMGPROXY_KEY,
     IMGPROXY_SALT: process.env.IMGPROXY_SALT,
     IMGPROXY_URL: process.env.IMGPROXY_URL,
+    NEXT_PUBLIC_ENV: process.env.NODE_ENV,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
