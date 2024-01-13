@@ -13,8 +13,6 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 
-
-
 import { Separator } from "~/components/ui/separator";
 
 import { CardWithHeader } from "../Primitives/Card";
@@ -32,15 +30,6 @@ import Debug from "../Primitives/Debug";
 type PlaylistProps = {
   id: string;
   data: any;
-};
-
-type Playlist = {
-  playlistId?: string;
-  name?: string;
-  description?: string;
-  image?: string;
-  total?: number;
-  owner?: string;
 };
 
 const formSchema = z.object({
@@ -69,35 +58,19 @@ const RemoveMatch: React.FC<PlaylistProps> = React.memo(({ id, data }) => {
   } = useBasicNodeState(id, formSchema);
 
   const watch = form!.watch();
-  const prevWatchRef = React.useRef(watch);
 
   React.useEffect(() => {
-    if (JSON.stringify(prevWatchRef.current) !== JSON.stringify(watch)) {
-      const filterValue =
-        watch.filterValue && watch.operation
-          ? `${watch.operation} ${watch.filterValue}`
-          : undefined;
-
-      updateNodeData(id, {
-        filterKey: watch.filterKey,
-        filterValue: filterValue,
-      });
-    }
-    prevWatchRef.current = watch;
+    updateNodeData(id, {
+      ...watch,
+    });
   }, [watch]);
-
-  const formValid = formState!.isValid;
-
-  const nodeValid = React.useMemo(() => {
-    return formValid && isValid;
-  }, [formValid, isValid]);
 
   return (
     <CardWithHeader
-      title={`Remove Match`}
-      type="Filter"
-      status={nodeValid ? "success" : "error"}
-      info="Get a list of the songs in a playlist."
+      title={"Sort"}
+      type="Order"
+      status={formState!.isValid ? "success" : "error"}
+      info="Sorts the input based on the given key and order"
     >
       <Handle
         type="source"
@@ -114,49 +87,28 @@ const RemoveMatch: React.FC<PlaylistProps> = React.memo(({ id, data }) => {
           <div className="flex flex-col gap-4">
             <InputPrimitive
               control={form!.control}
-              name="filterKey"
+              name="sortKey"
               inputType={"text"}
-              label={"Match Key"}
+              label={"Sort Key"}
               placeholder="track.artist.name"
               register={register!}
-              description={`The JSON key to match
+              description={`The JSON key to match for sorting
                   
             Example: track.artist.name`}
             />
             <Separator />
             <InputPrimitive
               control={form!.control}
-              name="operation"
+              name="sortOrder"
               inputType={"select"}
-              label={"Operation"}
-              placeholder="Select Operation"
+              label={"Sort Order"}
+              placeholder="Ascending"
               selectOptions={[
-                { label: "Less than (<)", value: "<" },
-                { label: "Less than or equal to (<=)", value: "<=" },
-                { label: "Equal to (==)", value: "==" },
-                { label: "Greater than or equal to (>=)", value: ">=" },
-                { label: "Greater than (>)", value: ">" },
-                { label: "Not equal to (!=)", value: "!=" },
+                { label: "Descending", value: "desc" },
+                { label: "Ascending", value: "asc" },
               ]}
               register={register!}
-              description={`The operation to perform`}
-            />
-            <Separator />
-            <InputPrimitive
-              control={form!.control}
-              name="filterValue"
-              inputType={"text"}
-              label={"Match Value"}
-              placeholder="Ichiko Aoba"
-              register={register!}
-              description={`The JSON value to match to
-
-            
-            Supported data types:
-            - string 
-            - number 
-            - boolean 
-            - date`}
+              description={`The order to sort the results by`}
             />
           </div>
         </form>
@@ -178,7 +130,7 @@ const RemoveMatch: React.FC<PlaylistProps> = React.memo(({ id, data }) => {
       <Separator className="my-2" />
       <Debug
         id={id}
-        isValid={nodeValid}
+        isValid={isValid}
         TargetConnections={targetConnections}
         SourceConnections={sourceConnections}
       />

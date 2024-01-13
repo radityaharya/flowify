@@ -107,7 +107,10 @@ const useStore = create<RFState>((set, get) => ({
     const nodes = get().nodes;
     const index = nodes.findIndex((n) => n.id === id);
     if (index !== -1 && nodes[index]) {
-      nodes[index]!.data = data;
+      nodes[index]!.data = {
+        ...nodes[index]!.data,
+        ...data
+      };
       set({
         nodes: nodes,
       });

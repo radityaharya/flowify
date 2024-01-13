@@ -31,7 +31,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useEffect, useState } from "react";
-export default function Sidebar() {
+import React from "react";
+function Sidebar() {
   const { session, nodes, edges, alert, setAlertStore } = useStore(
     useShallow((state) => ({
       nodes: state.nodes,
@@ -52,7 +53,7 @@ export default function Sidebar() {
     return;
   };
 
-  function handleExport() {
+  function handleRun() {
     const workflow = reactFlowToWorkflow({ nodes, edges });
     const blob = new Blob([JSON.stringify(workflow)], {
       type: "application/json",
@@ -118,7 +119,7 @@ export default function Sidebar() {
         </div>
         <Accordion type="single" collapsible className="p-4" defaultValue="item-1">
           <AccordionItem value="item-1">
-            <AccordionTrigger>Sources</AccordionTrigger>
+            <AccordionTrigger>Library</AccordionTrigger>
             <AccordionContent className="flex flex-col gap-2">
                 <DragableNode
                   nodeType="Source.playlist"
@@ -132,6 +133,12 @@ export default function Sidebar() {
                   description="Liked tracks"
                   type="Source"
                 />
+                <DragableNode
+                nodeType="Library.saveAsNew"
+                title="Save as new"
+                description="Saves workflow output to a new playlist"
+                type="Target"
+              />
             </AccordionContent>
           </AccordionItem>
           <AccordionItem value="item-2">
@@ -141,6 +148,12 @@ export default function Sidebar() {
                   nodeType="Combiner.alternate"
                   title="Alternate"
                   description="Alternate between playlists"
+                  type="Combiner"
+                />
+                <DragableNode
+                  nodeType="Combiner.push"
+                  title="Push"
+                  description="Append tracks of sources sequentially"
                   type="Combiner"
                 />
             </AccordionContent>
@@ -166,16 +179,28 @@ export default function Sidebar() {
                 description="Match and remove tracks"
                 type="Filter"
               />
+              <DragableNode
+                nodeType="Filter.limit"
+                title="Limit"
+                description="Limit number of tracks"
+                type="Filter"
+              />
             </AccordionContent>
           </AccordionItem>
           <AccordionItem value="item-4">
-            <AccordionTrigger>Targets</AccordionTrigger>
+            <AccordionTrigger>Order</AccordionTrigger>
             <AccordionContent className="flex flex-col gap-2">
               <DragableNode
-                nodeType="Playlist.saveAsNew"
-                title="Save as new"
-                description="Saves workflow output to a new playlist"
-                type="Target"
+                nodeType="Order.sort"
+                title="Sort"
+                description="Sort tracks based on given key"
+                type="Order"
+              />
+              <DragableNode
+                nodeType="Order.shuffle"
+                title="Shuffle"
+                description="Randomly shuffle tracks"
+                type="Order"
               />
             </AccordionContent>
           </AccordionItem>
@@ -207,7 +232,7 @@ export default function Sidebar() {
           </AlertDialogContent>
         </AlertDialog>
         <div className="flex w-full gap-2">
-          <Button className="flex-grow">
+          <Button className="flex-grow" onClick={handleRun}>
             <PlayIcon size={16} />
             <span>Run</span>
           </Button>
@@ -215,8 +240,10 @@ export default function Sidebar() {
             <span>Dry Run</span>
           </Button>
         </div>
-        <Button onClick={handleExport}>Save Workflow</Button>
+        <Button>Save Workflow</Button>
       </div>
     </aside>
   );
 }
+
+export default React.memo(Sidebar);

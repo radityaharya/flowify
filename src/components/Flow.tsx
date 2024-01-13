@@ -4,50 +4,59 @@
 import React, { useState, useRef, useCallback } from "react";
 import {
   ReactFlow,
-  addEdge,
-  type Node,
-  type Edge,
-  applyNodeChanges,
-  applyEdgeChanges,
-  type OnNodesChange,
-  type OnEdgesChange,
-  type OnConnect,
   Background,
   Controls,
-  useEdgesState,
-  useNodesState,
-  ReactFlowProvider,
   type ReactFlowInstance,
 } from "@xyflow/react";
 
 import useStore from "~/app/states/store";
 
 import "@xyflow/react/dist/style.css";
-
-import Playlist from "./nodes/Source/Playlist";
-import Alternate from "./nodes/Combiner/Alternate";
-import DedupeTracks from "./nodes/Filter/DedupeTracks";
-import LikedTracks from "./nodes/Source/LikedTracks";
-
-import SaveAsNew from "./nodes/Target/SaveAsNew";
-
 import { useShallow } from "zustand/react/shallow";
+
+import Alternate from "./nodes/Combiner/Alternate";
+import Push from "./nodes/Combiner/Push";
+
+import Playlist from "./nodes/Library/Playlist";
+import LikedTracks from "./nodes/Library/LikedTracks";
+import SaveAsNew from "./nodes/Library/SaveAsNew";
+
+import DedupeTracks from "./nodes/Filter/DedupeTracks";
 import RemoveMatch from "./nodes/Filter/RemoveMatch";
 import DedupeArtists from "./nodes/Filter/DedupeArtists";
+import Limit from "./nodes/Filter/Limit";
+
+import Shuffle from "./nodes/Order/Shuffle";
+import Sort from "./nodes/Order/Sort";
 
 const nodeTypes = {
-  "Source.playlist": Playlist,
   "Combiner.alternate": Alternate,
+  "Combiner.push": Push,
+
   "Filter.dedupeTracks": DedupeTracks,
   "Filter.dedupeArtists": DedupeArtists,
   "Filter.filter": RemoveMatch,
+  "Filter.limit": Limit,
+
+  "Source.playlist": Playlist,
   "Library.likedTracks": LikedTracks,
-  "Playlist.saveAsNew": SaveAsNew,
+  "Library.saveAsNew": SaveAsNew,
+
+  "Order.shuffle": Shuffle,
+  "Order.sort": Sort,
 };
 export default function App() {
   const reactFlowWrapper = useRef(null);
-  const { nodes, edges, onNodesChange, onEdgesChange, addEdge, addNode, onNodesDelete } =
-    useStore(useShallow((state) => ({
+  const {
+    nodes,
+    edges,
+    onNodesChange,
+    onEdgesChange,
+    addEdge,
+    addNode,
+    onNodesDelete,
+  } = useStore(
+    useShallow((state) => ({
       nodes: state.nodes,
       edges: state.edges,
       onNodesChange: state.onNodesChange,
@@ -55,7 +64,8 @@ export default function App() {
       addEdge: state.addEdge,
       addNode: state.addNode,
       onNodesDelete: state.onNodesDelete,
-    })));
+    })),
+  );
 
   const [reactFlowInstance, setReactFlowInstance] =
     useState<ReactFlowInstance | null>(null);

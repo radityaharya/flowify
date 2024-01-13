@@ -2,56 +2,49 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import React from "react";
 import { Handle, Position } from "@xyflow/react";
+import React from "react";
 
 import { CardFooter } from "@/components/ui/card";
+
+import { AlertCircle, Info } from "lucide-react";
+
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 import Image from "next/image";
 
 import { Separator } from "~/components/ui/separator";
 
+import useBasicNodeState from "~/hooks/useBasicNodeState";
 import { CardWithHeader } from "../Primitives/Card";
 import Debug from "../Primitives/Debug";
-import useBasicNodeState from "~/hooks/useBasicNodeState";
 import { AlertComponent } from "../Primitives/Alert";
-
 type PlaylistProps = {
   id: string;
   data: any;
 };
 
-const DedupeTracksComponent: React.FC<PlaylistProps> = React.memo(
+const DedupeArtistsComponent: React.FC<PlaylistProps> = React.memo(
   ({ id, data }) => {
     const { state, isValid, targetConnections, sourceConnections } =
       useBasicNodeState(id);
 
     return (
       <CardWithHeader
-        title="Dedupe Tracks"
-        type="Filter"
+        title="Shuffle"
+        type="Order"
         status={isValid === null ? "loading" : isValid ? "success" : "error"}
-        info="Remove duplicate tracks from multiple playlists"
+        info="Randomly shuffle the order of tracks"
       >
         <Handle
           type="source"
           position={Position.Right}
-          style={{
-            background: "#fff",
-            padding: "0.2rem",
-            borderRadius: "0.5px",
-            border: "1px solid #555",
-          }}
+          style={{ background: "#555" }}
         />
         <Handle
           type="target"
           position={Position.Left}
-          style={{
-            background: "#fff",
-            padding: "0.2rem",
-            borderRadius: "0.5px",
-            border: "1px solid #555",
-          }}
+          style={{ background: "#555" }}
         />
         <div className="flex flex-col gap-4">
           <div className="flex flex-col text-sm font-medium">
@@ -117,4 +110,4 @@ const DedupeTracksComponent: React.FC<PlaylistProps> = React.memo(
   },
 );
 
-export default DedupeTracksComponent;
+export default DedupeArtistsComponent;

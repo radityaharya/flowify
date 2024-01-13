@@ -97,8 +97,8 @@ function Builder({ searchParams }: { searchParams: any }) {
 
 export default function Page({ searchParams }: { searchParams: any }) {
   return (
-    <ReactFlowProvider>
+    // <ReactFlowProvider>
       <Builder searchParams={searchParams} />
-    </ReactFlowProvider>
+    // </ReactFlowProvider>
   );
 }

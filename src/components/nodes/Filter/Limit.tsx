@@ -1,19 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
+import React, {  } from "react";
 import {
   Handle,
   Position,
 } from "@xyflow/react";
-import React from "react";
 
 import { InfoIcon } from "lucide-react";
 
 import {
   CardFooter,
 } from "@/components/ui/card";
-
-
 
 import { Separator } from "~/components/ui/separator";
 
@@ -34,28 +32,11 @@ type PlaylistProps = {
   data: any;
 };
 
-type Playlist = {
-  playlistId?: string;
-  name?: string;
-  description?: string;
-  image?: string;
-  total?: number;
-  owner?: string;
-};
-
 const formSchema = z.object({
-  filterKey: z.string().min(1, {
-    message: "Playlist is required.",
-  }),
-  operation: z.string().min(1, {
-    message: "Operation is required.",
-  }),
-  filterValue: z.string().min(1, {
-    message: "Value is required.",
-  }),
+  limit: z.number().int().positive().default(0),
 });
 
-const RemoveMatch: React.FC<PlaylistProps> = React.memo(({ id, data }) => {
+const LimitComponent: React.FC<PlaylistProps> = React.memo(({ id, data }) => {
   const {
     state,
     isValid,
@@ -73,14 +54,8 @@ const RemoveMatch: React.FC<PlaylistProps> = React.memo(({ id, data }) => {
 
   React.useEffect(() => {
     if (JSON.stringify(prevWatchRef.current) !== JSON.stringify(watch)) {
-      const filterValue =
-        watch.filterValue && watch.operation
-          ? `${watch.operation} ${watch.filterValue}`
-          : undefined;
-
       updateNodeData(id, {
-        filterKey: watch.filterKey,
-        filterValue: filterValue,
+        ...watch,
       });
     }
     prevWatchRef.current = watch;
@@ -94,10 +69,10 @@ const RemoveMatch: React.FC<PlaylistProps> = React.memo(({ id, data }) => {
 
   return (
     <CardWithHeader
-      title={`Remove Match`}
+      title={`Limit`}
       type="Filter"
-      status={nodeValid ? "success" : "error"}
-      info="Get a list of the songs in a playlist."
+      status={formState!.isValid ? "success" : "error"}
+      info="Limit the number of tracks returned by the playlist."
     >
       <Handle
         type="source"
@@ -114,49 +89,12 @@ const RemoveMatch: React.FC<PlaylistProps> = React.memo(({ id, data }) => {
           <div className="flex flex-col gap-4">
             <InputPrimitive
               control={form!.control}
-              name="filterKey"
-              inputType={"text"}
-              label={"Match Key"}
-              placeholder="track.artist.name"
+              name="limit"
+              inputType={"number"}
+              label={"Limit"}
+              placeholder="0"
               register={register!}
-              description={`The JSON key to match
-                  
-            Example: track.artist.name`}
-            />
-            <Separator />
-            <InputPrimitive
-              control={form!.control}
-              name="operation"
-              inputType={"select"}
-              label={"Operation"}
-              placeholder="Select Operation"
-              selectOptions={[
-                { label: "Less than (<)", value: "<" },
-                { label: "Less than or equal to (<=)", value: "<=" },
-                { label: "Equal to (==)", value: "==" },
-                { label: "Greater than or equal to (>=)", value: ">=" },
-                { label: "Greater than (>)", value: ">" },
-                { label: "Not equal to (!=)", value: "!=" },
-              ]}
-              register={register!}
-              description={`The operation to perform`}
-            />
-            <Separator />
-            <InputPrimitive
-              control={form!.control}
-              name="filterValue"
-              inputType={"text"}
-              label={"Match Value"}
-              placeholder="Ichiko Aoba"
-              register={register!}
-              description={`The JSON value to match to
-
-            
-            Supported data types:
-            - string 
-            - number 
-            - boolean 
-            - date`}
+              description={``}
             />
           </div>
         </form>
@@ -187,4 +125,4 @@ const RemoveMatch: React.FC<PlaylistProps> = React.memo(({ id, data }) => {
   );
 });
 
-export default RemoveMatch;
+export default LimitComponent;

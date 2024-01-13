@@ -46,7 +46,7 @@ export const DragableNode = ({
           >
             <div className="flex flex-row gap-2">
               {/* <span className="text-sm font-medium">{type} :</span> */}
-              <span className="text-sm font-normal flex flex-row gap-2">
+              <span className="text-sm font-medium flex flex-row gap-2">
                 <TooltipTrigger className="hidden w-0 group-hover:w-min group-hover:block">
                   <InfoIcon size={12} />
                 </TooltipTrigger>
