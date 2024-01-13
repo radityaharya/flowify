@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.redirect("/api/auth/signin");
   }
 
-  console.log("session", session);
+  // console.log("session", session);
   console.log("Received workflow from user", session.user.providerAccountId);
 
   let workflow: Workflow;

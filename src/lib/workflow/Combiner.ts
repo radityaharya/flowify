@@ -14,7 +14,6 @@ export default class Combiner extends Base {
   }
 
   static push(sources: any[], params: {}) {
-    const startTime = new Date().getTime();
     log.debug("Push Sources:", sources, true);
     log.info("Pushing...");
     const result = [] as SpotifyApi.PlaylistTrackObject[];
@@ -27,9 +26,6 @@ export default class Combiner extends Base {
         log.error("Invalid source type:", typeof source);
       }
     });
-    // //log.log("Result:", result);
-    const endTime = new Date().getTime();
-    //log.log("Push time:", endTime - startTime);
     return result;
   }
 
@@ -40,7 +36,6 @@ export default class Combiner extends Base {
   }
 
   static alternate(sources: any[], params: {}) {
-    const startTime = new Date().getTime();
     log.debug("Alternate Sources:", sources, true);
     log.info("Alternating...");
     const result = [] as SpotifyApi.PlaylistTrackObject[];
@@ -74,9 +69,6 @@ export default class Combiner extends Base {
         }
       });
     }
-
-    const endTime = new Date().getTime();
-    //log.log("Alternate time:", endTime - startTime);
     return result;
   }
 }
