@@ -32,7 +32,6 @@ export async function GET(
   }
 
   const job = await getWorkflowJob(id);
-  console.log(session);
   if (!job) {
     return NextResponse.json({ job: null });
   }

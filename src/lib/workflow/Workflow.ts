@@ -37,16 +37,16 @@ export const operationParamsTypesMap = {
     sortOrder: { type: "string", required: true },
   },
   "Order.shuffle": {},
-  "Playlist.saveAsNew": {
+  "Library.saveAsNew": {
     name: { type: "string", required: true },
     isPublic: { type: "boolean" },
     collaborative: { type: "boolean" },
     description: { type: "string" },
   },
-  "Playlist.saveAsAppend": {
+  "Library.saveAsAppend": {
     playlistId: { type: "string", required: true },
   },
-  "Playlist.saveAsReplace": {
+  "Library.saveAsReplace": {
     playlistId: { type: "string", required: true },
   },
   "Playlist.getTracksRecomendation": {
@@ -221,9 +221,8 @@ export class Runner extends Base {
     // Get the class from the operations object
     const operationClass = operations[className];
 
-    // Check if the class is Playlist and pass spClient if it is
     const result =
-      className === "Playlist"
+      (className === "Playlist" || className === "Library")
         ? await operationClass[methodName](
             this.spClient,
             sources,
