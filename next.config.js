@@ -61,4 +61,5 @@ const sentryConfig = withSentryConfig(
   },
 );
 
-export default million.next(sentryConfig, { auto: { rsc: true } });
+// export default million.next(sentryConfig, { auto: { rsc: true } });
+export default sentryConfig;

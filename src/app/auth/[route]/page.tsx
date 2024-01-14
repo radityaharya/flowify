@@ -8,7 +8,7 @@ import GradientBackground from "~/components/animatedBackground/GradientsBackgro
 import { notFound } from "next/navigation";
 export default function Page({
   params,
-  searchParams
+  searchParams,
 }: {
   params: { route: "login" | "signup" };
   searchParams: any;
@@ -22,7 +22,7 @@ export default function Page({
   return (
     <div className="h-[100svh]">
       <div className="container relative hidden h-full flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
-        <Link
+        {/* <Link
           href={`/auth/${isLogin ? "signup" : "login"}`}
           className={cn(
             buttonVariants({ variant: "ghost" }),
@@ -30,10 +30,10 @@ export default function Page({
           )}
         >
           {isLogin ? "Sign up" : "Login"}
-        </Link>
+        </Link> */}
         <div className="relative hidden h-full flex-col p-10 lg:flex dark:border-r">
           <GradientBackground />
-          <div className="relative z-20 flex items-center text-lg font-medium">
+          {/* <div className="relative z-20 flex items-center text-lg font-medium">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -47,7 +47,7 @@ export default function Page({
               <path d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3" />
             </svg>
             Flowify
-          </div>
+          </div> */}
           <div className="relative z-20 mt-auto">
             <blockquote className="space-y-2">
               <p className="text-lg"></p>
@@ -84,13 +84,11 @@ export default function Page({
               </Link>
               .
             </p>
-            {
-              error && (
-                <div className="p-2 rounded-md text-center text-sm text-muted-foreground bg-red-400">
-                  {error}
-                </div>
-              )
-            }
+            {error && (
+              <div className="rounded-md bg-red-400 p-2 text-center text-sm text-muted-foreground">
+                {error}
+              </div>
+            )}
           </div>
         </div>
       </div>

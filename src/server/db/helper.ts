@@ -44,7 +44,7 @@ async function getAccessToken(whereClause: any) {
     }
   }
 
-  console.info("Returning access token from user", user?.userId);
+  // console.info("Returning access token from user", user?.userId);
   return user?.access_token;
 }
 

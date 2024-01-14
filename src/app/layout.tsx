@@ -2,6 +2,7 @@ import "~/styles/globals.css";
 
 import { Inter } from "next/font/google";
 import NextAuthProvider from "~/providers/NextAuthProvider";
+import { SiteNav } from "~/components/main-nav";
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
@@ -21,7 +22,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`font-sans ${inter.variable} dark`}>
-        <NextAuthProvider>{children}</NextAuthProvider>
+        <NextAuthProvider>
+          <SiteNav />
+          {children}
+        </NextAuthProvider>
       </body>
     </html>
   );

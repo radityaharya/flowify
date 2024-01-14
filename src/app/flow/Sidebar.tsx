@@ -85,10 +85,10 @@ function Sidebar() {
       onDrop={onDrop}
     >
       <div className="flex flex-col gap-6">
-        <div className="flex-none px-4 pt-4">
+        <div className="flex-none px-6 pt-[4rem]">
           <div className="flex flex-col justify-between gap-6">
             <div className="flex flex-row justify-between">
-              <div className="relative z-20 flex items-center text-lg font-medium">
+              {/* <div className="relative z-20 flex items-center text-lg font-medium">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
@@ -113,35 +113,38 @@ function Sidebar() {
                     {session?.user?.name?.split(" ").map((n) => n[0])}
                   </AvatarFallback>
                 </Avatar>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
-        <div className="flex flex-col gap-1 px-4">
-          <h2 className="font-bold tracking-wider">
-            Workflow Builder
-          </h2>
-          <p className="text-xs font-normal opacity-80 flex flex-row gap-1">
+        <div className="flex flex-col gap-1 px-6">
+          <h2 className="font-bold tracking-wider">Workflow Builder</h2>
+          <p className="flex flex-row gap-1 text-xs font-normal opacity-80">
             Drag and drop nodes to the canvas to create a workflow
           </p>
         </div>
-        <Accordion type="single" collapsible className="px-4" defaultValue="item-1">
+        <Accordion
+          type="single"
+          collapsible
+          className="px-6"
+          defaultValue="item-1"
+        >
           <AccordionItem value="item-1">
             <AccordionTrigger>Library</AccordionTrigger>
             <AccordionContent className="flex flex-col gap-2">
-                <DragableNode
-                  nodeType="Source.playlist"
-                  title="Playlist"
-                  description="Playlist source"
-                  type="Source"
-                />
-                <DragableNode
-                  nodeType="Library.likedTracks"
-                  title="Liked Tracks"
-                  description="Liked tracks"
-                  type="Source"
-                />
-                <DragableNode
+              <DragableNode
+                nodeType="Source.playlist"
+                title="Playlist"
+                description="Playlist source"
+                type="Source"
+              />
+              <DragableNode
+                nodeType="Library.likedTracks"
+                title="Liked Tracks"
+                description="Liked tracks"
+                type="Source"
+              />
+              <DragableNode
                 nodeType="Library.saveAsNew"
                 title="Save as new"
                 description="Saves workflow output to a new playlist"
@@ -152,18 +155,18 @@ function Sidebar() {
           <AccordionItem value="item-2">
             <AccordionTrigger>Combiners</AccordionTrigger>
             <AccordionContent className="flex flex-col gap-2">
-                <DragableNode
-                  nodeType="Combiner.alternate"
-                  title="Alternate"
-                  description="Alternate between playlists"
-                  type="Combiner"
-                />
-                <DragableNode
-                  nodeType="Combiner.push"
-                  title="Push"
-                  description="Append tracks of sources sequentially"
-                  type="Combiner"
-                />
+              <DragableNode
+                nodeType="Combiner.alternate"
+                title="Alternate"
+                description="Alternate between playlists"
+                type="Combiner"
+              />
+              <DragableNode
+                nodeType="Combiner.push"
+                title="Push"
+                description="Append tracks of sources sequentially"
+                type="Combiner"
+              />
             </AccordionContent>
           </AccordionItem>
           <AccordionItem value="item-3">
@@ -214,7 +217,7 @@ function Sidebar() {
           </AccordionItem>
         </Accordion>
       </div>
-      <div className="flex flex-col gap-2 px-4 pb-4">
+      <div className="flex flex-col gap-2 px-6 pb-4">
         <AlertDialog open={openAlert} onOpenChange={handleOpenChange}>
           <AlertDialogContent>
             <AlertDialogHeader>
@@ -222,12 +225,12 @@ function Sidebar() {
               <AlertDialogDescription>
                 {alert?.message.split("\n").map((line, index) => (
                   <code>
-                  <p key={index} className={index === 0 ? "font-medium" : ""}>
-                    {line}
-                  </p>
+                    <p key={index} className={index === 0 ? "font-medium" : ""}>
+                      {line}
+                    </p>
                   </code>
                 ))}
-                </AlertDialogDescription>
+              </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogAction
