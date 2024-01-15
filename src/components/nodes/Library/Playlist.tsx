@@ -213,6 +213,7 @@ function PlaylistComponent({ id, data }: PlaylistProps) {
   return (
     <CardWithHeader
       title={`Playlist`}
+      id={id}
       type="Source"
       status={formState.isValid ? "success" : "error"}
       info="Get a list of the songs in a playlist."

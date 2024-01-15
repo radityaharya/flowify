@@ -27,6 +27,7 @@ const DedupeArtistsComponent: React.FC<PlaylistProps> = React.memo(
     return (
       <CardWithHeader
         title="Dedupe Artists"
+        id={id}
         type="Filter"
         status={isValid === null ? "loading" : isValid ? "success" : "error"}
         info="Remove duplicate artists from multiple playlists"

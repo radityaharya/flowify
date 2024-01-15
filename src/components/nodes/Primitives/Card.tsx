@@ -24,10 +24,13 @@ import {
 import { cn } from "~/lib/utils";
 
 import { DotIcon, InfoIcon } from "lucide-react";
-import { Suspense } from "react";
 import { Separator } from "~/components/ui/separator";
+import useStore from "~/app/states/store";
+import { useShallow } from "zustand/react/shallow";
+
 interface CardWithHeaderProps {
   children: React.ReactNode;
+  id: string;
   title: string;
   type: string;
   status?: string;
@@ -37,12 +40,34 @@ interface CardWithHeaderProps {
 
 export function CardWithHeader({
   children,
+  id,
   title,
   type,
   status,
   info,
   className,
 }: CardWithHeaderProps) {
+
+  const {
+    nodes,
+    edges,
+    onNodesChange,
+    onEdgesChange,
+    addEdge,
+    addNode,
+    onNodesDelete,
+  } = useStore(
+    useShallow((state) => ({
+      nodes: state.nodes,
+      edges: state.edges,
+      onNodesChange: state.onNodesChange,
+      onEdgesChange: state.onEdgesChange,
+      addEdge: state.addEdge,
+      addNode: state.addNode,
+      onNodesDelete: state.onNodesDelete,
+    })),
+  );
+
   return (
     <Card className={cn("w-[350px] border dark:border-gray-600 flex flex-col gap-2", className)}>
       <div className="flex w-full flex-row gap-2 rounded-lg p-2 bg-accent">

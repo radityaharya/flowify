@@ -6,6 +6,7 @@ import {
   ReactFlow,
   Background,
   Controls,
+  SelectionMode,
   type ReactFlowInstance,
 } from "@xyflow/react";
 
@@ -118,17 +119,32 @@ export default function App() {
           onDragOver={onDragOver}
           onNodesDelete={onNodesDelete}
           // fitView
-          // snapToGrid={true}
+          snapToGrid={true}
           nodeTypes={nodeTypes}
-          // snapGrid={[20, 20]}
-          zoomOnPinch={false}
-          zoomOnScroll={false}
+          snapGrid={[20, 20]}
+          // zoomOnPinch={false}
+          // zoomOnScroll={false}
           zoomOnDoubleClick={false}
           deleteKeyCode={["Backspace", "Delete"]}
-          // onPaneContextMenu={(e)=>{e.preventDefault();addNode(e)}}
+          onPaneContextMenu={(e) => {
+            e.preventDefault();
+          }}
+          minZoom={0.001}
+          maxZoom={1}
+          // // figma like
+          // panOnScroll
+          // selectionOnDrag
+          // panOnDrag={[1, 2]}
+          // selectionMode={SelectionMode.Partial}
         >
           <Controls />
-          <Background color="#aaa" gap={24} className="dark:bg-gray-800" />
+          <Background
+            color="#aaaaaa"
+            gap={20}
+            className="dark:bg-gray-800"
+            size={2}
+            patternClassName="opacity-20"
+          />
         </ReactFlow>
       </div>
     </div>

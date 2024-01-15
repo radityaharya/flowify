@@ -27,7 +27,7 @@ type RFState = {
   onConnect: OnConnect;
   setNodes: (nodes: Node[]) => void;
   setEdges: (edges: Edge[]) => void;
-  addNode: (data: any) => void;
+  addNode: (data: any) => Node;
   addEdge: (data: any) => void;
   updateNodeData: (id: string, data: any) => void;
   onNodesDelete: (deleted: Node[]) => void;
@@ -85,6 +85,7 @@ const useStore = create<RFState>((set, get) => ({
     const id = uuidv4();
     const node = { id, ...data };
     set({ nodes: [node, ...get().nodes] });
+    return node;
   },
   addEdge(data) {
     const id = `${data.source}->${data.target}`

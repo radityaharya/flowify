@@ -26,6 +26,7 @@ const DedupeArtistsComponent: React.FC<PlaylistProps> = React.memo(
     return (
       <CardWithHeader
         title="Shuffle"
+        id={id}
         type="Order"
         status={isValid === null ? "loading" : isValid ? "success" : "error"}
         info="Randomly shuffle the order of tracks"

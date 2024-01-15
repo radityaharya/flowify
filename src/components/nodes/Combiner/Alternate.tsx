@@ -28,6 +28,7 @@ const AlternateComponent: React.FC<PlaylistProps> = React.memo(
     return (
       <CardWithHeader
         title={`Alternate`}
+        id={id}
         type="Combiner"
         status={isValid === null ? "loading" : isValid ? "success" : "error"}
         info="Interleaves the tracks from multiple playlists"

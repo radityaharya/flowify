@@ -70,6 +70,7 @@ const LimitComponent: React.FC<PlaylistProps> = React.memo(({ id, data }) => {
   return (
     <CardWithHeader
       title={`Limit`}
+      id={id}
       type="Filter"
       status={formState!.isValid ? "success" : "error"}
       info="Limit the number of tracks returned by the playlist."

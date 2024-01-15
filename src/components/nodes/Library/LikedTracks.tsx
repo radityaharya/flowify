@@ -71,6 +71,7 @@ const PlaylistComponent: React.FC<PlaylistProps> = React.memo(
     return (
       <CardWithHeader
         title="Liked Tracks"
+        id={id}
         type="Source"
         status={formState!.isValid ? "success" : "error"}
         info="Get a list of the songs saved in your ‘Your Music’ library."

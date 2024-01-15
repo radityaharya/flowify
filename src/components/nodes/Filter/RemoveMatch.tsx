@@ -95,6 +95,7 @@ const RemoveMatch: React.FC<PlaylistProps> = React.memo(({ id, data }) => {
   return (
     <CardWithHeader
       title={`Remove Match`}
+      id={id}
       type="Filter"
       status={nodeValid ? "success" : "error"}
       info="Get a list of the songs in a playlist."

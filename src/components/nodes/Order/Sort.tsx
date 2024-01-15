@@ -66,6 +66,7 @@ const RemoveMatch: React.FC<PlaylistProps> = React.memo(({ id, data }) => {
   return (
     <CardWithHeader
       title={"Sort"}
+      id={id}
       type="Order"
       status={formState!.isValid ? "success" : "error"}
       info="Sorts the input based on the given key and order"

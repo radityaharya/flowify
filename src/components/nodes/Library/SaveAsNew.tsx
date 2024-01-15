@@ -63,6 +63,7 @@ const saveAsNewComponent: React.FC<PlaylistProps> = React.memo(
     return (
       <CardWithHeader
         title="Save as New"
+        id={id}
         type="Target"
         status={formState!.isValid ? "success" : "error"}
         info="Get a list of the songs saved in your ‘Your Music’ library."

@@ -17,6 +17,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { GripVertical, InfoIcon } from "lucide-react";
+import useStore from "@/app/states/store";
+import { useShallow } from "zustand/react/shallow";
 
 type DragableNodeProps = {
   nodeType: string;
@@ -35,6 +37,39 @@ export const DragableNode = ({
     event.dataTransfer.effectAllowed = "move";
   };
 
+  const {
+    nodes,
+    addNode,
+    addEdge,
+  } = useStore(
+    useShallow((state) => ({
+      nodes: state.nodes,
+      addNode: state.addNode,
+      addEdge: state.addEdge,
+    })),
+  );
+
+  const onClick = (event) => {
+    event.preventDefault();
+
+    const newNodePosition = nodes.length > 0
+      ? { x: nodes[0]!.position.x + 450, y: nodes[0]!.position.y }
+      : { x: 100, y: 100 };
+
+    const newNode = addNode({
+      type: nodeType,
+      position: newNodePosition,
+      data: {},
+    });
+
+    if (nodes.length > 0) {
+      addEdge({
+        source: nodes[0]!.id,
+        target: newNode.id,
+      });
+    }
+  }
+
   return (
     <TooltipProvider>
       <Tooltip>
@@ -42,6 +77,7 @@ export const DragableNode = ({
           <div
             className="flex w-full flex-row items-center justify-between gap-2 rounded-md p-2 dark:bg-accent"
             onDragStart={onDragStart}
+            onClick={onClick}
             draggable
           >
             <div className="flex flex-row gap-2">

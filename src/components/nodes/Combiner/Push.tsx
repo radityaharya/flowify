@@ -28,6 +28,7 @@ const AlternateComponent: React.FC<PlaylistProps> = ({ id, data }) => {
   return (
     <CardWithHeader
       title={`Push`}
+      id={id}
       type="Combiner"
       status={isValid === null ? "loading" : isValid ? "success" : "error"}
       info="Appends source tracks"
