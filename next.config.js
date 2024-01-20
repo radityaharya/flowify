@@ -12,6 +12,7 @@ const config = {
   experimental: {
     instrumentationHook: true,
   },
+  output: process.env.STANDALONE_OUTPUT ? "standalone" : undefined,
   images: {
     // domains: ["i.scdn.co", "mosaic.scdn.co", "image-cdn-fa.spotifycdn.com", "image-cdn-ak.spotifycdn.com", "image-cdn-ak.spotifycdn.com"],
     remotePatterns: [
