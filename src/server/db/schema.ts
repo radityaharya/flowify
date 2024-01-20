@@ -101,6 +101,7 @@ export const workflowJobs = mysqlTable(
     startedAt: timestamp("startedAt", { mode: "date" }),
     completedAt: timestamp("completedAt", { mode: "date" }),
     userId: varchar("userId", { length: 255 }).notNull(),
+    workerId: varchar("workerId", { length: 255 }),
   },
   (workflowJob) => ({
     userIdIdx: index("userId_idx").on(workflowJob.userId),

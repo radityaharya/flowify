@@ -64,7 +64,7 @@ export async function getWorkflowJob(id: string) {
   return job;
 }
 
-export async function updateWorkflowJob(jobId: string, status?: string) {
+export async function updateWorkflowJob(jobId: string, status?: string, workerId?: string) {
   try{
   console.log("Updating workflow job", jobId);
   const job = await workflowQueue.getJob(jobId);
@@ -96,6 +96,7 @@ export async function updateWorkflowJob(jobId: string, status?: string) {
     status: status,
     error: job.failedReason,
     completedAt: completedAt,
+    workerId: workerId,
   }).where(
     eq(workflowJobs.id, jobId),
   );

@@ -23,7 +23,7 @@ const worker = new Worker(
   "workflowQueue",
   async (job) => {
     const data = job?.data;
-    await updateWorkflowJob(job.id!, "active");
+    await updateWorkflowJob(job.id!, "active", WORKER_ID);
     if (!data) {
       throw new Error("No data found in job");
     }
@@ -42,12 +42,12 @@ const worker = new Worker(
       console.log("Running workflow...");
       res = await runner.runWorkflow(workflow);
     } catch (e) {
-      await updateWorkflowJob(job.id!, "failed");
+      await updateWorkflowJob(job.id!, "failed", WORKER_ID);
       console.error("Error running workflow", e);
       throw e;
     }
     console.log("Workflow executed successfully");
-    await updateWorkflowJob(job.id!, "completed");
+    await updateWorkflowJob(job.id!, "completed", WORKER_ID);
     return res;
   },
   {
