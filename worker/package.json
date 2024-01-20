@@ -1,0 +1,47 @@
+{
+  "name": "flowify-worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:worker": "bun install",
+    "start:worker": "bun worker.ts",
+    "dev:worker": "bun --watch worker.ts"
+  },
+  "dependencies": {
+    "@auth/drizzle-adapter": "^0.3.15",
+    "@planetscale/database": "^1.11.0",
+    "@sentry/nextjs": "^7.93.0",
+    "@types/spotify-api": "^0.0.25",
+    "bullmq": "^5.1.1",
+    "drizzle-orm": "latest",
+    "ioredis": "^5.3.2",
+    "million": "latest",
+    "next-auth": "^4.24.5",
+    "spotify-web-api-node": "^5.0.2",
+    "tailwind-merge": "^2.2.0",
+    "tailwindcss-animate": "^1.0.7",
+    "uuid": "^9.0.1",
+    "zod": "^3.22.4",
+    "zustand": "^4.4.7"
+  },
+  "devDependencies": {
+    "@types/eslint": "^8.44.7",
+    "@types/node": "^18.17.0",
+    "@types/react": "^18.2.37",
+    "@types/react-dom": "^18.2.15",
+    "@types/spotify-web-api-node": "^5.0.11",
+    "@types/uuid": "^9.0.7",
+    "@typescript-eslint/eslint-plugin": "^6.11.0",
+    "@typescript-eslint/parser": "^6.11.0",
+    "autoprefixer": "^10.4.14",
+    "dotenv-cli": "^7.3.0",
+    "drizzle-kit": "^0.20.13",
+    "eslint": "^8.54.0",
+    "mysql2": "^3.6.1",
+    "typescript": "^5.1.6"
+  },
+  "ct3aMetadata": {
+    "initVersion": "7.25.0"
+  }
+}

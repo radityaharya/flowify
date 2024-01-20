@@ -9,10 +9,12 @@
     "db:studio": "dotenv drizzle-kit studio",
     "dev": "next dev",
     "lint": "next lint",
-    "start": "next start"
+    "start": "next start",
+    "start:worker": "dotenv -e .env bun ./worker/worker.ts",
+    "dev:worker": "bun run --watch ./worker/worker.ts"
   },
   "dependencies": {
-    "@auth/drizzle-adapter": "^0.3.6",
+    "@auth/drizzle-adapter": "^0.3.15",
     "@bitpatty/imgproxy-url-builder": "^1.4.0",
     "@hookform/resolvers": "^3.3.4",
     "@planetscale/database": "^1.11.0",
