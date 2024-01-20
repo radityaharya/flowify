@@ -150,6 +150,18 @@ function Sidebar() {
                 description="Saves workflow output to a new playlist"
                 type="Target"
               />
+              <DragableNode
+                nodeType="Library.saveAsAppend"
+                title="Save as append"
+                description="Saves workflow output to an existing playlist by appending"
+                type="Target"
+              />
+              <DragableNode
+                nodeType="Library.saveAsReplace"
+                title="Save as replace"
+                description="Saves workflow output to an existing playlist by replacing all tracks"
+                type="Target"
+              />
             </AccordionContent>
           </AccordionItem>
           <AccordionItem value="item-2">

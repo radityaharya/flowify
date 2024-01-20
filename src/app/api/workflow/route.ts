@@ -4,7 +4,7 @@ import { authOptions } from "@/server/auth";
 // import { Runner } from "~/lib/workflow/Workflow";
 import { operations } from '../../../lib/workflow/Workflow';
 import { type Workflow } from "~/lib/workflow/types";
-import { getAccessTokenFromProviderAccountId } from "~/server/db/helper";
+import { getAccessTokenFromUserId } from "~/server/db/helper";
 import { createWorkflowQueue } from "./workflowQueue";
 import { Runner } from "~/lib/workflow/Workflow";
 export async function POST(request: NextRequest) {
@@ -12,15 +12,14 @@ export async function POST(request: NextRequest) {
   if (!session) {
     return NextResponse.redirect("/api/auth/signin");
   }
-  const accessToken = await getAccessTokenFromProviderAccountId(
-    session.user.providerAccountId,
+  const accessToken = await getAccessTokenFromUserId(
+    session.user.id,
   );
   if (!accessToken) {
     return NextResponse.redirect("/api/auth/signin");
   }
 
-  console.log("session", session);
-  console.log("Received workflow from user", session.user.providerAccountId);
+  console.log("Received workflow from user", session.user.id);
 
   let workflow: Workflow;
   try {

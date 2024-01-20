@@ -47,7 +47,7 @@ export class Base {
     }
     return [];
   }
-  static async addTracksBatch(spClient: any, playlistId: string, trackUris: string[]) {
+  static async addTracksBatch(spClient: SpotifyWebApi, playlistId: string, trackUris: string[]) {
     // A maximum of 100 items can be added in one request.
     // handle this by chunking the array into batches of 100
     try {
@@ -74,7 +74,7 @@ export class Base {
     }
   }
 
-  static async replaceTracksBatch(spClient: any,playlistId: string, trackUris: string[]) {
+  static async replaceTracksBatch(spClient: SpotifyWebApi, id: string, trackUris: string[]) {
     // A maximum of 100 items can be added in one request.
     // handle this by chunking the array into batches of 100
     try {
@@ -91,7 +91,7 @@ export class Base {
       const trackChunks = chunk(trackUris, chunkSize);
 
       for (const chunk of trackChunks) {
-        await spClient.replaceTracksInPlaylist(playlistId, chunk);
+        await spClient.replaceTracksInPlaylist(id, chunk);
       }
     } catch (err) {
       console.error("Error replacing tracks in playlist", err);

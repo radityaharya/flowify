@@ -21,6 +21,8 @@ import Push from "./nodes/Combiner/Push";
 import Playlist from "./nodes/Library/Playlist";
 import LikedTracks from "./nodes/Library/LikedTracks";
 import SaveAsNew from "./nodes/Library/SaveAsNew";
+import SaveAsAppend from "./nodes/Library/SaveAsAppend";
+import SaveAsReplace from "./nodes/Library/SaveAsReplace";
 
 import DedupeTracks from "./nodes/Filter/DedupeTracks";
 import RemoveMatch from "./nodes/Filter/RemoveMatch";
@@ -42,6 +44,8 @@ const nodeTypes = {
   "Source.playlist": Playlist,
   "Library.likedTracks": LikedTracks,
   "Library.saveAsNew": SaveAsNew,
+  "Library.saveAsAppend": SaveAsAppend,
+  "Library.saveAsReplace": SaveAsReplace,
 
   "Order.shuffle": Shuffle,
   "Order.sort": Sort,

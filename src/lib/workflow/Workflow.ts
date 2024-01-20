@@ -44,10 +44,10 @@ export const operationParamsTypesMap = {
     description: { type: "string" },
   },
   "Library.saveAsAppend": {
-    playlistId: { type: "string", required: true },
+    id: { type: "string", required: true },
   },
   "Library.saveAsReplace": {
-    playlistId: { type: "string", required: true },
+    id: { type: "string", required: true },
   },
   "Playlist.getTracksRecomendation": {
     limit: { type: "number", required: true },

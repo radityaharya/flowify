@@ -44,12 +44,12 @@ export default class Library extends Base {
 
   static async _getPlaylistWithTracks(
     spClient: SpotifyWebApi,
-    playlistId: string,
+    id: string,
   ) {
     return spClient
-      .getPlaylist(playlistId)
+      .getPlaylist(id)
       .then((response) => ({
-        playlistId: response.body.id,
+        id: response.body.id,
         tracks: response.body.tracks.items,
       }))
       .catch((error) => {
@@ -67,18 +67,18 @@ export default class Library extends Base {
    * class, which is used to make API requests to the Spotify API.
    * @param {any[]} sources - The `sources` parameter is an array that contains the sources of tracks
    * to be added to the playlist. It can have different formats:
-   * @param params - { playlistId: string }
+   * @param params - { id: string }
    * @returns the playlist with the added tracks.
    */
   static async saveAsAppend(
     spClient: SpotifyWebApi,
     sources: any[],
-    params: { playlistId: string },
+    params: { id: string },
   ) {
     log.info("Saving as append playlist...");
     log.debug("SaveAsAppend Sources:", sources, true);
 
-    const playlistId = params.playlistId;
+    const id = params.id;
 
     let tracks = [] as any;
 
@@ -106,9 +106,9 @@ export default class Library extends Base {
 
     const trackUris = tracks.map((track: any) => track.track.uri) as string[];
 
-    await Library.addTracksBatch(spClient, playlistId, trackUris);
+    await Library.addTracksBatch(spClient, id, trackUris);
 
-    return Library._getPlaylistWithTracks(spClient, playlistId);
+    return Library._getPlaylistWithTracks(spClient, id);
   }
 
 
@@ -166,19 +166,19 @@ export default class Library extends Base {
    * class, which is used to make API requests to the Spotify Web API.
    * @param {any[]} sources - The `sources` parameter is an array that contains the sources of tracks
    * to be saved. It can have different formats:
-   * @param params - { playlistId: string }
+   * @param params - { id: string }
    * @returns the result of calling the `_getPlaylistWithTracks` method with the `spClient` and
-   * `playlistId` as arguments.
+   * `id` as arguments.
    */
   static async saveAsReplace(
     spClient: SpotifyWebApi,
     sources: any[],
-    params: { playlistId: string },
+    params: { id: string },
   ) {
     log.info("Saving as replace playlist...");
     log.debug("SaveAsReplace Sources:", sources, true);
 
-    const playlistId = params.playlistId;
+    const id = params.id;
 
     let tracks = [] as any;
 
@@ -206,9 +206,9 @@ export default class Library extends Base {
 
     const trackUris = tracks.map((track: any) => track.track.uri) as string[];
 
-    // await spClient.replaceTracksInPlaylist(playlistId, trackUris);
-    await Library.replaceTracksBatch(spClient, playlistId, trackUris);
+    // await spClient.replaceTracksInPlaylist(id, trackUris);
+    await Library.replaceTracksBatch(spClient, id, trackUris);
 
-    return Library._getPlaylistWithTracks(spClient, playlistId);
+    return Library._getPlaylistWithTracks(spClient, id);
   }
 }
