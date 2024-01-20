@@ -6,9 +6,10 @@ import { Worker } from "bullmq";
 import { updateWorkflowJob } from "../src/app/api/workflow/workflowQueue";
 import Redis from "ioredis";
 import { v4 as uuidv4 } from "uuid";
+import os from "os";
 
 const CONCURRENCY = 5;
-const WORKER_ID = process.env.WORKER_ID ?? "worker-" + uuidv4();
+const WORKER_ID = os.hostname() + "-" + `${process.env.WORKER_ID ?? 'worker-' + uuidv4()}`
 
 
 console.log(`
