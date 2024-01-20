@@ -5,7 +5,8 @@ import { getAccessTokenFromUserId } from "~/server/db/helper";
 
 export const register = async () => {
   //This if statement is important, read here: https://nextjs.org/docs/app/building-your-application/optimizing/instrumentation
-  if (process.env.NEXT_RUNTIME === "nodejs") {
+  if (process.env.NEXT_RUNTIME === "nodejs" && !process.env.NO_WORKER) {
+    console.log("Registering worker");
     const { Worker } = await import("bullmq");
     const Redis = (await import("ioredis")).default;
     const updateWorkflowJob = (await import("~/app/api/workflow/workflowQueue")).updateWorkflowJob;
@@ -49,5 +50,7 @@ export const register = async () => {
         removeOnFail: { count: 5000 },
       }
     );
+  } else {
+    console.log("Not registering worker");
   }
 };

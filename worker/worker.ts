@@ -5,6 +5,15 @@ import { getAccessTokenFromUserId } from "../src/server/db/helper";
 import { Worker } from "bullmq";
 import { updateWorkflowJob } from "../src/app/api/workflow/workflowQueue";
 import Redis from "ioredis";
+import { v4 as uuidv4 } from "uuid";
+
+const CONCURRENCY = 5;
+const WORKER_ID = process.env.WORKER_ID ?? "worker-" + uuidv4();
+
+
+console.log(`
+Starting worker ${WORKER_ID} with concurrency ${CONCURRENCY}
+`);
 
 const connection = new Redis(env.REDIS_URL, {
   maxRetriesPerRequest: null,
@@ -43,7 +52,7 @@ const worker = new Worker(
   },
   {
     connection,
-    concurrency: 5,
+    concurrency: CONCURRENCY,
     removeOnComplete: { count: 1000 },
     removeOnFail: { count: 5000 },
   },
