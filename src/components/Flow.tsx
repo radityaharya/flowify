@@ -1,14 +1,15 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 "use client";
 
-import React, { useState, useRef, useCallback } from "react";
 import {
-  ReactFlow,
   Background,
   Controls,
+  Panel,
+  ReactFlow,
   SelectionMode,
   type ReactFlowInstance,
 } from "@xyflow/react";
+import React, { useCallback, useRef, useState } from "react";
 
 import useStore from "~/app/states/store";
 
@@ -18,19 +19,26 @@ import { useShallow } from "zustand/react/shallow";
 import Alternate from "./nodes/Combiner/Alternate";
 import Push from "./nodes/Combiner/Push";
 
-import Playlist from "./nodes/Library/Playlist";
 import LikedTracks from "./nodes/Library/LikedTracks";
-import SaveAsNew from "./nodes/Library/SaveAsNew";
+import Playlist from "./nodes/Library/Playlist";
 import SaveAsAppend from "./nodes/Library/SaveAsAppend";
+import SaveAsNew from "./nodes/Library/SaveAsNew";
 import SaveAsReplace from "./nodes/Library/SaveAsReplace";
 
-import DedupeTracks from "./nodes/Filter/DedupeTracks";
-import RemoveMatch from "./nodes/Filter/RemoveMatch";
 import DedupeArtists from "./nodes/Filter/DedupeArtists";
+import DedupeTracks from "./nodes/Filter/DedupeTracks";
 import Limit from "./nodes/Filter/Limit";
+import RemoveMatch from "./nodes/Filter/RemoveMatch";
 
 import Shuffle from "./nodes/Order/Shuffle";
 import Sort from "./nodes/Order/Sort";
+
+import { Button } from "@/components/ui/button";
+import { PlayIcon, Settings as SettingsIcon } from "lucide-react";
+import { SettingsDialog } from "./settingsDialog/Settings";
+
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import reactFlowToWorkflow from "~/app/utils/reactFlowToWorkflow";
 
 const nodeTypes = {
   "Combiner.alternate": Alternate,
@@ -109,6 +117,10 @@ export default function App() {
     [reactFlowInstance],
   );
 
+  function handleRun() {
+    const workflow = reactFlowToWorkflow({ nodes, edges });
+  }
+
   return (
     <div className="dndflow h-full w-full">
       <div className="reactflow-wrapper h-full w-full" ref={reactFlowWrapper}>
@@ -142,6 +154,30 @@ export default function App() {
           // selectionMode={SelectionMode.Partial}
         >
           <Controls />
+          <Panel position="top-right" className="pt-20">
+            <div className="flex flex-row items-center gap-4">
+              <Button className="flex-grow" onClick={handleRun}>
+                <PlayIcon size={16} />
+                <span>Run</span>
+              </Button>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button className="flex flex-row gap-2 bg-card bg-opacity-80 text-foreground outline outline-1 outline-slate-700 hover:bg-opacity-100 hover:text-background">
+                    <SettingsIcon size={16} className="opacity-80" />
+                    Settings
+                  </Button>
+                </DialogTrigger>
+                <SettingsDialog />
+              </Dialog>
+            </div>
+          </Panel>
+          <Panel position="top-left" className="pt-20">
+            <p className="text-lg font-medium drop-shadow-lg">Daily Intake</p>
+            <p className="text-xs font-medium opacity-80">
+              {" "}
+              A mix of your favorite tracks and new discoveries.
+            </p>
+          </Panel>
           <Background
             color="#aaaaaa"
             gap={20}

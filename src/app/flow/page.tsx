@@ -10,7 +10,16 @@ import { useSession } from "next-auth/react";
 import useStore from "../states/store";
 
 import Sidebar from "./Sidebar";
+import RightBar from "./RightBar";
 import { notFound, redirect } from "next/navigation";
+
+
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable"
+
 
 import { useRouter } from "next/navigation";
 
@@ -85,11 +94,16 @@ function Builder({ searchParams }: { searchParams: any }) {
 
   return (
     <div className="flex h-screen flex-col">
-      <main className="grid h-screen grid-cols-5">
-        <Sidebar />
-        <div className="col-span-4 h-full overflow-auto">
-          <Flow />
-        </div>
+      <main className="grid h-screen">
+        <ResizablePanelGroup direction="horizontal">
+          <ResizablePanel defaultSize={20} maxSize={50} minSize={20}>
+            <Sidebar />
+          </ResizablePanel>
+          <ResizableHandle withHandle/>
+          <ResizablePanel defaultSize={80}>
+              <Flow />
+          </ResizablePanel>
+        </ResizablePanelGroup>
       </main>
     </div>
   );

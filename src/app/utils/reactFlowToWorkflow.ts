@@ -1,27 +1,28 @@
 import useStore from "../states/store";
-import { type Node } from "@xyflow/react";
-import { type Edge } from "@xyflow/react";
+import { type Node, type Edge } from "@xyflow/react";
 import validateWorkflow from "./validate";
 import { type Workflow } from "~/lib/workflow/types";
-
+import { toast } from "sonner";
 import { useShallow } from "zustand/react/shallow";
-type reactFlowtoWorkflow = {
+
+type ReactFlowToWorkflowInput = {
   nodes: Node[];
   edges: Edge[];
 };
+
 export default async function reactFlowToWorkflow({
   nodes,
   edges,
-}: reactFlowtoWorkflow): Promise<{ workflow: Workflow; errors: any }> {
+}: ReactFlowToWorkflowInput): Promise<{ workflow: Workflow; errors: any }> {
   console.log("reactFlowToWorkflow", { nodes, edges });
 
-  const workflow = {
+  const workflow: Workflow = {
     name: "spotify-playlist",
     sources: [],
     operations: [],
-  } as Workflow;
+  };
 
-  // remove node types that doesn't match this pattern: *.*
+  // remove node types that don't match this pattern: *.*
   nodes = nodes.filter((node) => node.type?.match(/\w+\.\w+/));
 
   // remove "playlists" and "playlistIds" from nodes data except for Source nodes
@@ -61,7 +62,7 @@ export default async function reactFlowToWorkflow({
       operation.sources.push(edge.source);
     }
   });
-  
+
   // Set nodes that have no sources as a source
   workflow.operations.forEach((operation) => {
     if (operation.sources.length === 0) {
@@ -71,42 +72,126 @@ export default async function reactFlowToWorkflow({
         params: operation.params,
       });
       // Remove the operation from the operations array
-      workflow.operations = workflow.operations.filter((op) => op.id !== operation.id);
+      workflow.operations = workflow.operations.filter(
+        (op) => op.id !== operation.id,
+      );
     }
   });
 
-  const { errors } = await validateWorkflow(workflow);
+  const validatePromise = validateWorkflow(workflow).then((result) => {
+    if (result.errors) {
+      throw new Error("Validation failed");
+    }
+    return result;
+  });
 
-  if (errors?.length > 0) {
-    useStore.setState({
-      alert: {
-        message: `Workflow is not valid because of the following errors: \n${errors
-          .map(
-            (error) =>
-              `Error Type: ${error.errorType}\nOperation: ${JSON.stringify(
-                error.operation,
-                null,
-                2
-              )}\n\n`
-          )
-          .join("")}`,
-        title: "Error",
-        type: "error",
+  toast.promise(validatePromise, {
+    loading: "Validating workflow...",
+    success: async (validationResult: { errors: any[] }) => {
+      const { errors } = validationResult;
+      if (errors?.length > 0) {
+        useStore.setState({
+          alert: {
+            message: `Workflow is not valid because of the following errors: \n${errors
+              .map(
+                (error) =>
+                  `Error Type: ${error.errorType}\nOperation: ${JSON.stringify(
+                    error.operation,
+                    null,
+                    2,
+                  )}\n\n`,
+              )
+              .join("")}`,
+            title: "Error",
+            type: "error",
+          },
+        });
+        return "Workflow is not valid";
+      } else {
+        return "Workflow is valid";
+      }
+    },
+    error: "Workflow is not valid",
+  });
+
+  let errors: any = null;
+  try {
+    const result = await validatePromise;
+    errors = result.errors;
+  } catch (err) {
+    errors = err;
+  }
+
+  if (errors?.length == 0 || !errors) {
+    const saveWorkflow = async (workflow) => {
+      const promise = fetch("/api/workflow", {
+        method: "POST",
+        body: JSON.stringify(workflow),
+      })
+        .then((res) => {
+          console.log("Server response", res);
+          return res.json();
+        })
+        .then((data) => {
+          if (data.errors) {
+            throw new Error("Error saving workflow");
+          }
+          return data;
+        });
+
+      toast.promise(promise, {
+        loading: "Saving workflow...",
+        success: (data) => {
+          console.log("data", data);
+          return "'Daily Intake' workflow saved successfully";
+        },
+        error: "Error saving workflow",
+      });
+      return promise;
+    };
+    const workflowResponse = await saveWorkflow(workflow);
+    console.log("workflowResponse", workflowResponse);
+
+    const { job } = workflowResponse;
+    const { id } = job;
+
+    const poolStatus = (id) => {
+      return new Promise((resolve, reject) => {
+        const intervalId = setInterval(() => {
+          (async () => {
+            const res = await fetch(`/api/workflow/${id}`)
+              .then((res) => res.json())
+              .then((data) => {
+                if (data.errors) {
+                  reject(new Error("Error fetching workflow status"));
+                }
+                return data;
+              });
+
+            if (res.job.finishedOn) {
+              clearInterval(intervalId);
+              if (res.job.returnvalue) {
+                resolve("'Daily Intake' workflow finished successfully");
+              } else if (res.job.error) {
+                reject(new Error("Error running workflow"));
+              }
+            }
+          })().catch((err) => {
+            clearInterval(intervalId);
+            reject(err);
+          });
+        }, 1000);
+      });
+    };
+
+    const promise = poolStatus(id);
+
+    toast.promise(promise, {
+      loading: `Running workflow ${id}...`,
+      success: () => {
+        return "'Daily Intake' workflow finished successfully";
       },
-    });
-  } else {
-    const res = await fetch("/api/workflow", {
-      method: "POST",
-      body: JSON.stringify(workflow),
-    });
-    const data = await res.json();
-    console.log("data", data);
-    useStore.setState({
-      alert: {
-        message: `Workflow is valid`,
-        title: "Success",
-        type: "success",
-      },
+      error: "Error running workflow",
     });
   }
 

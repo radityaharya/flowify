@@ -274,11 +274,19 @@ export class Runner extends Base {
     const operationIds = new Set();
     const errors = [] as string[];
 
-    if (!workflow.sources || !workflow.operations) {
+    if (!workflow.sources || !workflow.operations || !Array.isArray(workflow.sources) || !Array.isArray(workflow.operations)) {
       errors.push("Workflow must have 'sources' and 'operations' properties.");
     }
 
+    if (workflow.sources.length === 0) {
+      errors.push("Workflow must have at least one source.");
+    }
+
     // Validate operations
+    if (workflow.operations.length === 0) {
+      errors.push("Workflow must have at least one operation.");
+    }
+
     for (const operation of workflow.operations) {
       if (typeof operation.id !== "string") {
         errors.push(

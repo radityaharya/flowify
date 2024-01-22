@@ -80,41 +80,14 @@ function Sidebar() {
 
   return (
     <aside
-      className="col-span-1 flex max-h-screen flex-col justify-between border-r"
+      className="col-span-1 flex h-full max-h-screen flex-col justify-between border-r"
       onDragOver={onDragOver}
       onDrop={onDrop}
     >
       <div className="flex flex-col gap-6">
         <div className="flex-none px-6 pt-[4rem]">
           <div className="flex flex-col justify-between gap-6">
-            <div className="flex flex-row justify-between">
-              {/* <div className="relative z-20 flex items-center text-lg font-medium">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="mr-2 h-6 w-6"
-                >
-                  <path d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3" />
-                </svg>
-                Flowify
-              </div>
-              <div className="flex flex-row items-center gap-4">
-                <span className="text-foreground">
-                  {session ? `${session.user.name}` : "Login"}
-                </span>
-                <Avatar>
-                  <AvatarImage src={session?.user?.image ?? ""} />
-                  <AvatarFallback>
-                    {session?.user?.name?.split(" ").map((n) => n[0])}
-                  </AvatarFallback>
-                </Avatar>
-              </div> */}
-            </div>
+            <div className="flex flex-row justify-between"></div>
           </div>
         </div>
         <div className="flex flex-col gap-1 px-6">
@@ -228,42 +201,6 @@ function Sidebar() {
             </AccordionContent>
           </AccordionItem>
         </Accordion>
-      </div>
-      <div className="flex flex-col gap-2 px-6 pb-4">
-        <AlertDialog open={openAlert} onOpenChange={handleOpenChange}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>{alert?.title}</AlertDialogTitle>
-              <AlertDialogDescription>
-                {alert?.message.split("\n").map((line, index) => (
-                  <code>
-                    <p key={index} className={index === 0 ? "font-medium" : ""}>
-                      {line}
-                    </p>
-                  </code>
-                ))}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogAction
-                className="bg-red-500 hover:bg-red-600"
-                onClick={handleOpenChange}
-              >
-                Continue
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-        <div className="flex w-full gap-2">
-          <Button className="flex-grow" onClick={handleRun}>
-            <PlayIcon size={16} />
-            <span>Run</span>
-          </Button>
-          <Button>
-            <span>Dry Run</span>
-          </Button>
-        </div>
-        <Button>Save Workflow</Button>
       </div>
     </aside>
   );
