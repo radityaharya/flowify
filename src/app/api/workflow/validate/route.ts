@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
   try {
     const operations = runner.sortOperations(workflow);
     workflow.operations = operations;
-    const [valid, errors] = runner.validateWorkflow(workflow);
+    const [valid, errors] = await runner.validateWorkflow(workflow);
     res = { valid, errors };
   } catch (err) {
     const errorMessage = (err as Error).message;

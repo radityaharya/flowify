@@ -79,7 +79,7 @@ export default async function reactFlowToWorkflow({
   });
 
   const validatePromise = validateWorkflow(workflow).then((result) => {
-    if (result.errors) {
+    if (result.errors.length > 0 || !result.valid) {
       throw new Error("Validation failed");
     }
     return result;
@@ -87,9 +87,10 @@ export default async function reactFlowToWorkflow({
 
   toast.promise(validatePromise, {
     loading: "Validating workflow...",
-    success: async (validationResult: { errors: any[] }) => {
-      const { errors } = validationResult;
-      if (errors?.length > 0) {
+    success: async (validationResult: { valid: boolean; errors: any[] }) => {
+      const { valid, errors } = validationResult;
+      console.log("validationResult", validationResult);
+      if (!valid) {
         useStore.setState({
           alert: {
             message: `Workflow is not valid because of the following errors: \n${errors
@@ -114,15 +115,24 @@ export default async function reactFlowToWorkflow({
     error: "Workflow is not valid",
   });
 
-  let errors: any = null;
+  type ErrorType = { errorType: string; operation: string };
+
+  let { valid, errors }: { valid: boolean; errors: ErrorType[] } = {
+    valid: false,
+    errors: [],
+  };
   try {
     const result = await validatePromise;
+    valid = result.valid;
     errors = result.errors;
+    console.log("result", result);
   } catch (err) {
-    errors = err;
+    console.error("Error validating workflow", err);
+    valid = false;
+    errors = [{ errorType: "Error", operation: "Error validating workflow" }];
   }
 
-  if (errors?.length == 0 || !errors) {
+  if (valid) {
     const saveWorkflow = async (workflow) => {
       const promise = fetch("/api/workflow", {
         method: "POST",
@@ -162,8 +172,8 @@ export default async function reactFlowToWorkflow({
             const res = await fetch(`/api/workflow/${id}`)
               .then((res) => res.json())
               .then((data) => {
-                if (data.errors) {
-                  reject(new Error("Error fetching workflow status"));
+                if (data.failedReason) {
+                  reject(new Error(data.failedReason as string));
                 }
                 return data;
               });
@@ -172,8 +182,8 @@ export default async function reactFlowToWorkflow({
               clearInterval(intervalId);
               if (res.job.returnvalue) {
                 resolve("'Daily Intake' workflow finished successfully");
-              } else if (res.job.error) {
-                reject(new Error("Error running workflow"));
+              } else if (res.job.failedReason) {
+                reject(new Error(res.job.failedReason as string));
               }
             }
           })().catch((err) => {
@@ -191,7 +201,10 @@ export default async function reactFlowToWorkflow({
       success: () => {
         return "'Daily Intake' workflow finished successfully";
       },
-      error: "Error running workflow",
+      error: (data) => {
+        console.log("data on err", data);
+        return "Failed running workflow: " + data;
+      },
     });
   }
 

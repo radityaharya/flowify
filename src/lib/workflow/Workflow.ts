@@ -8,6 +8,10 @@ import Utility from "./Utility";
 import Order from "./Order";
 import Playlist from "./Playlist";
 import Library from "./Library";
+
+import { Logger } from "../log";
+
+const log = new Logger("workflow");
 export const operationParamsTypesMap = {
   "Filter.filter": {
     filterKey: { type: "string", required: true },
@@ -96,7 +100,7 @@ export class Runner extends Base {
 
   /**
    * Fetches the source values for a given workflow.
-   * 
+   *
    * @param workflow - The workflow object.
    * @param skipCache - Optional. Indicates whether to skip the cache. Default is false.
    * @returns A map of source values.
@@ -105,40 +109,48 @@ export class Runner extends Base {
     const sourceValues = new Map();
     const promises = workflow.sources.map(
       (source, index) =>
-        new Promise<void>(
-          async (resolve) => {
-            let tracks: SpotifyApi.PlaylistTrackObject[] = [];
-            console.log(`Loading source ${source.id} of type ${source.type} with params ${JSON.stringify(source.params)}`);
-            if (source.type === "Source.playlist"){
-              console.log(`Loading playlist ${source.params.id}`);
-              let result;
-              let offset = 0;
-              do {
-                result = await new Promise((resolve) =>
-                  setTimeout(
-                    () =>
-                      this.spClient
-                        .getPlaylistTracks(source.params.id as string, { limit: 50, offset })
-                        .then(resolve),
-                    index * 1500,
-                  ),
-                );
-  
-                tracks = [...tracks, ...result.body.items];
-                offset += 50;
-              } while (result.body.next);
-            } else if ( source.type === "Library.likedTracks") {
-              const limit= source.params.limit ?? 50;
-              tracks = await operations.Library.likedTracks(this.spClient, { limit, offset: 0 });
-            } 
+        new Promise<void>(async (resolve) => {
+          let tracks: SpotifyApi.PlaylistTrackObject[] = [];
+          log.info(
+            `Loading source ${source.id} of type ${
+              source.type
+            } with params ${JSON.stringify(source.params)}`,
+          );
+          if (source.type === "Source.playlist") {
+            log.info(`Loading playlist ${source.params.id}`);
+            let result;
+            let offset = 0;
+            do {
+              result = await new Promise((resolve) =>
+                setTimeout(
+                  () =>
+                    this.spClient
+                      .getPlaylistTracks(source.params.id as string, {
+                        limit: 50,
+                        offset,
+                      })
+                      .then(resolve),
+                  index * 1500,
+                ),
+              );
 
-            console.info(`Loaded ${tracks.length} tracks.`);
-            source.tracks = tracks;
-            sourceValues.set(source.id, source);
-            sourceValues.set(`${source.id}.tracks`, tracks);
-            resolve();
+              tracks = [...tracks, ...result.body.items];
+              offset += 50;
+            } while (result.body.next);
+          } else if (source.type === "Library.likedTracks") {
+            const limit = source.params.limit ?? 50;
+            tracks = await operations.Library.likedTracks(this.spClient, {
+              limit,
+              offset: 0,
+            });
           }
-        ),
+
+          console.info(`Loaded ${tracks.length} tracks.`);
+          source.tracks = tracks;
+          sourceValues.set(source.id, source);
+          sourceValues.set(`${source.id}.tracks`, tracks);
+          resolve();
+        }),
     );
 
     await Promise.all(promises);
@@ -148,7 +160,7 @@ export class Runner extends Base {
   // TODO: rework source fetching to use the same method as operations
   /**
    * Fetches the sources for a given operation.
-   * 
+   *
    * @param operation - The operation for which to fetch the sources.
    * @param sourceValues - A map of source values.
    * @param workflow - The workflow containing the operations.
@@ -183,7 +195,7 @@ export class Runner extends Base {
           );
           sources.push(result as SpotifyApi.PlaylistTrackObject);
         } else {
-          console.error(
+          log.error(
             `Source ${source} not found in sourceValues or operations.`,
           );
         }
@@ -206,7 +218,7 @@ export class Runner extends Base {
   ) {
     const operation = workflow.operations.find((op) => op.id === operationId);
     if (!operation) {
-      console.error(`Operation ${operationId} not found.`);
+      log.error(`Operation ${operationId} not found.`);
       return;
     }
 
@@ -222,7 +234,7 @@ export class Runner extends Base {
     const operationClass = operations[className];
 
     const result =
-      (className === "Playlist" || className === "Library")
+      className === "Playlist" || className === "Library"
         ? await operationClass[methodName](
             this.spClient,
             sources,
@@ -236,13 +248,58 @@ export class Runner extends Base {
 
   /**
    * Sorts the operations in the workflow based on their dependencies.
-   * 
+   *
    * @param workflow - The workflow to sort the operations for.
    * @returns An array of sorted operations.
    */
   sortOperations(workflow: Workflow) {
+    log.info("Sorting operations...");
     const sortedOperations = [] as Operation[];
     const operations = [...workflow.operations] as Operation[];
+
+    let hasLoop = false;
+    const visited = new Set();
+    const recStack = new Set();
+
+    function detectLoop(operationId: string, operationsMap: Map<string, any>) {
+      visited.add(operationId);
+      recStack.add(operationId);
+
+      const operation = operationsMap.get(operationId) as Operation;
+      if (operation?.sources) {
+        for (const source of operation.sources) {
+          if (!visited.has(source) && detectLoop(source, operationsMap)) {
+            return true;
+          } else if (recStack.has(source)) {
+            return true;
+          }
+        }
+      }
+
+      recStack.delete(operationId);
+      return false;
+    }
+
+    // Create a map for quick lookup
+    const operationsMap = new Map() as Map<string, Operation>;
+    for (const operation of operations) {
+      operationsMap.set(operation.id, operation);
+    }
+
+    // Check each operation for loops
+    for (const operation of operations) {
+      if (detectLoop(operation.id, operationsMap)) {
+        hasLoop = true;
+        break;
+      }
+    }
+
+    if (hasLoop) {
+      throw new Error(
+        "Loop detected in workflow at operation: " +
+          JSON.stringify(operationsMap.get(Array.from(recStack)[0] as string)),
+      );
+    }
 
     while (operations.length > 0) {
       for (let i = 0; i < operations.length; i++) {
@@ -265,210 +322,262 @@ export class Runner extends Base {
   }
   /**
    * Validates a workflow.
-   * 
+   *
    * @param workflow - The workflow to validate.
    * @returns A tuple containing a boolean indicating whether the validation passed or not, and an array of error messages if validation failed.
    */
-  validateWorkflow(workflow: Workflow) {
-    const sourceIds = new Set(workflow.sources.map((source) => source.id));
-    const operationIds = new Set();
-    const errors = [] as string[];
+  validateWorkflow(workflow: Workflow): Promise<[boolean, string[] | null]> {
+    log.info("Validating workflow...");
+    const timeout = new Promise<[boolean, string[]]>((resolve, reject) =>
+      setTimeout(
+        () => resolve([false, ["Validation timed out after 5 seconds."]]),
+        5000,
+      ),
+    );
 
-    if (!workflow.sources || !workflow.operations || !Array.isArray(workflow.sources) || !Array.isArray(workflow.operations)) {
-      errors.push("Workflow must have 'sources' and 'operations' properties.");
-    }
+    const validationPromise = new Promise<[boolean, string[] | null]>(
+      (resolve, reject) => {
+        const sourceIds = new Set(workflow.sources.map((source) => source.id));
+        const operationIds = new Set();
+        const errors = [] as string[];
 
-    if (workflow.sources.length === 0) {
-      errors.push("Workflow must have at least one source.");
-    }
-
-    // Validate operations
-    if (workflow.operations.length === 0) {
-      errors.push("Workflow must have at least one operation.");
-    }
-
-    for (const operation of workflow.operations) {
-      if (typeof operation.id !== "string") {
-        errors.push(
-          `Invalid operation id: ${operation.id} in operation: ${JSON.stringify(
-            operation,
-          )}`,
-        );
-      }
-
-      if (typeof operation.type !== "string") {
-        errors.push(
-          `Invalid operation type: ${
-            operation.type
-          } in operation: ${JSON.stringify(operation)} its type is ${typeof operation.type}`,
-        );
-      }
-
-      if (operationIds.has(operation.id)) {
-        errors.push(
-          `Duplicate operation id: ${
-            operation.id
-          } in operation: ${JSON.stringify(operation)}`,
-        );
-      }
-      operationIds.add(operation.id);
-
-      // Validate operation type
-      const [className, methodName] = operation.type.split(".") as [
-        keyof Operations,
-        keyof Operations[keyof Operations],
-      ];
-      const operationClass = operations[className];
-      if (!operationClass || typeof operationClass[methodName] !== "function") {
-        errors.push(
-          `Invalid operation type: ${
-            operation.type
-          } in operation: ${JSON.stringify(operation)}`,
-        );
-      }
-
-      const operationParams = operationParamsTypesMap[operation.type] as Record<
-        string,
-        { type: string; required?: boolean }
-      >;
-      if (operationParams) {
-        const paramsCopy = { ...operation.params };
-        for (const [param, paramType] of Object.entries(operationParams)) {
-          if (paramType.required && !operation.params[param]) {
-            errors.push(
-              `Missing required param: ${param} in operation: ${JSON.stringify(
-                operation,
-              )}`,
-            );
-          }
-          if (paramType.type === "string[]") {
-            if (
-              !Array.isArray(operation.params[param]) ||
-              !operation.params[param].every(
-                (item: any) => typeof item === "string",
-              )
-            ) {
-              throw new Error(
-                `Invalid param type: ${param} in operation: ${JSON.stringify(
-                  operation,
-                )} expected string[] but got ${typeof operation.params[param]}`,
-              );
-            }
-          } else if (paramType.type === "number[]") {
-            if (
-              !Array.isArray(operation.params[param]) ||
-              !operation.params[param].every(
-                (item: any) => typeof item === "number",
-              )
-            ) {
-              throw new Error(
-                `Invalid param type: ${param} in operation: ${JSON.stringify(
-                  operation,
-                )} expected number[] but got ${typeof operation.params[param]}`,
-              );
-            }
-          } else if (typeof operation.params[param] !== paramType.type) {
-            throw new Error(
-              `Invalid param type: ${param} in operation: ${JSON.stringify(
-                operation,
-              )} expected ${paramType.type} but got ${typeof operation.params[
-                param
-              ]}`,
-            );
-          }
-          delete paramsCopy[param];
-        }
-        if (Object.keys(paramsCopy).length > 0) {
-          throw new Error(
-            `Extra params: ${Object.keys(paramsCopy).join(
-              ", ",
-            )} in operation: ${JSON.stringify(operation)}`,
+        if (
+          !workflow.sources ||
+          !workflow.operations ||
+          !Array.isArray(workflow.sources) ||
+          !Array.isArray(workflow.operations)
+        ) {
+          errors.push(
+            "Workflow must have 'sources' and 'operations' properties.",
           );
         }
-      }
 
-      // Validate operation sources
-      if (operation.sources) {
-        for (const source of operation.sources) {
-          if (!sourceIds.has(source) && !operationIds.has(source)) {
+        if (workflow.sources.length === 0) {
+          errors.push("Workflow must have at least one source.");
+        }
+
+        // Validate operations
+        if (workflow.operations.length === 0) {
+          errors.push("Workflow must have at least one operation.");
+        }
+
+        for (const operation of workflow.operations) {
+          if (typeof operation.id !== "string") {
             errors.push(
-              `Invalid source: ${source} in operation: ${JSON.stringify(
+              `Invalid operation id: ${
+                operation.id
+              } in operation: ${JSON.stringify(operation)}`,
+            );
+          }
+
+          if (typeof operation.type !== "string") {
+            errors.push(
+              `Invalid operation type: ${
+                operation.type
+              } in operation: ${JSON.stringify(
                 operation,
-              )}`,
+              )} its type is ${typeof operation.type}`,
+            );
+          }
+
+          if (operationIds.has(operation.id)) {
+            errors.push(
+              `Duplicate operation id: ${
+                operation.id
+              } in operation: ${JSON.stringify(operation)}`,
+            );
+          }
+          operationIds.add(operation.id);
+
+          // Validate operation type
+          const [className, methodName] = operation.type.split(".") as [
+            keyof Operations,
+            keyof Operations[keyof Operations],
+          ];
+          const operationClass = operations[className];
+          if (
+            !operationClass ||
+            typeof operationClass[methodName] !== "function"
+          ) {
+            errors.push(
+              `Invalid operation type: ${
+                operation.type
+              } in operation: ${JSON.stringify(operation)}`,
+            );
+          }
+
+          const operationParams = operationParamsTypesMap[
+            operation.type
+          ] as Record<string, { type: string; required?: boolean }>;
+          if (operationParams) {
+            const paramsCopy = { ...operation.params };
+            for (const [param, paramType] of Object.entries(operationParams)) {
+              if (paramType.required && !operation.params[param]) {
+                errors.push(
+                  `Missing required param: ${param} in operation: ${JSON.stringify(
+                    operation,
+                  )}`,
+                );
+              }
+              if (paramType.type === "string[]") {
+                if (
+                  !Array.isArray(operation.params[param]) ||
+                  !operation.params[param].every(
+                    (item: any) => typeof item === "string",
+                  )
+                ) {
+                  throw new Error(
+                    `Invalid param type: ${param} in operation: ${JSON.stringify(
+                      operation,
+                    )} expected string[] but got ${typeof operation.params[
+                      param
+                    ]}`,
+                  );
+                }
+              } else if (paramType.type === "number[]") {
+                if (
+                  !Array.isArray(operation.params[param]) ||
+                  !operation.params[param].every(
+                    (item: any) => typeof item === "number",
+                  )
+                ) {
+                  throw new Error(
+                    `Invalid param type: ${param} in operation: ${JSON.stringify(
+                      operation,
+                    )} expected number[] but got ${typeof operation.params[
+                      param
+                    ]}`,
+                  );
+                }
+              } else if (typeof operation.params[param] !== paramType.type) {
+                throw new Error(
+                  `Invalid param type: ${param} in operation: ${JSON.stringify(
+                    operation,
+                  )} expected ${paramType.type} but got ${typeof operation
+                    .params[param]}`,
+                );
+              }
+              delete paramsCopy[param];
+            }
+            if (Object.keys(paramsCopy).length > 0) {
+              throw new Error(
+                `Extra params: ${Object.keys(paramsCopy).join(
+                  ", ",
+                )} in operation: ${JSON.stringify(operation)}`,
+              );
+            }
+          }
+
+          // Validate operation sources
+          if (operation.sources) {
+            for (const source of operation.sources) {
+              if (!sourceIds.has(source) && !operationIds.has(source)) {
+                errors.push(
+                  `Invalid source: ${source} in operation: ${JSON.stringify(
+                    operation,
+                  )}`,
+                );
+              }
+            }
+          } else {
+            errors.push(
+              `Missing sources in operation: ${JSON.stringify(operation)}`,
+            );
+          }
+
+          if (
+            !operation.id ||
+            !operation.type ||
+            !operation.params ||
+            !operation.sources
+          ) {
+            const missing = [] as string[];
+            if (!operation.id) missing.push("id");
+            if (!operation.type) missing.push("type");
+            if (!operation.params) missing.push("params");
+            if (!operation.sources) missing.push("sources");
+            errors.push(
+              `Invalid operation structure: ${JSON.stringify(
+                operation,
+              )} missing ${missing.join(", ")}`,
             );
           }
         }
-      } else {
-        errors.push(
-          `Missing sources in operation: ${JSON.stringify(operation)}`,
-        );
-      }
 
-      if (
-        !operation.id ||
-        !operation.type ||
-        !operation.params ||
-        !operation.sources
-      ) {
-        const missing = [] as string[];
-        if (!operation.id) missing.push("id");
-        if (!operation.type) missing.push("type");
-        if (!operation.params) missing.push("params");
-        if (!operation.sources) missing.push("sources");
-        errors.push(
-          `Invalid operation structure: ${JSON.stringify(
-            operation,
-          )} missing ${missing.join(", ")}`,
-        );
-      }
-    }
+        // Validate sources
+        for (const source of workflow.sources) {
+          if (!source.id || !source.type || !source.params) {
+            errors.push(`Invalid source structure: ${JSON.stringify(source)}`);
+          }
+        }
 
-    // Validate sources
-    for (const source of workflow.sources) {
-      if (!source.id || !source.type || !source.params) {
-        errors.push(`Invalid source structure: ${JSON.stringify(source)}`);
-      }
-    }
+        if (errors.length > 0) {
+          log.error(`Validation failed with ${errors.length} errors:`);
+          for (const error of errors) {
+            log.error(error);
+          }
+          resolve([false, errors]);
+        } else {
+          resolve([true, []]);
+        }
+      },
+    );
 
-    if (errors.length > 0) {
-      console.error(`Validation failed with ${errors.length} errors:`);
-      for (const error of errors) {
-        console.error(error);
-      }
-      return [false, errors];
-    }
-
-    return [true, null];
+    return Promise.race([validationPromise, timeout]);
   }
   /**
    * Runs the given workflow.
-   * 
+   *
    * @param workflow - The workflow to be executed.
    * @returns The result of the workflow execution.
    * @throws Error if the workflow is invalid.
    */
-  async runWorkflow(workflow: Workflow) {
-    const sortedOperations = this.sortOperations(workflow);
+  async runWorkflow(workflow: Workflow, timeoutAfter = 20000) {
+    let timeoutOccurred = false;
 
-    workflow.operations = sortedOperations;
-    const [valid, errors] = this.validateWorkflow(
-      workflow,
-    ) as [boolean, string[] | null];
+    const timeout = new Promise((_, reject) =>
+      setTimeout(() => {
+        timeoutOccurred = true;
+        reject(Error(`Operation timed out after ${timeoutAfter} seconds`));
+      }, timeoutAfter),
+    );
 
-    if (!valid && errors) {
-      throw new Error(`Invalid workflow: ${errors.join("\n")}`);
-    }
+    const workflowPromise = new Promise(async (resolve, reject) => {
+      try {
+        const sortedOperations = this.sortOperations(workflow);
 
-    const sourceValues = (await this.fetchSourceValues(workflow)) as Map<
-      string,
-      any
-    >;
+        workflow.operations = sortedOperations;
+        const [valid, errors] = (await this.validateWorkflow(workflow)) as [
+          boolean,
+          string[] | null,
+        ];
 
-    let result: any;
-    for (const operation of sortedOperations) {
-      result = await this.runOperation(operation.id, sourceValues, workflow);
-    }
+        if (!valid && errors) {
+          throw new Error(`Invalid workflow: ${errors.join("\n")}`);
+        }
 
-    return result;
+        const sourceValues = (await this.fetchSourceValues(workflow)) as Map<
+          string,
+          any
+        >;
+
+        let result: any;
+        for (const operation of sortedOperations) {
+          if (timeoutOccurred) {
+            reject(new Error("Operation timed out after 10 seconds"));
+          }
+          result = await this.runOperation(
+            operation.id,
+            sourceValues,
+            workflow,
+          );
+        }
+        resolve(result);
+      } catch (error) {
+        reject(error);
+      }
+    });
+
+    return Promise.race([workflowPromise, timeout]);
   }
 }
