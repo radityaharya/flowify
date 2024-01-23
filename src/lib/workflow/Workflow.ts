@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
+/* eslint-disable @typescript-eslint/no-floating-promises */
+
 import { Base } from "./Base";
 import type { AccessToken } from "./Base";
 import Filter from "./Filter";

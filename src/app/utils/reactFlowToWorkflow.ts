@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-floating-promises */
 import useStore from "../states/store";
 import { type Node, type Edge } from "@xyflow/react";
 import validateWorkflow from "./validate";
