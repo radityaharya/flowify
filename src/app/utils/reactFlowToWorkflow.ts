@@ -11,22 +11,11 @@ type ReactFlowToWorkflowInput = {
   edges: Edge[];
 };
 
-export default async function reactFlowToWorkflow({
-  nodes,
-  edges,
-}: ReactFlowToWorkflowInput): Promise<{ workflow: Workflow; errors: any }> {
-  console.log("reactFlowToWorkflow", { nodes, edges });
+function filterNodes(nodes) {
+  return nodes.filter((node) => node.type?.match(/\w+\.\w+/));
+}
 
-  const workflow: Workflow = {
-    name: "spotify-playlist",
-    sources: [],
-    operations: [],
-  };
-
-  // remove node types that don't match this pattern: *.*
-  nodes = nodes.filter((node) => node.type?.match(/\w+\.\w+/));
-
-  // remove "playlists" and "playlistIds" from nodes data except for Source nodes
+function removeUnnecessaryData(nodes) {
   nodes.forEach((node) => {
     if (node.type!.startsWith("Source.")) {
       return;
@@ -34,7 +23,9 @@ export default async function reactFlowToWorkflow({
     delete node.data.playlists;
     delete node.data.playlistIds;
   });
+}
 
+function addNodesToWorkflow(nodes, workflow) {
   let hasSource = false;
 
   nodes.forEach((node) => {
@@ -50,21 +41,24 @@ export default async function reactFlowToWorkflow({
     } else {
       workflow.operations.push({
         id: node.id,
-        type: node.type! as any,
+        type: node.type!,
         params: node.data,
         sources: [],
       });
     }
   });
+}
 
+function addEdgesToWorkflow(edges, workflow) {
   edges.forEach((edge) => {
     const operation = workflow.operations.find((op) => op.id === edge.target);
     if (operation) {
       operation.sources.push(edge.source);
     }
   });
+}
 
-  // Set nodes that have no sources as a source
+function setNodesAsSources(workflow) {
   workflow.operations.forEach((operation) => {
     if (operation.sources.length === 0) {
       workflow.sources.push({
@@ -72,12 +66,29 @@ export default async function reactFlowToWorkflow({
         type: operation.type,
         params: operation.params,
       });
-      // Remove the operation from the operations array
       workflow.operations = workflow.operations.filter(
         (op) => op.id !== operation.id,
       );
     }
   });
+}
+export default async function reactFlowToWorkflow({
+  nodes,
+  edges,
+}: ReactFlowToWorkflowInput): Promise<{ workflow: Workflow; errors: any }> {
+  console.log("reactFlowToWorkflow", { nodes, edges });
+
+  const workflow: Workflow = {
+    name: "spotify-playlist",
+    sources: [],
+    operations: [],
+  };
+
+  nodes = filterNodes(nodes);
+  removeUnnecessaryData(nodes);
+  addNodesToWorkflow(nodes, workflow);
+  addEdgesToWorkflow(edges, workflow);
+  setNodesAsSources(workflow);
 
   const validatePromise = validateWorkflow(workflow).then((result) => {
     if (result.errors.length > 0 || !result.valid) {
@@ -166,36 +177,69 @@ export default async function reactFlowToWorkflow({
     const { job } = workflowResponse;
     const { id } = job;
 
-    const poolStatus = (id) => {
-      return new Promise((resolve, reject) => {
-        const intervalId = setInterval(() => {
-          (async () => {
-            const res = await fetch(`/api/workflow/${id}`)
-              .then((res) => res.json())
-              .then((data) => {
-                if (data.failedReason) {
-                  reject(new Error(data.failedReason as string));
-                }
-                return data;
-              });
+    const pollStatus = (id) => {
+      let attempts = 0;
+      const maxAttempts = 20;
+      const minDelay = 1000;
+      const maxDelay = 3000;
+      let requestInProgress = false;
 
-            if (res.job.finishedOn) {
-              clearInterval(intervalId);
-              if (res.job.returnvalue) {
-                resolve("'Daily Intake' workflow finished successfully");
-              } else if (res.job.failedReason) {
-                reject(new Error(res.job.failedReason as string));
+      return new Promise((resolve, reject) => {
+        const poll = () => {
+          if (requestInProgress) {
+            return;
+          }
+
+          requestInProgress = true;
+
+          fetch(`/api/workflow/${id}`, {
+            headers: {
+              "Cache-Control": "no-cache",
+            },
+          })
+            .then((res) => res.json())
+            .then((data) => {
+              requestInProgress = false;
+
+              if (data.job.stackTrace) {
+                toast.warning(
+                  'Running Workflow failed, trying it one more time',
+                );
               }
-            }
-          })().catch((err) => {
-            clearInterval(intervalId);
-            reject(err);
-          });
-        }, 1000);
+
+              if (data.failedReason) {
+                reject(new Error(data.failedReason as string));
+              }
+
+              if (data.job.finishedOn) {
+                if (data.job.returnvalue) {
+                  resolve("'Daily Intake' workflow finished successfully");
+                } else if (data.job.failedReason) {
+                  reject(new Error(data.job.failedReason as string));
+                }
+              } else {
+                throw new Error("Job not finished");
+              }
+            })
+            .catch((error) => {
+              requestInProgress = false;
+
+              if (attempts < maxAttempts) {
+                attempts += 1;
+                const delay = Math.min(minDelay * 2 ** attempts, maxDelay);
+                const jitter = Math.random() * 0.3 * delay;
+                setTimeout(poll, delay + jitter);
+              } else {
+                reject(new Error("Max attempts reached"));
+              }
+            });
+        };
+
+        poll();
       });
     };
 
-    const promise = poolStatus(id);
+    const promise = pollStatus(id);
 
     toast.promise(promise, {
       loading: `Running workflow ${id}...`,
