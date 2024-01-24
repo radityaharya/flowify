@@ -43,11 +43,8 @@ export const register = async () => {
           console.error("Error running workflow", e);
           throw e;
         }
-        // console.log("Workflow executed successfully", res);
         await updateWorkflowJob(job.id!, "completed", WORKER_ID);
-        // console.log("Updated job", updated);
-        // console.log(data);
-        return res;
+        return res.map((obj: any) => obj.track.id);
       },
       {
         connection,

@@ -9,8 +9,8 @@ import { v4 as uuidv4 } from "uuid";
 import os from "os";
 
 const CONCURRENCY = 5;
-const WORKER_ID = os.hostname() + "-" + `${process.env.WORKER_ID ?? 'worker-' + uuidv4()}`
-
+const WORKER_ID =
+  os.hostname() + "-" + `${process.env.WORKER_ID ?? "worker-" + uuidv4()}`;
 
 console.log(`
 Starting worker ${WORKER_ID} with concurrency ${CONCURRENCY}
@@ -30,8 +30,8 @@ const worker = new Worker(
     }
 
     const accessToken = await getAccessTokenFromUserId(data.userId as string);
-    if (!accessToken){
-      throw new Error("no access token")
+    if (!accessToken) {
+      throw new Error("no access token");
     }
     const runner = new Runner({
       slug: data.userId,
@@ -49,7 +49,7 @@ const worker = new Worker(
     }
     console.log("Workflow executed successfully");
     await updateWorkflowJob(job.id!, "completed", WORKER_ID);
-    return res;
+    return res.map((obj: any) => obj.track.id);
   },
   {
     connection,
