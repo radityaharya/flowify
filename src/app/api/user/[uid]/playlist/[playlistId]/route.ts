@@ -1,4 +1,3 @@
-
 import { NextResponse, type NextRequest } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/server/auth";
@@ -10,9 +9,9 @@ export async function GET(
   {
     params,
   }: {
-    params: { 
-      uid: string 
-      playlistId: string
+    params: {
+      uid: string;
+      playlistId: string;
     };
   },
 ) {
@@ -35,7 +34,6 @@ export async function GET(
       { status: 401 },
     );
   }
-
 
   const accessToken = await getAccessTokenFromProviderAccountId(params.uid);
   if (!accessToken) {

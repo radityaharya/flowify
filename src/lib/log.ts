@@ -13,18 +13,18 @@ class Logger {
 
   constructor(
     private readonly name: string,
-    private logLevel: LogLevel = LogLevel.INFO
+    private logLevel: LogLevel = LogLevel.INFO,
   ) {}
 
   private log(level: LogLevel, message: string, data?: any): void {
     if (this.logLevel <= level) {
       const currentTimestamp = Date.now();
-      const timestamp = new Date(currentTimestamp).toISOString();
-      console.log(`[${LogLevel[level]}] ${timestamp} ${this.name}: ${message}`);
-      // if (this.lastLogTimestamp) {
-      //   const timeDifference = currentTimestamp - this.lastLogTimestamp;
-      //   console.log(`Time since last log: ${timeDifference} ms`);
-      // }
+      const timestamp = new Date(currentTimestamp).toISOString().slice(11, -1);
+      console.log(
+        `[${LogLevel[level].slice(0, 3)}] ${timestamp} ${
+          this.name
+        }: ${message}`,
+      );
       this.lastLogTimestamp = currentTimestamp;
       if (data) {
         console.log(data instanceof Object ? JSON.stringify(data) : data);

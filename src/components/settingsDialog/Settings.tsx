@@ -1,43 +1,21 @@
-import {
-  CalendarClockIcon,
-  Copy,
-  HistoryIcon,
-  SettingsIcon,
-  Info,
-  ClipboardIcon,
-} from "lucide-react";
+import { CalendarClockIcon, HistoryIcon, SettingsIcon } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogClose,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Separator } from "../ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
-import useClipboard from "@/hooks/useClipboard";
 import General from "./tabs/General";
 export function SettingsDialog() {
-  const { copied, copyToClipboard } = useClipboard();
-
   return (
     <DialogContent className="h-[90svh] w-[90svw]">
       <DialogHeader className="gap-1 pb-8">
-        <DialogTitle className="mb-4 text-xl font-bold">Workflow Settings</DialogTitle>
+        <DialogTitle className="mb-4 text-xl font-bold">
+          Workflow Settings
+        </DialogTitle>
         <Separator />
       </DialogHeader>
       <Tabs
@@ -62,13 +40,6 @@ export function SettingsDialog() {
           <General />
         </TabsContent>
       </Tabs>
-      {/* <DialogFooter className="sm:justify-start">
-        <DialogClose asChild>
-          <Button type="button" variant="secondary">
-            Close
-          </Button>
-        </DialogClose>
-      </DialogFooter> */}
     </DialogContent>
   );
 }

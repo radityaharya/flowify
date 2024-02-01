@@ -4,8 +4,6 @@
 import { Handle, Position } from "@xyflow/react";
 import React from "react";
 
-import { CardFooter } from "@/components/ui/card";
-
 import {
   Accordion,
   AccordionContent,
@@ -14,7 +12,6 @@ import {
 } from "@/components/ui/accordion";
 
 import useStore from "~/app/states/store";
-import { Separator } from "~/components/ui/separator";
 
 import { CardWithHeader } from "../Primitives/Card";
 import InputPrimitive from "../Primitives/Input";
@@ -48,6 +45,15 @@ const PlaylistComponent: React.FC<PlaylistProps> = React.memo(
       getNodeData,
       updateNodeData,
     } = useBasicNodeState(id, formSchema);
+
+    React.useEffect(() => {
+      if (data) {
+        form!.reset({
+          limit: data.limit,
+          offset: data.offset,
+        });
+      }
+    }, [data]);
 
     const watch = form!.watch();
     const session = useStore((state) => state.session);

@@ -37,11 +37,7 @@ export const DragableNode = ({
     event.dataTransfer.effectAllowed = "move";
   };
 
-  const {
-    nodes,
-    addNode,
-    addEdge,
-  } = useStore(
+  const { nodes, addNode, addEdge } = useStore(
     useShallow((state) => ({
       nodes: state.nodes,
       addNode: state.addNode,
@@ -52,9 +48,10 @@ export const DragableNode = ({
   const onClick = (event) => {
     event.preventDefault();
 
-    const newNodePosition = nodes.length > 0
-      ? { x: nodes[0]!.position.x + 450, y: nodes[0]!.position.y }
-      : { x: 100, y: 100 };
+    const newNodePosition =
+      nodes.length > 0
+        ? { x: nodes[0]!.position.x + 450, y: nodes[0]!.position.y }
+        : { x: 100, y: 100 };
 
     const newNode = addNode({
       type: nodeType,
@@ -68,12 +65,12 @@ export const DragableNode = ({
         target: newNode.id,
       });
     }
-  }
+  };
 
   return (
     <TooltipProvider>
       <Tooltip>
-        <div className="h-min-content w-full group">
+        <div className="h-min-content group w-full">
           <div
             className="flex w-full flex-row items-center justify-between gap-2 rounded-md p-2 dark:bg-accent"
             onDragStart={onDragStart}
@@ -82,8 +79,8 @@ export const DragableNode = ({
           >
             <div className="flex flex-row gap-2">
               {/* <span className="text-sm font-medium">{type} :</span> */}
-              <span className="text-sm font-medium flex flex-row gap-2">
-                <TooltipTrigger className="hidden w-0 group-hover:w-min group-hover:block">
+              <span className="flex flex-row gap-2 text-sm font-medium">
+                <TooltipTrigger className="hidden w-0 group-hover:block group-hover:w-min">
                   <InfoIcon size={12} />
                 </TooltipTrigger>
                 {title}

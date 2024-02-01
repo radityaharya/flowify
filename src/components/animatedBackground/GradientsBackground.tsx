@@ -36,7 +36,7 @@ export const GradientBackground: React.FC<Props> = (props) => {
     <canvas
       id="gradient-canvas"
       ref={canvasRef}
-      style={{ position: "absolute", top: 0, left: 0}}
+      style={{ position: "absolute", top: 0, left: 0 }}
     />
   );
 };

@@ -1,18 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import {
-  Handle,
-  Position,
-  useHandleConnections,
-  useNodesData,
-} from "@xyflow/react";
+import { Handle, Position } from "@xyflow/react";
 import React from "react";
 
 import { ChevronsUpDown } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { CardFooter } from "@/components/ui/card";
 import {
   Command,
   CommandEmpty,
@@ -42,17 +36,16 @@ import { Separator } from "~/components/ui/separator";
 import { CardWithHeader } from "../Primitives/Card";
 import InputPrimitive from "../Primitives/Input";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
 import * as z from "zod";
 
 import { Form, FormField, FormItem, FormLabel } from "@/components/ui/form";
-import { useShallow } from "zustand/react/shallow";
 import Debug from "../Primitives/Debug";
+import useBasicNodeState from "~/hooks/useBasicNodeState";
 
 type PlaylistProps = {
   id: string;
-  data: any;
+  // TODO type on playlist
+  data: Playlist;
 };
 
 type Playlist = {
@@ -105,33 +98,34 @@ const PlaylistItem = ({
 
 function PlaylistComponent({ id, data }: PlaylistProps) {
   const [open, setOpen] = React.useState(false);
-  const [selectedPlaylist, setSelectedPlaylist] = React.useState<Playlist>({});
+  const [selectedPlaylist, setSelectedPlaylist] =
+    React.useState<Playlist>(data);
   const [search, setSearch] = React.useState("");
 
-  const { session, updateNodeData, userPlaylists, nodes } = useStore(
-    (state) => ({
-      session: state.session,
-      updateNodeData: state.updateNodeData,
-      userPlaylists: state.userPlaylists,
-      nodes: state.nodes,
-    }),
-  );
+  const {
+    state,
+    isValid,
+    targetConnections,
+    sourceConnections,
+    form,
+    formState,
+    register,
+    getNodeData,
+    updateNodeData,
+  } = useBasicNodeState(id, formSchema);
 
-  const form = useForm({
-    resolver: zodResolver(formSchema),
-    mode: "all",
-    shouldUnregister: false,
-  });
-  const { formState, register } = form;
+  const { session, userPlaylists } = useStore((state) => ({
+    session: state.session,
+    userPlaylists: state.userPlaylists,
+  }));
 
-  const TargetConnections = useHandleConnections({
-    type: "target",
-  });
-  const SourceConnections = useHandleConnections({
-    type: "source",
-  });
+  React.useEffect(() => {
+    if (data) {
+      form?.setValue("playlistId", data.playlistId);
+    }
+  }, []);
 
-  const watch = form.watch();
+  const watch = form!.watch();
   const prevWatchRef = React.useRef(watch);
   const prevSelectedPlaylistRef = React.useRef(selectedPlaylist);
 
@@ -148,7 +142,7 @@ function PlaylistComponent({ id, data }: PlaylistProps) {
     }
     prevWatchRef.current = watch;
     prevSelectedPlaylistRef.current = selectedPlaylist;
-  }, [watch, selectedPlaylist]);
+  }, [watch, selectedPlaylist, data]);
 
   React.useEffect(() => {
     const searchPlaylist = async () => {
@@ -158,7 +152,6 @@ function PlaylistComponent({ id, data }: PlaylistProps) {
             `/api/user/${session.user.providerAccountId}/playlists?q=${search}`,
           );
           const data = await response.json();
-          console.log(data);
           useStore.setState({ userPlaylists: data });
         } catch (err) {
           console.error(err);
@@ -172,7 +165,6 @@ function PlaylistComponent({ id, data }: PlaylistProps) {
           `/api/user/${session.user.providerAccountId}/playlists`,
         );
         const data = await response.json();
-        console.log(data);
         useStore.setState({ userPlaylists: data });
       } catch (err) {
         console.error(err);
@@ -195,14 +187,9 @@ function PlaylistComponent({ id, data }: PlaylistProps) {
     setUserPlaylists();
   }, [search]);
 
-  function getNodeData(id: string) {
-    const node = nodes.find((node) => node.id === id);
-    return node?.data;
-  }
-
   const handleSelect = (playlist) => {
     console.log("handle select", playlist);
-    form.setValue("playlistId", playlist.playlistId, {
+    form?.setValue("playlistId", playlist.playlistId, {
       shouldValidate: true,
     });
     console.log("data after update", getNodeData(id));
@@ -215,7 +202,7 @@ function PlaylistComponent({ id, data }: PlaylistProps) {
       title={`Playlist`}
       id={id}
       type="Source"
-      status={formState.isValid ? "success" : "error"}
+      status={formState!.isValid ? "success" : "error"}
       info="Get a list of the songs in a playlist."
     >
       <Handle
@@ -228,11 +215,11 @@ function PlaylistComponent({ id, data }: PlaylistProps) {
         position={Position.Left}
         style={{ background: "#555" }}
       />
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit((data) => console.log(data))}>
+      <Form {...form!}>
+        <form onSubmit={form!.handleSubmit((data) => console.log(data))}>
           <div className="flex flex-col gap-4">
             <FormField
-              control={form.control}
+              control={form!.control}
               name="playlistId"
               render={({ field, formState }) => (
                 <FormItem className="flex flex-col">
@@ -333,12 +320,12 @@ function PlaylistComponent({ id, data }: PlaylistProps) {
                 <AccordionTrigger className="text-sm">Config</AccordionTrigger>
                 <AccordionContent className="flex w-full flex-col gap-4 p-1">
                   <InputPrimitive
-                    control={form.control}
+                    control={form!.control}
                     name="limit"
                     inputType={"number"}
                     label={"Limit"}
                     placeholder="20"
-                    register={register}
+                    register={register!}
                     description={`The maximum number of items to return. Default: 20. Minimum: 1. 
                               
                   Maximum: 50.
@@ -347,12 +334,12 @@ function PlaylistComponent({ id, data }: PlaylistProps) {
                   Example: limit=10`}
                   />
                   <InputPrimitive
-                    control={form.control}
+                    control={form!.control}
                     name="offset"
                     inputType={"number"}
                     label={"Offset"}
                     placeholder="0"
-                    register={register}
+                    register={register!}
                     description={`The index of the first item to return. Default: 0 (the first item). Use with limit to get the next set of items.
 
                   Default: offset=0
@@ -366,9 +353,9 @@ function PlaylistComponent({ id, data }: PlaylistProps) {
       </Form>
       <Debug
         id={id}
-        isValid={formState.isValid}
-        TargetConnections={TargetConnections}
-        SourceConnections={SourceConnections}
+        isValid={formState!.isValid}
+        TargetConnections={targetConnections}
+        SourceConnections={sourceConnections}
       />
     </CardWithHeader>
   );

@@ -1,18 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import {
-  Handle,
-  Position,
-  useHandleConnections,
-  useNodesData,
-} from "@xyflow/react";
+import { Handle, Position, useHandleConnections } from "@xyflow/react";
 import React from "react";
 
 import { ChevronsUpDown } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { CardFooter } from "@/components/ui/card";
 import {
   Command,
   CommandEmpty,
@@ -26,33 +20,23 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 import Image from "next/image";
 import useStore from "~/app/states/store";
-import { Separator } from "~/components/ui/separator";
 
 import { CardWithHeader } from "../Primitives/Card";
-import InputPrimitive from "../Primitives/Input";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
 import { Form, FormField, FormItem, FormLabel } from "@/components/ui/form";
-import { useShallow } from "zustand/react/shallow";
 import Debug from "../Primitives/Debug";
 
 type PlaylistProps = {
   id: string;
-  data: any;
+  data: Playlist;
 };
 
 type Playlist = {
@@ -67,7 +51,7 @@ type Playlist = {
 const formSchema = z.object({
   playlistId: z.string().min(1, {
     message: "Playlist is required.",
-  })
+  }),
 });
 
 const PlaylistItem = ({
@@ -103,7 +87,8 @@ const PlaylistItem = ({
 
 function SaveAsReplaceComponent({ id, data }: PlaylistProps) {
   const [open, setOpen] = React.useState(false);
-  const [selectedPlaylist, setSelectedPlaylist] = React.useState<Playlist>({});
+  const [selectedPlaylist, setSelectedPlaylist] =
+    React.useState<Playlist>(data);
   const [search, setSearch] = React.useState("");
 
   const { session, updateNodeData, userPlaylists, nodes } = useStore(
@@ -141,6 +126,8 @@ function SaveAsReplaceComponent({ id, data }: PlaylistProps) {
     ) {
       updateNodeData(id, {
         id: watch.playlistId,
+        ...watch,
+        ...selectedPlaylist,
       });
     }
     prevWatchRef.current = watch;
@@ -154,7 +141,6 @@ function SaveAsReplaceComponent({ id, data }: PlaylistProps) {
           `/api/user/${session.user.providerAccountId}/playlists`,
         );
         const data = await response.json();
-        console.log(data);
         useStore.setState({ userPlaylists: data });
       } catch (err) {
         console.error(err);
@@ -162,11 +148,13 @@ function SaveAsReplaceComponent({ id, data }: PlaylistProps) {
     };
 
     // debounce({delay: 500}, setUserPlaylists)();
-    userPlaylists().then(() => {
-      console.log("user playlists updated");
-    }).catch((err) => {
-      console.error(err);
-    });
+    userPlaylists()
+      .then(() => {
+        console.log("user playlists updated");
+      })
+      .catch((err) => {
+        console.error(err);
+      });
   }, [search]);
 
   function getNodeData(id: string) {

@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-types */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Base } from "./Base";
-import type { Operation } from "./types";
 import * as _ from "radash";
 import type { AccessToken } from "./Base";
 import { Logger } from "../log";

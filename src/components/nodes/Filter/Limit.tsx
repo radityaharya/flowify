@@ -1,17 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import React, {  } from "react";
-import {
-  Handle,
-  Position,
-} from "@xyflow/react";
+import React from "react";
+import { Handle, Position } from "@xyflow/react";
 
 import { InfoIcon } from "lucide-react";
-
-import {
-  CardFooter,
-} from "@/components/ui/card";
 
 import { Separator } from "~/components/ui/separator";
 
@@ -20,9 +13,7 @@ import InputPrimitive from "../Primitives/Input";
 
 import * as z from "zod";
 
-import {
-  Form,
-} from "@/components/ui/form";
+import { Form } from "@/components/ui/form";
 import Link from "next/link";
 import useBasicNodeState from "~/hooks/useBasicNodeState";
 import Debug from "../Primitives/Debug";
@@ -48,6 +39,14 @@ const LimitComponent: React.FC<PlaylistProps> = React.memo(({ id, data }) => {
     getNodeData,
     updateNodeData,
   } = useBasicNodeState(id, formSchema);
+
+  React.useEffect(() => {
+    if (data) {
+      form!.reset({
+        limit: data.limit,
+      });
+    }
+  }, [data]);
 
   const watch = form!.watch();
   const prevWatchRef = React.useRef(watch);

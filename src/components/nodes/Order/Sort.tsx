@@ -26,30 +26,43 @@ type PlaylistProps = {
 };
 
 const formSchema = z.object({
-  filterKey: z.string().min(1, {
+  sortKey: z.string().min(1, {
     message: "Playlist is required.",
   }),
-  operation: z.string().min(1, {
-    message: "Operation is required.",
-  }),
-  filterValue: z.string().min(1, {
-    message: "Value is required.",
-  }),
+  sortOrder: z
+    .string()
+    .min(1, {
+      message: "Operation is required.",
+    })
+    .default("asc"),
 });
+
+const sortOptions = [
+  { label: "Ascending", value: "asc" },
+  { label: "Descending", value: "desc" },
+];
 
 const RemoveMatch: React.FC<PlaylistProps> = React.memo(({ id, data }) => {
   const {
-    state,
     isValid,
     targetConnections,
     sourceConnections,
     form,
     formState,
     register,
-    getNodeData,
     updateNodeData,
   } = useBasicNodeState(id, formSchema);
 
+  React.useEffect(() => {
+    if (data) {
+      const parsedData = {
+        sortKey: data.sortKey,
+        sortOrder: data.sortOrder,
+      };
+      form!.reset(parsedData);
+      form?.setValue("sortOrder", parsedData.sortOrder);
+    }
+  }, [data]);
 
   const watch = form!.watch();
   const prevWatchRef = React.useRef(watch);
@@ -89,11 +102,11 @@ const RemoveMatch: React.FC<PlaylistProps> = React.memo(({ id, data }) => {
               name="sortKey"
               inputType={"text"}
               label={"Sort Key"}
-              placeholder="track.artist.name"
+              placeholder="track.artists[0].name"
               register={register!}
               description={`The JSON key to match for sorting
                   
-            Example: track.artist.name`}
+            Example: track.artists[0].name`}
             />
             <Separator />
             <InputPrimitive
@@ -101,11 +114,14 @@ const RemoveMatch: React.FC<PlaylistProps> = React.memo(({ id, data }) => {
               name="sortOrder"
               inputType={"select"}
               label={"Sort Order"}
-              placeholder="Ascending"
-              selectOptions={[
-                { label: "Descending", value: "desc" },
-                { label: "Ascending", value: "asc" },
-              ]}
+              placeholder={
+                watch.sortOrder
+                  ? sortOptions.find(
+                      (option) => option.value === watch.sortOrder,
+                    )!.label
+                  : "Ascending"
+              }
+              selectOptions={sortOptions}
               register={register!}
               description={`The order to sort the results by`}
             />

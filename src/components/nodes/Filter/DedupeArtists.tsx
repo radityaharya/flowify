@@ -2,16 +2,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import React from "react";
 import { Handle, Position } from "@xyflow/react";
-
-import { CardFooter } from "@/components/ui/card";
-
-import { Separator } from "~/components/ui/separator";
-
+import React from "react";
+import useBasicNodeState from "~/hooks/useBasicNodeState";
 import { CardWithHeader } from "../Primitives/Card";
 import Debug from "../Primitives/Debug";
-import useBasicNodeState from "~/hooks/useBasicNodeState";
 import { SourceList } from "../Primitives/SourceList";
 
 type PlaylistProps = {
@@ -53,7 +48,11 @@ const DedupeArtistsComponent: React.FC<PlaylistProps> = React.memo(
           }}
         />
         <div className="flex flex-col gap-4">
-          <SourceList state={state} isValid={isValid} operationType="Filtering" />
+          <SourceList
+            state={state}
+            isValid={isValid}
+            operationType="Filtering"
+          />
           <Debug
             id={id}
             isValid={isValid}

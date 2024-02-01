@@ -2,17 +2,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import React from "react";
 import { Handle, Position } from "@xyflow/react";
-
-import { CardFooter } from "@/components/ui/card";
-
+import React from "react";
 import { Separator } from "~/components/ui/separator";
-
-import { CardWithHeader } from "../Primitives/Card";
-
 import useBasicNodeState from "~/hooks/useBasicNodeState";
-
+import { CardWithHeader } from "../Primitives/Card";
 import Debug from "../Primitives/Debug";
 import { SourceList } from "../Primitives/SourceList";
 

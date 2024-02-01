@@ -3,7 +3,7 @@ import "~/styles/globals.css";
 import { Inter } from "next/font/google";
 import NextAuthProvider from "~/providers/NextAuthProvider";
 import { SiteNav } from "~/components/main-nav";
-import { Toaster } from "@/components/ui/sonner"
+import { Toaster } from "@/components/ui/sonner";
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
@@ -26,7 +26,7 @@ export default function RootLayout({
         <NextAuthProvider>
           <SiteNav />
           {children}
-          <Toaster expand={true} richColors/>
+          <Toaster expand={true} richColors />
         </NextAuthProvider>
       </body>
     </html>

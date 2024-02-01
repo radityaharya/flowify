@@ -38,7 +38,7 @@ const DialogContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed bottom-0 left-[50%] z-50 w-full translate-x-[-50%] gap-4 border border-b-0 bg-background p-8 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:slide-out-to-bottom-[48%] data-[state=closed]:slide-out-to-left-1/2 data-[state=open]:slide-in-from-bottom-[48%] data-[state=open]:slide-in-from-left-1/2 sm:rounded-t-lg flex flex-col",
+        "fixed bottom-0 left-[50%] z-50 flex w-full translate-x-[-50%] flex-col gap-4 border border-b-0 bg-background p-8 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:slide-out-to-bottom-[48%] data-[state=closed]:slide-out-to-left-1/2 data-[state=open]:slide-in-from-bottom-[48%] data-[state=open]:slide-in-from-left-1/2 sm:rounded-t-lg",
         className,
       )}
       {...props}
@@ -58,10 +58,7 @@ const DialogHeader = ({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
-    className={cn(
-      "flex flex-col text-center sm:text-left",
-      className,
-    )}
+    className={cn("flex flex-col text-center sm:text-left", className)}
     {...props}
   />
 );

@@ -83,13 +83,12 @@ const LoadingSVG = () => (
 export default function ProviderButtons() {
   const [providers, setProviders] = useState<Record<string, Provider>>({});
 
-
   const isMobile = () => {
     if (typeof window !== "undefined") {
       return window.innerWidth < 768;
     }
     return false;
-  }
+  };
 
   const { data: session, status } = useSession();
 
@@ -143,16 +142,14 @@ export default function ProviderButtons() {
                 />
               </svg>
             )}
-            {
-              status === "loading" ? (
-                <span>
-                  <LoadingSVG />
-                  Authenticating...
-                </span>
-              ) : (
-                <span>Sign in with {provider.name}</span>
-              )
-            }
+            {status === "loading" ? (
+              <span>
+                <LoadingSVG />
+                Authenticating...
+              </span>
+            ) : (
+              <span>Sign in with {provider.name}</span>
+            )}
           </Button>
         </div>
       ))}

@@ -91,7 +91,7 @@
   fill: var(--card-foreground) !important;
 }
 
-.react-flow__attribution{
+.react-flow__attribution {
   color: var(--card-foreground) !important;
   background-color: var(--card) !important;
   opacity: 0.5 !important;

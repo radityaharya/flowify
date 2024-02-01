@@ -135,4 +135,5 @@ The hosted service is provided "as is" and on an "as available" basis, with no g
 The author respects the privacy of users and takes data security seriously. However, the author cannot guarantee the security of any data transmitted to the hosted service and is not responsible for any breach of security or for the actions of any third parties that may obtain any personal information.
 
 By using the hosted service, you agree to accept all risks associated with the use of the service and agree not to hold the author liable for any issues, losses, or damages that may arise from its use.
+
 </details>

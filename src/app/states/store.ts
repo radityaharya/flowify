@@ -1,4 +1,4 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 import {
   type Connection,
   type Edge,
@@ -14,10 +14,11 @@ import {
   getIncomers,
   getOutgoers,
   getConnectedEdges,
-  type OnNodesDelete
+  type OnNodesDelete,
+  type ReactFlowInstance,
 } from "@xyflow/react";
 
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 
 type RFState = {
   nodes: Node[];
@@ -44,24 +45,46 @@ type RFState = {
     title: string;
     type: string;
   } | null;
-  setAlert: (alert: {
-    message: string;
-    title: string;
-    type: string;
-  } | null) => void;
+  setAlert: (
+    alert: {
+      message: string;
+      title: string;
+      type: string;
+    } | null,
+  ) => void;
+
+  flowState: {
+    id?: string | null;
+    name: string;
+    description: string;
+    workflow?: WorkflowObject;
+    cron?: string;
+  };
+  setFlowState: (flowState: {
+    id?: string | null;
+    name: string;
+    description: string;
+    workflow?: WorkflowObject;
+    cron?: string;
+  }) => void;
+  reactFlowInstance?: ReactFlowInstance;
+  setReactFlowInstance: (instance: ReactFlowInstance) => void;
 };
 
 const useStore = create<RFState>((set, get) => ({
   nodes: [],
   edges: [],
-  setNodes: (nodes) => {  
-    console.log('setNodes', nodes);
+  setNodes: (nodes) => {
+    console.log("setNodes", nodes);
     set({
       nodes: nodes,
     });
   },
   setEdges: (edges) => {
-    console.log('setEdges', edges);
+    console.log("setEdges", edges);
+    edges.forEach((edge) => {
+      edge.type = "smoothstep";
+    });
     set({
       edges: edges,
     });
@@ -88,9 +111,9 @@ const useStore = create<RFState>((set, get) => ({
     return node;
   },
   addEdge(data) {
-    const id = `${data.source}->${data.target}`
+    const id = `${data.source}->${data.target}`;
     const edge = { id, ...data };
-    edge.type = 'smoothstep';
+    edge.type = "smoothstep";
     set({ edges: [edge, ...get().edges] });
   },
   updateNode: (node: Node) => {
@@ -110,7 +133,7 @@ const useStore = create<RFState>((set, get) => ({
     if (index !== -1 && nodes[index]) {
       nodes[index]!.data = {
         ...nodes[index]!.data,
-        ...data
+        ...data,
       };
       set({
         nodes: nodes,
@@ -124,10 +147,16 @@ const useStore = create<RFState>((set, get) => ({
         const outgoers = getOutgoers(node, get().nodes, get().edges);
         const connectedEdges = getConnectedEdges([node], get().edges);
 
-        const remainingEdges = acc.filter((edge) => !connectedEdges.includes(edge));
+        const remainingEdges = acc.filter(
+          (edge) => !connectedEdges.includes(edge),
+        );
 
         const createdEdges = incomers.flatMap(({ id: source }) =>
-          outgoers.map(({ id: target }) => ({ id: `${source}->${target}`, source, target }))
+          outgoers.map(({ id: target }) => ({
+            id: `${source}->${target}`,
+            source,
+            target,
+          })),
         );
 
         return [...remainingEdges, ...createdEdges];
@@ -157,13 +186,33 @@ const useStore = create<RFState>((set, get) => ({
 
   // alert
   alert: null,
-  setAlert: (alert: {
-    message: string;
-    title: string;
-    type: string;
-  } | null) => {
+  setAlert: (
+    alert: {
+      message: string;
+      title: string;
+      type: string;
+    } | null,
+  ) => {
     set({
       alert: alert,
+    });
+  },
+
+  flowState: {
+    id: undefined,
+    name: "",
+    description: "",
+    workflow: undefined,
+  },
+  setFlowState: (flowState) => {
+    set({
+      flowState: flowState,
+    });
+  },
+  reactFlowInstance: undefined,
+  setReactFlowInstance: (instance) => {
+    set({
+      reactFlowInstance: instance,
     });
   },
 }));

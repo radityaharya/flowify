@@ -2,31 +2,12 @@
 
 import * as React from "react";
 
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Card, CardContent } from "@/components/ui/card";
 
 import { cn } from "~/lib/utils";
 
 import { DotIcon, InfoIcon } from "lucide-react";
 import { Separator } from "~/components/ui/separator";
-import useStore from "~/app/states/store";
-import { useShallow } from "zustand/react/shallow";
 
 interface CardWithHeaderProps {
   children: React.ReactNode;
@@ -47,30 +28,14 @@ export function CardWithHeader({
   info,
   className,
 }: CardWithHeaderProps) {
-
-  const {
-    nodes,
-    edges,
-    onNodesChange,
-    onEdgesChange,
-    addEdge,
-    addNode,
-    onNodesDelete,
-  } = useStore(
-    useShallow((state) => ({
-      nodes: state.nodes,
-      edges: state.edges,
-      onNodesChange: state.onNodesChange,
-      onEdgesChange: state.onEdgesChange,
-      addEdge: state.addEdge,
-      addNode: state.addNode,
-      onNodesDelete: state.onNodesDelete,
-    })),
-  );
-
   return (
-    <Card className={cn("w-[350px] border dark:border-gray-600 flex flex-col gap-2", className)}>
-      <div className="flex w-full flex-row gap-2 rounded-lg p-2 bg-accent">
+    <Card
+      className={cn(
+        "flex w-[350px] flex-col gap-2 border dark:border-gray-600",
+        className,
+      )}
+    >
+      <div className="flex w-full flex-row gap-2 rounded-lg bg-accent p-2">
         <DotIcon
           size={24}
           className={cn("text-gray-500", {
@@ -86,9 +51,7 @@ export function CardWithHeader({
         <div className="flex flex-col gap-6 p-6 py-3">
           <div className="flex flex-row gap-2">
             <InfoIcon size={16} className="mt-[4px] min-w-4" />
-            <p className="text-sm font-medium opacity-80">
-            {info}
-            </p>
+            <p className="text-sm font-medium opacity-80">{info}</p>
           </div>
           <Separator />
         </div>

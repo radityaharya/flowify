@@ -5,10 +5,6 @@
 import { Handle, Position } from "@xyflow/react";
 import React from "react";
 
-import { CardFooter } from "@/components/ui/card";
-
-import { Separator } from "~/components/ui/separator";
-
 import useBasicNodeState from "~/hooks/useBasicNodeState";
 import { CardWithHeader } from "../Primitives/Card";
 import Debug from "../Primitives/Debug";

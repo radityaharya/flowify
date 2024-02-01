@@ -127,24 +127,24 @@ class MiniGl {
                     material.attachUniforms(name, uniform);
                   })
                 : "array" == uniforms.type
-                ? uniforms.value.forEach((uniform, i) =>
-                    material.attachUniforms(`${name}[${i}]`, uniform),
-                  )
-                : "struct" == uniforms.type
-                ? Object.entries(uniforms.value).forEach(([uniform, i]) =>
-                    material.attachUniforms(`${name}.${uniform}`, i),
-                  )
-                : (_miniGl.debug("Material.attachUniforms", {
-                    name: name,
-                    uniform: uniforms,
-                  }),
-                  material.uniformInstances.push({
-                    uniform: uniforms,
-                    location: context.getUniformLocation(
-                      material.program,
-                      name,
-                    ),
-                  }));
+                  ? uniforms.value.forEach((uniform, i) =>
+                      material.attachUniforms(`${name}[${i}]`, uniform),
+                    )
+                  : "struct" == uniforms.type
+                    ? Object.entries(uniforms.value).forEach(([uniform, i]) =>
+                        material.attachUniforms(`${name}.${uniform}`, i),
+                      )
+                    : (_miniGl.debug("Material.attachUniforms", {
+                        name: name,
+                        uniform: uniforms,
+                      }),
+                      material.uniformInstances.push({
+                        uniform: uniforms,
+                        location: context.getUniformLocation(
+                          material.program,
+                          name,
+                        ),
+                      }));
             }
           },
         },

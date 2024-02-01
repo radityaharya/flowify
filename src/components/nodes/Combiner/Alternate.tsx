@@ -2,16 +2,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import React from "react";
 import { Handle, Position } from "@xyflow/react";
-
-import { CardFooter } from "@/components/ui/card";
-
-import { Separator } from "~/components/ui/separator";
-
-import { CardWithHeader } from "../Primitives/Card";
-
+import React from "react";
 import useBasicNodeState from "~/hooks/useBasicNodeState";
+import { CardWithHeader } from "../Primitives/Card";
 import Debug from "../Primitives/Debug";
 import { SourceList } from "../Primitives/SourceList";
 
@@ -44,7 +38,11 @@ const AlternateComponent: React.FC<PlaylistProps> = React.memo(
           style={{ background: "#555" }}
         />
         <div className="flex flex-col gap-4">
-          <SourceList state={state} isValid={isValid} operationType="Combining" />
+          <SourceList
+            state={state}
+            isValid={isValid}
+            operationType="Combining"
+          />
           <Debug
             id={id}
             isValid={isValid}

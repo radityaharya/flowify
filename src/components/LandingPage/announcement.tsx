@@ -1,7 +1,7 @@
-import Link from "next/link"
+import Link from "next/link";
 
-import { Separator } from "@/components/ui/separator"
-import { ArrowRightIcon } from "lucide-react"
+import { Separator } from "@/components/ui/separator";
+import { ArrowRightIcon } from "lucide-react";
 
 export function Announcement() {
   return (
@@ -9,13 +9,12 @@ export function Announcement() {
       href="#"
       className="inline-flex items-center rounded-lg bg-muted px-3 py-1 text-sm font-medium"
     >
-      ⚠️<Separator className="mx-2 h-4" orientation="vertical" />{" "}
+      ⚠️
+      <Separator className="mx-2 h-4" orientation="vertical" />{" "}
       <span className="sm:hidden">Work in progress</span>
-      <span className="hidden sm:inline">
-      Work in progress 
-      </span>
-      <Separator className="mx-2 h-4" orientation="vertical" />{" "}⚠️
+      <span className="hidden sm:inline">Work in progress</span>
+      <Separator className="mx-2 h-4" orientation="vertical" /> ⚠️
       {/* <ArrowRightIcon className="ml-1 h-4 w-4" /> */}
     </Link>
-  )
+  );
 }

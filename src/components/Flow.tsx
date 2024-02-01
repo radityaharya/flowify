@@ -1,15 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 "use client";
 
-import {
-  Background,
-  Controls,
-  Panel,
-  ReactFlow,
-  SelectionMode,
-  type ReactFlowInstance,
-} from "@xyflow/react";
-import React, { useCallback, useRef, useState } from "react";
+import { Background, Controls, Panel, ReactFlow } from "@xyflow/react";
+import React, { useCallback, useRef } from "react";
 
 import useStore from "~/app/states/store";
 
@@ -34,11 +27,15 @@ import Shuffle from "./nodes/Order/Shuffle";
 import Sort from "./nodes/Order/Sort";
 
 import { Button } from "@/components/ui/button";
-import { PlayIcon, Settings as SettingsIcon } from "lucide-react";
+import { PlayIcon, SaveIcon, Settings as SettingsIcon } from "lucide-react";
 import { SettingsDialog } from "./settingsDialog/Settings";
 
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import reactFlowToWorkflow from "~/app/utils/reactFlowToWorkflow";
+import { saveWorkflow } from "~/app/utils/saveWorkflow";
+
+import { useRouter } from "next/navigation";
+import { runWorkflow } from "~/app/utils/runWorkflow";
 
 const nodeTypes = {
   "Combiner.alternate": Alternate,
@@ -68,6 +65,9 @@ export default function App() {
     addEdge,
     addNode,
     onNodesDelete,
+    flowState,
+    reactFlowInstance,
+    setReactFlowInstance,
   } = useStore(
     useShallow((state) => ({
       nodes: state.nodes,
@@ -77,11 +77,13 @@ export default function App() {
       addEdge: state.addEdge,
       addNode: state.addNode,
       onNodesDelete: state.onNodesDelete,
+      flowState: state.flowState,
+      reactFlowInstance: state.reactFlowInstance,
+      setReactFlowInstance: state.setReactFlowInstance,
     })),
   );
 
-  const [reactFlowInstance, setReactFlowInstance] =
-    useState<ReactFlowInstance | null>(null);
+  const router = useRouter();
 
   const onDragOver = useCallback((event) => {
     event.preventDefault();
@@ -117,8 +119,21 @@ export default function App() {
     [reactFlowInstance],
   );
 
-  function handleRun() {
-    const workflow = reactFlowToWorkflow({ nodes, edges });
+  async function handleRun() {
+    const { workflowResponse, errors } = await reactFlowToWorkflow({
+      nodes,
+      edges,
+    });
+    const runResponse = await runWorkflow(workflowResponse);
+  }
+
+  async function handleSave() {
+    const { workflowResponse, errors } = await reactFlowToWorkflow({
+      nodes,
+      edges,
+    });
+    const saveResponse = await saveWorkflow(workflowResponse);
+    router.push(`/flow?id=${saveResponse.id}`);
   }
 
   return (
@@ -134,7 +149,7 @@ export default function App() {
           onDrop={onDrop}
           onDragOver={onDragOver}
           onNodesDelete={onNodesDelete}
-          // fitView
+          fitView
           snapToGrid={true}
           nodeTypes={nodeTypes}
           snapGrid={[20, 20]}
@@ -156,6 +171,10 @@ export default function App() {
           <Controls />
           <Panel position="top-right" className="pt-20">
             <div className="flex flex-row items-center gap-4">
+              <Button className="flex-grow" onClick={handleSave}>
+                <SaveIcon size={16} />
+                <span>Save</span>
+              </Button>
               <Button className="flex-grow" onClick={handleRun}>
                 <PlayIcon size={16} />
                 <span>Run</span>
@@ -172,10 +191,12 @@ export default function App() {
             </div>
           </Panel>
           <Panel position="top-left" className="pt-20">
-            <p className="text-lg font-medium drop-shadow-lg">Daily Intake</p>
+            <p className="text-lg font-medium drop-shadow-lg">
+              {flowState.name}
+            </p>
             <p className="text-xs font-medium opacity-80">
               {" "}
-              A mix of your favorite tracks and new discoveries.
+              {flowState.description}
             </p>
           </Panel>
           <Background

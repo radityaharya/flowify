@@ -30,7 +30,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Textarea } from "@/components/ui/textarea"
+import { Textarea } from "@/components/ui/textarea";
 import { useEffect, useState } from "react";
 import React from "react";
 function RightBar() {
@@ -97,12 +97,19 @@ function RightBar() {
             Drag and drop nodes to the canvas to create a workflow
           </p> */}
           <div className="grid w-full max-w-sm items-center gap-1.5">
-            <Label htmlFor="email" className="opacity-90">Title</Label>
+            <Label htmlFor="email" className="opacity-90">
+              Title
+            </Label>
             <Input type="email" id="email" placeholder="Workflow title" />
           </div>
           <div className="grid w-full max-w-sm items-center gap-1.5">
-            <Label htmlFor="email" className="opacity-90">Description</Label>
-            <Textarea id="email" placeholder="A short description for your workflow" />
+            <Label htmlFor="email" className="opacity-90">
+              Description
+            </Label>
+            <Textarea
+              id="email"
+              placeholder="A short description for your workflow"
+            />
           </div>
         </div>
       </div>

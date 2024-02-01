@@ -1,8 +1,11 @@
-
-import { getWorkflowJob } from "../workflowQueue";
 import { NextResponse, type NextRequest } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/server/auth";
+import { db } from "@/server/db";
+import { isUUID } from "validator";
+import { Logger } from "@/lib/log";
+
+const log = new Logger("/api/workflow/[id]");
 export async function GET(
   request: NextRequest,
   {
@@ -12,8 +15,9 @@ export async function GET(
   },
 ) {
   const session = await getServerSession({ req: request, ...authOptions });
-  const id = params.id;
-  if (!id) {
+
+  if (!params.id || !isUUID(params.id)) {
+    log.error("No id provided");
     return NextResponse.json(
       {
         error: "No id provided",
@@ -23,6 +27,7 @@ export async function GET(
   }
 
   if (!session) {
+    log.error("Not authenticated");
     return NextResponse.json(
       {
         error: "Not authenticated",
@@ -31,12 +36,15 @@ export async function GET(
     );
   }
 
-  const job = await getWorkflowJob(id);
-  if (!job) {
-    return NextResponse.json({ job: null });
+  const workflow = await db.query.workflowJobs.findFirst({
+    where: (workflowJobs, { eq }) => eq(workflowJobs.id, params.id),
+  });
+
+  if (!workflow) {
+    return NextResponse.json("Workflow not found", { status: 404 });
   }
 
-  if (job.data.userId !== session.user.id) {
+  if (workflow.userId !== session.user.id) {
     return NextResponse.json(
       {
         error: "Unauthorized",
@@ -45,5 +53,13 @@ export async function GET(
     );
   }
 
-  return NextResponse.json({ job });
+  const res = {
+    id: workflow.id,
+    cron: workflow.cron,
+    workflow: workflow.workflow ? JSON.parse(workflow.workflow) : null,
+    createdAt: workflow.createdAt,
+  };
+
+  log.info(`Returning workflow ${params.id} for user ${session.user.id}`);
+  return NextResponse.json(res);
 }

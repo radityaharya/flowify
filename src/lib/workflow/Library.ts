@@ -3,9 +3,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Base } from "./Base";
 import _ from "radash";
-import type { AccessToken } from './Base';
-import { type Operation } from "./types";
-import { Logger } from '../log'
+import type { AccessToken } from "./Base";
+import { Logger } from "../log";
 import type SpotifyWebApi from "spotify-web-api-node";
 
 const log = new Logger("Order");
@@ -14,11 +13,23 @@ export default class Library extends Base {
     super(accessToken, spClient);
   }
 
-  static likedTracks(spClient: SpotifyWebApi, { limit = 50, offset = 0 }: { limit?: number, offset?: number }) {
-    const getLikedTracks = async ({ limit, offset }: { limit: number, offset: number }) => {
+  static likedTracks(
+    spClient: SpotifyWebApi,
+    { limit = 50, offset = 0 }: { limit?: number; offset?: number },
+  ) {
+    const getLikedTracks = async ({
+      limit,
+      offset,
+    }: {
+      limit: number;
+      offset: number;
+    }) => {
       const tracks = Array<any>();
       while (tracks.length < limit) {
-        const response = await spClient.getMySavedTracks({ limit: Math.min(limit - tracks.length, 50), offset: offset + tracks.length });
+        const response = await spClient.getMySavedTracks({
+          limit: Math.min(limit - tracks.length, 50),
+          offset: offset + tracks.length,
+        });
         tracks.push(...response.body.items);
         if (response.body.items.length < 50) break;
       }
@@ -42,10 +53,7 @@ export default class Library extends Base {
     );
   }
 
-  static async _getPlaylistWithTracks(
-    spClient: SpotifyWebApi,
-    id: string,
-  ) {
+  static async _getPlaylistWithTracks(spClient: SpotifyWebApi, id: string) {
     return spClient
       .getPlaylist(id)
       .then((response) => ({
@@ -111,11 +119,15 @@ export default class Library extends Base {
     return Library._getPlaylistWithTracks(spClient, id);
   }
 
-
   static async saveAsNew(
     spClient: SpotifyWebApi,
     sources: any[],
-    params: { name: string, isPublic?: boolean, collaborative?: boolean, description?: string },
+    params: {
+      name: string;
+      isPublic?: boolean;
+      collaborative?: boolean;
+      description?: string;
+    },
   ) {
     log.info("Saving as new playlist...");
     log.debug("SaveAsNew Sources:", sources, true);

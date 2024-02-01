@@ -74,8 +74,6 @@ export const operationParamsTypesMap = {
   },
 } as Record<string, Record<string, { type: string; required?: boolean }>>;
 
-import type { Source, Operation, Workflow } from "./types";
-
 // import * as _ from "radash";
 interface Operations {
   Filter: typeof Filter;
@@ -107,56 +105,71 @@ export class Runner extends Base {
    * @param skipCache - Optional. Indicates whether to skip the cache. Default is false.
    * @returns A map of source values.
    */
-  async fetchSourceValues(workflow: Workflow, skipCache = false) {
+  async fetchSourceValues(workflow: WorkflowObject) {
     const sourceValues = new Map();
-    const promises = workflow.sources.map(
-      (source, index) =>
-        new Promise<void>(async (resolve) => {
-          let tracks: SpotifyApi.PlaylistTrackObject[] = [];
-          log.info(
-            `Loading source ${source.id} of type ${
-              source.type
-            } with params ${JSON.stringify(source.params)}`,
-          );
-          if (source.type === "Source.playlist") {
-            log.info(`Loading playlist ${source.params.id}`);
-            let result;
-            let offset = 0;
-            do {
-              result = await new Promise((resolve) =>
-                setTimeout(
-                  () =>
-                    this.spClient
-                      .getPlaylistTracks(source.params.id as string, {
-                        limit: 50,
-                        offset,
-                      })
-                      .then(resolve),
-                  index * 1500,
-                ),
-              );
-
-              tracks = [...tracks, ...result.body.items];
-              offset += 50;
-            } while (result.body.next);
-          } else if (source.type === "Library.likedTracks") {
-            const limit = source.params.limit ?? 50;
-            tracks = await operations.Library.likedTracks(this.spClient, {
-              limit,
-              offset: 0,
-            });
-          }
-
-          console.info(`Loaded ${tracks.length} tracks.`);
-          source.tracks = tracks;
-          sourceValues.set(source.id, source);
-          sourceValues.set(`${source.id}.tracks`, tracks);
-          resolve();
-        }),
+    const promises = workflow.sources.map((source) =>
+      this.fetchSourceTracks(source),
     );
 
-    await Promise.all(promises);
+    const results = await Promise.allSettled(promises);
+
+    results.forEach((result, index) => {
+      if (result.status === "fulfilled") {
+        const { source, tracks } = result.value;
+        sourceValues.set(source.id, source);
+        sourceValues.set(`${source.id}.tracks`, tracks);
+      } else {
+        log.error(
+          `Failed to fetch tracks for source at index ${index}: ${result.reason}`,
+        );
+        throw new Error(
+          `Failed to fetch tracks for source at index ${index}: ${result.reason}`,
+        );
+      }
+    });
+
     return sourceValues;
+  }
+
+  async fetchSourceTracks(source) {
+    let tracks: SpotifyApi.PlaylistTrackObject[] = [];
+    log.info(
+      `Loading source ${source.id} of type ${
+        source.type
+      } with params ${JSON.stringify(source.params)}`,
+    );
+    if (source.type === "Source.playlist") {
+      log.info(`Loading playlist ${source.params.playlistId}`);
+      let result;
+      let offset = 0;
+      do {
+        result = await new Promise((resolve) =>
+          setTimeout(
+            () =>
+              this.spClient
+                .getPlaylistTracks(source.params.playlistId as string, {
+                  limit: 50,
+                  offset,
+                })
+                .then(resolve),
+            500,
+          ),
+        );
+
+        tracks = [...tracks, ...result.body.items];
+        offset += 50;
+      } while (result.body.next);
+    } else if (source.type === "Library.likedTracks") {
+      const limit = source.params.limit ?? 50;
+      tracks = await operations.Library.likedTracks(this.spClient, {
+        limit,
+        offset: 0,
+      });
+    }
+
+    log.info(`Loaded ${tracks.length} tracks.`);
+    source.tracks = tracks;
+    return { source, tracks };
   }
 
   // TODO: rework source fetching to use the same method as operations
@@ -171,7 +184,7 @@ export class Runner extends Base {
   async fetchSources(
     operation: Operation,
     sourceValues: Map<string, any>,
-    workflow: Workflow,
+    workflow: WorkflowObject,
   ) {
     const sources = [] as SpotifyApi.PlaylistTrackObject[];
     for (const source of operation.sources) {
@@ -216,7 +229,7 @@ export class Runner extends Base {
   async runOperation(
     operationId: string,
     sourceValues: Map<string, any>,
-    workflow: Workflow,
+    workflow: WorkflowObject,
   ) {
     const operation = workflow.operations.find((op) => op.id === operationId);
     if (!operation) {
@@ -254,7 +267,7 @@ export class Runner extends Base {
    * @param workflow - The workflow to sort the operations for.
    * @returns An array of sorted operations.
    */
-  sortOperations(workflow: Workflow) {
+  sortOperations(workflow: WorkflowObject) {
     log.info("Sorting operations...");
     const sortedOperations = [] as Operation[];
     const operations = [...workflow.operations] as Operation[];
@@ -303,7 +316,15 @@ export class Runner extends Base {
       );
     }
 
+    let iterationCount = 0;
+    const maxIterations = operations.length * 2;
+
     while (operations.length > 0) {
+      if (iterationCount++ > maxIterations) {
+        throw new Error(
+          "Exceeded maximum iterations. There might be a circular dependency in the operations.",
+        );
+      }
       for (let i = 0; i < operations.length; i++) {
         const operation = operations[i]!;
         if (
@@ -328,17 +349,22 @@ export class Runner extends Base {
    * @param workflow - The workflow to validate.
    * @returns A tuple containing a boolean indicating whether the validation passed or not, and an array of error messages if validation failed.
    */
-  validateWorkflow(workflow: Workflow): Promise<[boolean, string[] | null]> {
+  validateWorkflow(
+    workflow: WorkflowObject,
+  ): Promise<[boolean, string[] | null]> {
     log.info("Validating workflow...");
+
+    // let timeoutOccurred = false;
     const timeout = new Promise<[boolean, string[]]>((resolve, reject) =>
-      setTimeout(
-        () => resolve([false, ["Validation timed out after 5 seconds."]]),
-        5000,
-      ),
+      setTimeout(() => {
+        // timeoutOccurred = true;
+        reject(new Error(`Validation timed out after ${5000 / 1000} seconds`));
+      }, 5000),
     );
 
     const validationPromise = new Promise<[boolean, string[] | null]>(
-      (resolve, reject) => {
+      (resolve) => {
+        workflow.operations = this.sortOperations(workflow);
         const sourceIds = new Set(workflow.sources.map((source) => source.id));
         const operationIds = new Set();
         const errors = [] as string[];
@@ -461,13 +487,15 @@ export class Runner extends Base {
               }
               delete paramsCopy[param];
             }
-            if (Object.keys(paramsCopy).length > 0) {
-              throw new Error(
-                `Extra params: ${Object.keys(paramsCopy).join(
-                  ", ",
-                )} in operation: ${JSON.stringify(operation)}`,
-              );
-            }
+
+            // TODO: Extra params validation
+            // if (Object.keys(paramsCopy).length > 0) {
+            //   throw new Error(
+            //     `Extra params: ${Object.keys(paramsCopy).join(
+            //       ", ",
+            //     )} in operation: ${JSON.stringify(operation)}`,
+            //   );
+            // }
           }
 
           // Validate operation sources
@@ -534,13 +562,15 @@ export class Runner extends Base {
    * @returns The result of the workflow execution.
    * @throws Error if the workflow is invalid.
    */
-  async runWorkflow(workflow: Workflow, timeoutAfter = 20000) {
+  async runWorkflow(workflow: WorkflowObject, timeoutAfter = 40000) {
     let timeoutOccurred = false;
 
     const timeout = new Promise((_, reject) =>
       setTimeout(() => {
         timeoutOccurred = true;
-        reject(Error(`Operation timed out after ${timeoutAfter} seconds`));
+        reject(
+          Error(`Operation timed out after ${timeoutAfter / 1000} seconds`),
+        );
       }, timeoutAfter),
     );
 

@@ -1,19 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import {
-  Handle,
-  Position,
-} from "@xyflow/react";
+import { Handle, Position } from "@xyflow/react";
 import React from "react";
 
 import { InfoIcon } from "lucide-react";
-
-import {
-  CardFooter,
-} from "@/components/ui/card";
-
-
 
 import { Separator } from "~/components/ui/separator";
 
@@ -22,9 +13,7 @@ import InputPrimitive from "../Primitives/Input";
 
 import * as z from "zod";
 
-import {
-  Form,
-} from "@/components/ui/form";
+import { Form } from "@/components/ui/form";
 import Link from "next/link";
 import useBasicNodeState from "~/hooks/useBasicNodeState";
 import Debug from "../Primitives/Debug";
@@ -55,6 +44,15 @@ const formSchema = z.object({
   }),
 });
 
+const selectOptions = [
+  { label: "Less than (<)", value: "<" },
+  { label: "Less than or equal to (<=)", value: "<=" },
+  { label: "Equal to (==)", value: "==" },
+  { label: "Greater than or equal to (>=)", value: ">=" },
+  { label: "Greater than (>)", value: ">" },
+  { label: "Not equal to (!=)", value: "!=" },
+];
+
 const RemoveMatch: React.FC<PlaylistProps> = React.memo(({ id, data }) => {
   const {
     state,
@@ -67,6 +65,18 @@ const RemoveMatch: React.FC<PlaylistProps> = React.memo(({ id, data }) => {
     getNodeData,
     updateNodeData,
   } = useBasicNodeState(id, formSchema);
+
+  React.useEffect(() => {
+    if (data) {
+      const parsedData = {
+        filterKey: data.filterKey,
+        operation: data.filterValue.substring(0, 2).trim(),
+        filterValue: data.filterValue.substring(2).trim(),
+      };
+      form!.reset(parsedData);
+      form?.setValue("operation", parsedData.operation);
+    }
+  }, [data]);
 
   const watch = form!.watch();
   const prevWatchRef = React.useRef(watch);
@@ -118,11 +128,11 @@ const RemoveMatch: React.FC<PlaylistProps> = React.memo(({ id, data }) => {
               name="filterKey"
               inputType={"text"}
               label={"Match Key"}
-              placeholder="track.artist.name"
+              placeholder="track.artists[0].name"
               register={register!}
               description={`The JSON key to match
                   
-            Example: track.artist.name`}
+            Example: track.artists[0].name`}
             />
             <Separator />
             <InputPrimitive
@@ -130,15 +140,14 @@ const RemoveMatch: React.FC<PlaylistProps> = React.memo(({ id, data }) => {
               name="operation"
               inputType={"select"}
               label={"Operation"}
-              placeholder="Select Operation"
-              selectOptions={[
-                { label: "Less than (<)", value: "<" },
-                { label: "Less than or equal to (<=)", value: "<=" },
-                { label: "Equal to (==)", value: "==" },
-                { label: "Greater than or equal to (>=)", value: ">=" },
-                { label: "Greater than (>)", value: ">" },
-                { label: "Not equal to (!=)", value: "!=" },
-              ]}
+              placeholder={
+                watch.operation
+                  ? selectOptions.find(
+                      (option) => option.value === watch.operation,
+                    )!.label
+                  : "Select an operation"
+              }
+              selectOptions={selectOptions}
               register={register!}
               description={`The operation to perform`}
             />

@@ -141,7 +141,9 @@ export const authOptions: NextAuthOptions = {
     signIn: "/auth/login",
   },
   secret: env.NEXTAUTH_SECRET,
-}
+  maxAge:
+    process.env.NODE_ENV === "development" ? 30 * 24 * 60 * 60 : 3 * 60 * 60, // 30 days in development, 3 hours otherwise
+};
 
 /**
  * Wrapper for `getServerSession` so that you don't need to import the `authOptions` in every file.

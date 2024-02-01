@@ -35,6 +35,7 @@ const usePlaylistLogic = (id: string, formSchema?: ZodObject<any>) => {
     ? useForm({
         resolver: zodResolver(formSchema),
         shouldUnregister: false,
+        mode: "all",
       })
     : undefined;
 
@@ -150,9 +151,7 @@ const usePlaylistLogic = (id: string, formSchema?: ZodObject<any>) => {
     state,
     setState,
     isValid:
-      isValid &&
-      state.invalidNodesCount === 0 &&
-      targetConnections.length > 0,
+      isValid && state.invalidNodesCount === 0 && targetConnections.length > 0,
     targetConnections,
     sourceConnections,
     nodeData: getNodeData(id),

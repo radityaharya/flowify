@@ -1,8 +1,7 @@
 import { Base } from "./Base";
-import * as _ from "radash";
 import type { AccessToken } from "./Base";
 import type SpotifyWebApi from "spotify-web-api-node";
-import { Logger } from '../log'
+import { Logger } from "../log";
 
 const log = new Logger("Playlist");
 type getTracksRecomendationParams = {
@@ -129,11 +128,15 @@ export default class Playlist extends Base {
     return Playlist._getPlaylistWithTracks(spClient, playlistId);
   }
 
-
   static async saveAsNew(
     spClient: SpotifyWebApi,
     sources: any[],
-    params: { name: string, isPublic?: boolean, collaborative?: boolean, description?: string },
+    params: {
+      name: string;
+      isPublic?: boolean;
+      collaborative?: boolean;
+      description?: string;
+    },
   ) {
     log.info("Saving as new playlist...");
     log.debug("SaveAsNew Sources:", sources, true);
@@ -311,7 +314,9 @@ export default class Playlist extends Base {
     const options = { ...params } as getTracksRecomendationParams;
 
     if (tracks.length > 0) {
-      const seed_tracks = tracks.map((track: any) => track.track.id) as string[];
+      const seed_tracks = tracks.map(
+        (track: any) => track.track.id,
+      ) as string[];
       const sample: string[] = [];
       const seeds = tracks.length < 5 ? tracks.length : MAX_SEEDS;
       for (let i = 0; i < seeds; i++) {

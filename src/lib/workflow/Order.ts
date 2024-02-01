@@ -3,16 +3,14 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Base } from "./Base";
 import _ from "radash";
-import type { AccessToken } from './Base';
-import { type Operation } from "./types";
-import { Logger } from '../log'
+import type { AccessToken } from "./Base";
+import { Logger } from "../log";
 
 const log = new Logger("Order");
 export default class Order extends Base {
-  constructor(accessToken: AccessToken){
+  constructor(accessToken: AccessToken) {
     super(accessToken);
   }
-
 
   static isPlaylistTrackObject(
     obj: any,
@@ -35,10 +33,7 @@ export default class Order extends Base {
    * @param params - The `params` parameter is an object that contains two properties:
    * @returns an array of sorted Operation objects.
    */
-  static sort(
-    sources: any[],
-    params: { sortKey: string; sortOrder: string }
-  ) {
+  static sort(sources: any[], params: { sortKey: string; sortOrder: string }) {
     log.info("Sorting...");
     log.debug("Sort Sources:", sources, true);
 
@@ -66,14 +61,23 @@ export default class Order extends Base {
       );
     }
 
+    function getOrderKey(obj, path) {
+      return path.split(".").reduce((o, i) => {
+        if (/^\d+$/.test(i)) {
+          return o[parseInt(i, 10)];
+        } else {
+          return o[i];
+        }
+      }, obj);
+    }
+
     if (Array.isArray(tracks)) {
       log.info("Sorting by", [params.sortKey, params.sortOrder]);
       const sortKey = params.sortKey || "track.popularity";
       const sortOrder = params.sortOrder === "asc" ? "asc" : "desc";
-
       return tracks.sort((a, b) => {
-        const keyA = sortKey.split(".").reduce((o, i) => o[i], a);
-        const keyB = sortKey.split(".").reduce((o, i) => o[i], b);
+        const keyA = getOrderKey(a, sortKey);
+        const keyB = getOrderKey(b, sortKey);
         if (keyA < keyB) return sortOrder === "asc" ? -1 : 1;
         if (keyA > keyB) return sortOrder === "asc" ? 1 : -1;
         return 0;

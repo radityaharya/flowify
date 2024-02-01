@@ -1,30 +1,28 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/server/auth";
-// import { Runner } from "~/lib/workflow/Workflow";
-import { type Workflow } from "~/lib/workflow/types";
 import { getAccessTokenFromUserId } from "~/server/db/helper";
 import { Runner } from "~/lib/workflow/Workflow";
+import { Logger } from "@/lib/log";
+
+const log = new Logger("/api/workflow/validate");
 export async function POST(request: NextRequest) {
   const session = await getServerSession({ req: request, ...authOptions });
   if (!session) {
     return NextResponse.redirect("/api/auth/signin");
   }
-  const accessToken = await getAccessTokenFromUserId(
-    session.user.id,
-  );
+  const accessToken = await getAccessTokenFromUserId(session.user.id);
   if (!accessToken) {
     return NextResponse.redirect("/api/auth/signin");
   }
 
-  // console.log("session", session);
-  console.log("Received workflow from user", session.user.id);
+  log.info("Received workflow from user", session.user.id);
 
-  let workflow: Workflow;
+  let workflow: WorkflowObject;
   try {
-    workflow = (await request.json()) as Workflow;
+    workflow = (await request.json()) as WorkflowObject;
   } catch (err) {
-    console.error("Error parsing workflow", err);
+    log.error("Error parsing workflow", err);
     return NextResponse.json(
       { error: "Error parsing workflow: " + (err as Error).message },
       { status: 400 },
@@ -37,8 +35,6 @@ export async function POST(request: NextRequest) {
 
   let res: any;
   try {
-    const operations = runner.sortOperations(workflow);
-    workflow.operations = operations;
     const [valid, errors] = await runner.validateWorkflow(workflow);
     res = { valid, errors };
   } catch (err) {

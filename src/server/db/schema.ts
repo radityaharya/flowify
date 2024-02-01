@@ -1,8 +1,8 @@
 import { relations, sql } from "drizzle-orm";
 import {
-  bigint,
   index,
   int,
+  mediumtext,
   mysqlTableCreator,
   primaryKey,
   text,
@@ -52,9 +52,11 @@ export const accounts = mysqlTable(
     session_state: varchar("session_state", { length: 255 }),
   },
   (account) => ({
-    compoundKey: primaryKey({columns: [account.provider, account.providerAccountId]}),
+    compoundKey: primaryKey({
+      columns: [account.provider, account.providerAccountId],
+    }),
     userIdIdx: index("userId_idx").on(account.userId),
-  })
+  }),
 );
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
@@ -72,7 +74,7 @@ export const sessions = mysqlTable(
   },
   (session) => ({
     userIdIdx: index("userId_idx").on(session.userId),
-  })
+  }),
 );
 
 export const sessionsRelations = relations(sessions, ({ one }) => ({
@@ -87,8 +89,8 @@ export const verificationTokens = mysqlTable(
     expires: timestamp("expires", { mode: "date" }).notNull(),
   },
   (vt) => ({
-    compoundKey: primaryKey({columns: [vt.identifier, vt.token]}),
-  })
+    compoundKey: primaryKey({ columns: [vt.identifier, vt.token] }),
+  }),
 );
 
 export const workflowJobs = mysqlTable(
@@ -96,19 +98,39 @@ export const workflowJobs = mysqlTable(
   {
     id: varchar("id", { length: 255 }).notNull().primaryKey(),
     workflow: text("workflow"),
-    status: varchar("status", { length: 255 }),
-    error: text("error"),
-    startedAt: timestamp("startedAt", { mode: "date" }),
-    completedAt: timestamp("completedAt", { mode: "date" }),
+    createdAt: timestamp("createdAt", { mode: "date" }).default(
+      sql`CURRENT_TIMESTAMP`,
+    ),
     userId: varchar("userId", { length: 255 }).notNull(),
-    workerId: varchar("workerId", { length: 255 }),
+    cron: varchar("cron", { length: 255 }),
   },
   (workflowJob) => ({
     userIdIdx: index("userId_idx").on(workflowJob.userId),
     workflowIdIdx: index("workflowId_idx").on(workflowJob.id),
-  })
+  }),
 );
-
 export const workflowJobsRelations = relations(workflowJobs, ({ one }) => ({
   user: one(users, { fields: [workflowJobs.userId], references: [users.id] }),
+}));
+export const workflowRuns = mysqlTable(
+  "workflowRun",
+  {
+    id: varchar("id", { length: 255 }).notNull().primaryKey(),
+    workflowId: varchar("workflowId", { length: 255 }).notNull(),
+    status: varchar("status", { length: 255 }),
+    error: text("error"),
+    startedAt: timestamp("startedAt", { mode: "date" }),
+    completedAt: timestamp("completedAt", { mode: "date" }),
+    workerId: varchar("workerId", { length: 255 }),
+    returnValues: mediumtext("returnValues"),
+  },
+  (workflowRun) => ({
+    workflowIdIdx: index("workflowId_idx").on(workflowRun.id),
+  }),
+);
+export const workflowRunsRelations = relations(workflowRuns, ({ one }) => ({
+  workflow: one(workflowJobs, {
+    fields: [workflowRuns.workflowId],
+    references: [workflowJobs.id],
+  }),
 }));

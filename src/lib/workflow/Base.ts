@@ -10,7 +10,10 @@ export class Base {
   public spClient: SpotifyWebApi;
   public log: Logger = new Logger("Workflow");
 
-  constructor(public accessToken: AccessToken, spClient?: SpotifyWebApi) {
+  constructor(
+    public accessToken: AccessToken,
+    spClient?: SpotifyWebApi,
+  ) {
     this.spClient = new SpotifyWebApi({
       clientId: env.SPOTIFY_CLIENT_ID,
       clientSecret: env.SPOTIFY_CLIENT_SECRET,
@@ -47,7 +50,11 @@ export class Base {
     }
     return [];
   }
-  static async addTracksBatch(spClient: SpotifyWebApi, playlistId: string, trackUris: string[]) {
+  static async addTracksBatch(
+    spClient: SpotifyWebApi,
+    playlistId: string,
+    trackUris: string[],
+  ) {
     // A maximum of 100 items can be added in one request.
     // handle this by chunking the array into batches of 100
     try {
@@ -74,7 +81,11 @@ export class Base {
     }
   }
 
-  static async replaceTracksBatch(spClient: SpotifyWebApi, id: string, trackUris: string[]) {
+  static async replaceTracksBatch(
+    spClient: SpotifyWebApi,
+    id: string,
+    trackUris: string[],
+  ) {
     // A maximum of 100 items can be added in one request.
     // handle this by chunking the array into batches of 100
     try {

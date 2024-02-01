@@ -4,7 +4,6 @@ import { authOptions } from "@/server/auth";
 import { getAccessTokenFromProviderAccountId } from "~/server/db/helper";
 import SpotifyWebApi from "spotify-web-api-node";
 import { env } from "~/env";
-import Redis from 'ioredis';
 export async function GET(
   request: NextRequest,
   {

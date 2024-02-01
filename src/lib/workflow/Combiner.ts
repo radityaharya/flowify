@@ -2,14 +2,13 @@
 /* eslint-disable @typescript-eslint/ban-types */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Base } from "./Base";
-import type { Operation } from "./types";
 import _ from "radash";
-import type { AccessToken } from './Base'
-import { Logger } from '../log'
+import type { AccessToken } from "./Base";
+import { Logger } from "../log";
 
 const log = new Logger("Combiner");
 export default class Combiner extends Base {
-  constructor(accessToken: AccessToken){
+  constructor(accessToken: AccessToken) {
     super(accessToken);
   }
 
@@ -30,7 +29,7 @@ export default class Combiner extends Base {
   }
 
   static isPlaylistTrackObject(
-    obj: any
+    obj: any,
   ): obj is SpotifyApi.PlaylistTrackObject {
     return obj?.hasOwnProperty("track");
   }
