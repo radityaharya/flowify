@@ -56,9 +56,9 @@ export async function runWorkflow(workflow: WorkflowResponse) {
   };
 
   toast.promise(pollRequest(jobId), {
-    loading: `Running workflow ${id}...`,
+    loading: 'Running workflow...',
     success: () => {
-      return "'Daily Intake' workflow finished successfully";
+      return "Workflow completed successfully";
     },
     error: (data) => {
       console.log("data on err", data);
