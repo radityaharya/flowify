@@ -61,6 +61,7 @@ const worker = new Worker(
     concurrency: CONCURRENCY,
     removeOnComplete: { count: 1000 },
     removeOnFail: { count: 5000 },
+    useWorkerThreads: true,
   },
 );
 
