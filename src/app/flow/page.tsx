@@ -135,6 +135,16 @@ function Builder({ searchParams }: { searchParams: any }) {
         toast.success(
           `Flow '${flowId}' loaded with ${nodes.length} nodes and ${edges.length} edges`,
         );
+      } else {
+        setFlowState({
+          id: flowId,
+          name: name ?? "",
+          description: description ?? "",
+          workflow: workflowData.workflow,
+        });
+        toast.info(
+          `Flow '${flowId}' loaded with no nodes or edges. Please add some nodes and edges to continue.`,
+        );
       }
     }
   }, [workflowData, workflowError]);

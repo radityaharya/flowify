@@ -3,6 +3,7 @@ import useStore from "../states/store";
 import { type Node, type Edge } from "@xyflow/react";
 import { validateWorkflow } from "./validateWorkflow";
 import { generate } from "random-words";
+import { toast } from "sonner";
 
 type ReactFlowToWorkflowInput = {
   nodes: Node[];
@@ -114,15 +115,25 @@ export default async function reactFlowToWorkflow({
     connections: [],
   };
 
-  nodes = filterNodes(nodes);
-  addNodesToWorkflow(nodes, workflowObject);
-  addEdgesToWorkflow(edges, workflowObject);
-  setNodesAsSources(workflowObject);
+  let [valid, errors] = [true, {}];
+  if (nodes.length > 0 && edges.length > 0) {
+    nodes = filterNodes(nodes);
+    addNodesToWorkflow(nodes, workflowObject);
+    addEdgesToWorkflow(edges, workflowObject);
+    setNodesAsSources(workflowObject);
 
-  removeUnnecessaryData(workflowObject.sources);
-  removeUnnecessaryData(workflowObject.operations);
-
-  const { valid, errors } = await validateWorkflow(workflowObject);
+    removeUnnecessaryData(workflowObject.sources);
+    removeUnnecessaryData(workflowObject.operations);
+    const response = await validateWorkflow(workflowObject);
+    valid = response.valid;
+    errors = response.errors;
+    if (!valid) {
+      throw new Error("Workflow is not valid");
+    }
+  } else {
+    toast.error("No workflow provided");
+    valid = false;
+  }
 
   console.log("workflow", workflowObject);
 
