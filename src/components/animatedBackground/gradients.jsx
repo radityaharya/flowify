@@ -562,7 +562,7 @@ export class Gradient {
         this.isGradientLegendVisible &&
           ((this.isMetaKey = e.metaKey),
           (this.isMouseDown = !0),
-          !1 === this.conf.playing && requestAnimationFrame(this.animate));
+          this.conf.playing === false && requestAnimationFrame(this.animate));
       }),
       e(this, "handleMouseUp", () => {
         this.isMouseDown = !1;

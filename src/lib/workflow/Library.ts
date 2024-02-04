@@ -13,29 +13,37 @@ export default class Library extends Base {
     super(accessToken, spClient);
   }
 
-  static likedTracks(
+  static async likedTracks(
     spClient: SpotifyWebApi,
     { limit = 50, offset = 0 }: { limit?: number; offset?: number },
   ) {
-    const getLikedTracks = async ({
-      limit,
-      offset,
-    }: {
-      limit: number;
-      offset: number;
-    }) => {
-      const tracks = Array<any>();
-      while (tracks.length < limit) {
-        const response = await spClient.getMySavedTracks({
-          limit: Math.min(limit - tracks.length, 50),
+    const tracks: SpotifyApi.PlaylistTrackObject[] = [];
+    let result;
+    let retryAfter = 0;
+
+    while (true) {
+      try {
+        await new Promise((resolve) => setTimeout(resolve, retryAfter * 1000));
+        result = await spClient.getMySavedTracks({
+          limit: Math.min(limit - tracks.length, limit),
           offset: offset + tracks.length,
         });
-        tracks.push(...response.body.items);
-        if (response.body.items.length < 50) break;
+        tracks.push(...result.body.items);
+        if (tracks.length >= limit || result.body.items.length < limit) {
+          break;
+        }
+      } catch (error: any) {
+        if (error.statusCode === 429) {
+          retryAfter = error.headers["retry-after"];
+          log.warn(`Rate limited. Retrying after ${retryAfter} seconds.`);
+          continue;
+        } else {
+          throw error;
+        }
       }
-      return tracks;
-    };
-    return getLikedTracks({ limit, offset });
+    }
+
+    return tracks;
   }
 
   static isPlaylistTrackObject(
@@ -54,18 +62,43 @@ export default class Library extends Base {
   }
 
   static async _getPlaylistWithTracks(spClient: SpotifyWebApi, id: string) {
-    return spClient
-      .getPlaylist(id)
-      .then((response) => ({
-        id: response.body.id,
-        tracks: response.body.tracks.items,
-      }))
-      .catch((error) => {
-        log.error("Error getting playlist tracks", error);
-        throw new Error(
-          "Error getting playlist tracks " + (error as Error).message,
-        );
-      });
+    let tracks: SpotifyApi.PlaylistTrackObject[] = [];
+    let offset = 0;
+    let result;
+    let retryAfter = 0;
+
+    while (true) {
+      try {
+        await new Promise((resolve) => setTimeout(resolve, retryAfter * 1000));
+        log.debug("Getting playlist tracks...", { id, offset });
+        result = await spClient.getPlaylistTracks(id, {
+          limit: 20,
+          offset,
+        });
+        tracks = [...tracks, ...result.body.items];
+        offset += 20;
+        retryAfter = 0;
+      } catch (error: any) {
+        if (error.statusCode === 429) {
+          retryAfter = error.headers["retry-after"];
+          log.error(`Rate limited. Retrying after ${retryAfter} seconds.`);
+          continue;
+        } else {
+          log.error("Error getting playlist tracks", error);
+          throw new Error(
+            "Error getting playlist tracks " + (error as Error).message,
+          );
+        }
+      }
+
+      if (!result.body.next) {
+        break;
+      }
+    }
+    return {
+      id,
+      tracks,
+    };
   }
 
   /**
@@ -84,7 +117,7 @@ export default class Library extends Base {
     params: { id: string },
   ) {
     log.info("Saving as append playlist...");
-    log.debug("SaveAsAppend Sources:", sources, true);
+    log.debug("SaveAsAppend Sources:", sources);
 
     const id = params.id;
 
@@ -130,7 +163,7 @@ export default class Library extends Base {
     },
   ) {
     log.info("Saving as new playlist...");
-    log.debug("SaveAsNew Sources:", sources, true);
+    log.debug("SaveAsNew Sources:", sources);
 
     const playlistName = params.name;
 
@@ -188,7 +221,7 @@ export default class Library extends Base {
     params: { id: string },
   ) {
     log.info("Saving as replace playlist...");
-    log.debug("SaveAsReplace Sources:", sources, true);
+    log.debug("SaveAsReplace Sources:", sources);
 
     const id = params.id;
 

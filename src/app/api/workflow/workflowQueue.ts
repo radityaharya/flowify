@@ -20,7 +20,7 @@ export const workflowQueue = new Queue("workflowQueue", {
     attempts: 2,
     backoff: {
       type: "exponential",
-      delay: 5000,
+      delay: 2000,
     },
   },
 });
@@ -113,7 +113,7 @@ export async function updateWorkflowRun(
   returnValues?: any,
 ) {
   try {
-    log.info("Updating workflow job", jobId);
+    log.info("Updating workflow run", jobId);
     const job = await workflowQueue.getJob(jobId);
     if (!job) {
       throw new Error("Job not found");
@@ -156,7 +156,7 @@ export async function updateWorkflowRun(
       .where(eq(workflowRuns.id, jobId));
     return "updated";
   } catch (err) {
-    log.error("Error updating job", err);
+    log.error("Error updating run", err);
     throw err;
   }
 }

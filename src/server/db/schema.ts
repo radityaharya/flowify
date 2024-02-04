@@ -8,6 +8,7 @@ import {
   text,
   timestamp,
   varchar,
+  json,
 } from "drizzle-orm/mysql-core";
 import { type AdapterAccount } from "next-auth/adapters";
 
@@ -101,6 +102,7 @@ export const workflowJobs = mysqlTable(
     createdAt: timestamp("createdAt", { mode: "date" }).default(
       sql`CURRENT_TIMESTAMP`,
     ),
+    modifiedAt: timestamp("modifiedAt", { mode: "date" }),
     userId: varchar("userId", { length: 255 }).notNull(),
     cron: varchar("cron", { length: 255 }),
   },
@@ -134,3 +136,52 @@ export const workflowRunsRelations = relations(workflowRuns, ({ one }) => ({
     references: [workflowJobs.id],
   }),
 }));
+// export const trackModifications = mysqlTable(
+//   "trackModificattion",
+//   {
+//     id: varchar("id", { length: 36 }).notNull().primaryKey(),
+//     userId: varchar("userId", { length: 36 }).notNull(),
+//     createdAt: timestamp("createdAt", { mode: "date" }).default(
+//       sql`CURRENT_TIMESTAMP`,
+//     ),
+//     workflowRunId: varchar("workflowRunId", { length: 36 }).notNull(),
+//     operationId: varchar("operationId", { length: 36 }).notNull(),
+//     before: json("before").$type<string[]>(),
+//     after: json("after").$type<string[]>(),
+//   },
+//   (trackModificattion) => ({
+//     userIdIdx: index("userId_idx").on(trackModificattion.userId),
+//     workflowRunIdIdx: index("workflowRunId_idx").on(
+//       trackModificattion.workflowRunId,
+//     ),
+//   }),
+// );
+
+// export const trackModificationsRelations = relations(
+//   trackModifications,
+//   ({ one }) => ({
+//     user: one(users, {
+//       fields: [trackModifications.userId],
+//       references: [users.id],
+//     }),
+//     workflowRun: one(workflowRuns, {
+//       fields: [trackModifications.workflowRunId],
+//       references: [workflowRuns.id],
+//     }),
+//   }),
+// );
+export const workerPoll = mysqlTable(
+  "workerPoll",
+  {
+    deviceHash: varchar("deviceHash", { length: 255 }).notNull().primaryKey(),
+    joinedAt: timestamp("joinedAt", { mode: "date" }).default(
+      sql`CURRENT_TIMESTAMP`,
+    ),
+    concurrency: int("concurrency"),
+    threads: int("threads"),
+    status: varchar("status", { length: 10 }),
+  },
+  (workerPoll) => ({
+    workerIdIdx: index("workerId_idx").on(workerPoll.deviceHash),
+  }),
+);

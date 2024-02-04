@@ -27,7 +27,7 @@ export default class Utility extends Base {
     );
   }
   static removeKeys(sources: any[], params: { keys: string[] }) {
-    log.debug("RemoveKeys Sources:", sources, true);
+    log.debug("RemoveKeys Sources:", sources);
     log.info("Removing keys...");
 
     let tracks = [] as any;
@@ -59,7 +59,7 @@ export default class Utility extends Base {
   }
 
   static includeOnlyKeys(sources: any[], params: { keys: string[] }) {
-    log.debug("IncludeOnlyKeys Sources:", sources, true);
+    log.debug("IncludeOnlyKeys Sources:", sources);
     log.info("Including only keys...");
 
     let tracks = [] as any;

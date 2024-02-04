@@ -13,7 +13,7 @@ export default class Combiner extends Base {
   }
 
   static push(sources: any[], params: {}) {
-    log.debug("Push Sources:", sources, true);
+    log.debug("Push Sources:", sources);
     log.info("Pushing...");
     const result = [] as SpotifyApi.PlaylistTrackObject[];
     sources.forEach((source) => {
@@ -35,7 +35,7 @@ export default class Combiner extends Base {
   }
 
   static alternate(sources: any[], params: {}) {
-    log.debug("Alternate Sources:", sources, true);
+    log.debug("Alternate Sources:", sources);
     log.info("Alternating...");
     const result = [] as SpotifyApi.PlaylistTrackObject[];
     let longestSourceLength = 0;

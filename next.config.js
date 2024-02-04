@@ -10,7 +10,7 @@ import { withSentryConfig } from "@sentry/nextjs";
 /** @type {import("next").NextConfig} */
 const config = {
   experimental: {
-    instrumentationHook: true,
+    instrumentationHook: process.env.NO_WORKER ? false : true,
   },
   output: process.env.STANDALONE_OUTPUT ? "standalone" : undefined,
   images: {
@@ -62,7 +62,6 @@ const sentryConfig = withSentryConfig(
   },
 );
 
-const prodConfig = million.next(sentryConfig, { auto: { rsc: true } });
-const devConfig = config;
+const prodConfig = million.next(sentryConfig, { auto: { rsc: true }, mute: true });
 
-export default process.env.NODE_ENV === "development" ? devConfig : prodConfig;
+export default process.env.NODE_ENV === "development" ? config : prodConfig;

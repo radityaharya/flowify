@@ -10,7 +10,7 @@ export const register = async () => {
     const WORKER_ID =
       hostname +
       "-" +
-      `${process.env.WORKER_ID ?? "instrumentation-" + uuid()}`;
+      `${process.env.WORKER_ID ?? `instrumentation-${uuid()}`}`;
     console.log("Registering worker");
     console.log("Worker ID", WORKER_ID);
     const { Worker } = await import("bullmq");
@@ -29,7 +29,6 @@ export const register = async () => {
         if (!data) {
           throw new Error("No data found in job");
         }
-
         const accessToken = await getAccessTokenFromUserId(
           data.userId as string,
         );
@@ -56,7 +55,7 @@ export const register = async () => {
         removeOnFail: { count: 5000 },
       },
     );
-  } else {
-    console.log("Not registering worker");
+    return;
   }
+  console.log("Not registering worker");
 };

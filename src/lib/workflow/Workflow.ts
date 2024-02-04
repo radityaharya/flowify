@@ -138,27 +138,48 @@ export class Runner extends Base {
         source.type
       } with params ${JSON.stringify(source.params)}`,
     );
+
     if (source.type === "Source.playlist") {
       log.info(`Loading playlist ${source.params.playlistId}`);
-      let result;
+      const limit = 25;
       let offset = 0;
-      do {
-        result = await new Promise((resolve) =>
-          setTimeout(
-            () =>
-              this.spClient
-                .getPlaylistTracks(source.params.playlistId as string, {
-                  limit: 50,
-                  offset,
-                })
-                .then(resolve),
-            500,
-          ),
-        );
+      let result;
+      let retryAfter = 0;
 
-        tracks = [...tracks, ...result.body.items];
-        offset += 50;
-      } while (result.body.next);
+      while (true) {
+        try {
+          log.debug("Getting playlist tracks", {
+            id: source.params.playlistId,
+            limit,
+            offset,
+          });
+          await new Promise((resolve) =>
+            setTimeout(resolve, retryAfter * 1000),
+          );
+          result = await this.spClient.getPlaylistTracks(
+            source.params.playlistId as string,
+            {
+              limit,
+              offset,
+            },
+          );
+          tracks = [...tracks, ...result.body.items];
+          offset += limit;
+          retryAfter = 0;
+        } catch (error: any) {
+          if (error.statusCode === 429) {
+            retryAfter = error.headers["retry-after"];
+            log.warn(`Rate limited. Retrying after ${retryAfter} seconds.`);
+            continue;
+          } else {
+            throw error;
+          }
+        }
+
+        if (!result.body.next) {
+          break;
+        }
+      }
     } else if (source.type === "Library.likedTracks") {
       const limit = source.params.limit ?? 50;
       tracks = await operations.Library.likedTracks(this.spClient, {
@@ -562,7 +583,7 @@ export class Runner extends Base {
    * @returns The result of the workflow execution.
    * @throws Error if the workflow is invalid.
    */
-  async runWorkflow(workflow: WorkflowObject, timeoutAfter = 40000) {
+  async runWorkflow(workflow: WorkflowObject, timeoutAfter = 20000) {
     let timeoutOccurred = false;
 
     const timeout = new Promise((_, reject) =>

@@ -6,9 +6,10 @@ export interface AccessToken {
   access_token: string;
 }
 
+const log = new Logger("Base");
+
 export class Base {
   public spClient: SpotifyWebApi;
-  public log: Logger = new Logger("Workflow");
 
   constructor(
     public accessToken: AccessToken,
@@ -36,29 +37,14 @@ export class Base {
     return data.body;
   }
 
-  // playlists
-
-  async getPlaylistTracks(playlistId: string) {
-    try {
-      const data = await this.spClient.getPlaylistTracks(playlistId);
-      return data.body.items;
-    } catch (err) {
-      console.error("Error getting playlist tracks", err);
-      throw new Error(
-        "Error getting playlist tracks " + (err as Error).message,
-      );
-    }
-    return [];
-  }
   static async addTracksBatch(
     spClient: SpotifyWebApi,
     playlistId: string,
     trackUris: string[],
   ) {
-    // A maximum of 100 items can be added in one request.
-    // handle this by chunking the array into batches of 100
     try {
-      const chunkSize = 100;
+      const chunkSize = 50;
+      let retryAfter = 0;
 
       function chunk<T>(array: T[], size: number): T[][] {
         const result = [] as T[][];
@@ -70,8 +56,25 @@ export class Base {
 
       const trackChunks = chunk(trackUris, chunkSize);
 
-      for (const chunk of trackChunks) {
-        await spClient.addTracksToPlaylist(playlistId, chunk);
+      for (const trackChunk of trackChunks) {
+        while (true) {
+          try {
+            log.debug(`Adding tracks to playlist ${playlistId}`);
+            await new Promise((resolve) =>
+              setTimeout(resolve, retryAfter * 1000),
+            );
+            await spClient.addTracksToPlaylist(playlistId, trackChunk);
+            break;
+          } catch (error: any) {
+            if (error.statusCode === 429) {
+              retryAfter = error.headers["retry-after"];
+              log.warn(`Rate limited. Retrying after ${retryAfter} seconds.`);
+              continue;
+            } else {
+              throw error;
+            }
+          }
+        }
       }
     } catch (err) {
       console.error("Error adding tracks to playlist", err);
@@ -86,10 +89,9 @@ export class Base {
     id: string,
     trackUris: string[],
   ) {
-    // A maximum of 100 items can be added in one request.
-    // handle this by chunking the array into batches of 100
     try {
-      const chunkSize = 100;
+      const chunkSize = 50;
+      let retryAfter = 0;
 
       function chunk<T>(array: T[], size: number): T[][] {
         const result = [] as T[][];
@@ -101,8 +103,25 @@ export class Base {
 
       const trackChunks = chunk(trackUris, chunkSize);
 
-      for (const chunk of trackChunks) {
-        await spClient.replaceTracksInPlaylist(id, chunk);
+      for (const trackChunk of trackChunks) {
+        while (true) {
+          try {
+            log.debug(`Replacing tracks in playlist ${id}`);
+            await new Promise((resolve) =>
+              setTimeout(resolve, retryAfter * 1000),
+            );
+            await spClient.replaceTracksInPlaylist(id, trackChunk);
+            break;
+          } catch (error: any) {
+            if (error.statusCode === 429) {
+              retryAfter = error.headers["retry-after"];
+              log.warn(`Rate limited. Retrying after ${retryAfter} seconds.`);
+              continue;
+            } else {
+              throw error;
+            }
+          }
+        }
       }
     } catch (err) {
       console.error("Error replacing tracks in playlist", err);

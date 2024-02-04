@@ -30,7 +30,7 @@ export default class Filter extends Base {
     params: { filterKey: string; filterValue: string },
   ) {
     log.info("Filtering...");
-    log.debug("Filter Sources:", sources, true);
+    log.debug("Filter Sources:", sources);
 
     let tracks = [] as any;
 
@@ -135,7 +135,7 @@ export default class Filter extends Base {
 
   static dedupeTracks(sources: any[], params: {}) {
     log.info("Deduping tracks...");
-    log.debug("DedupeTracks Sources:", sources, true);
+    log.debug("DedupeTracks Sources:", sources);
 
     let tracks = [] as any;
 
@@ -171,7 +171,7 @@ export default class Filter extends Base {
 
   static dedupeArtists(sources: any[], params: {}) {
     log.info("Deduping artists...");
-    log.debug("DedupeArtists Sources:", sources, true);
+    log.debug("DedupeArtists Sources:", sources);
     let tracks = [] as any;
 
     if (
@@ -209,7 +209,7 @@ export default class Filter extends Base {
     params: { matchKey: string; matchValue: string },
   ) {
     log.info("Matching...");
-    log.debug("Match Sources:", sources, true);
+    log.debug("Match Sources:", sources);
 
     let tracks = [] as any;
 
@@ -312,7 +312,7 @@ export default class Filter extends Base {
 
   static limit(sources: any[], params: { limit?: number }) {
     log.info("Limiting...");
-    log.debug("Limit Sources:", sources, true);
+    log.debug("Limit Sources:", sources);
 
     let tracks = [] as any;
 

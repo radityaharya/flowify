@@ -56,7 +56,7 @@ export async function runWorkflow(workflow: WorkflowResponse) {
   };
 
   toast.promise(pollRequest(jobId), {
-    loading: 'Running workflow...',
+    loading: "Running workflow...",
     success: () => {
       return "Workflow completed successfully";
     },

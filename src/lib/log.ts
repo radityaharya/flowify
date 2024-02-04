@@ -1,5 +1,3 @@
-// import fs from "fs";
-// import path from "path";
 enum LogLevel {
   DEBUG,
   INFO,
@@ -16,54 +14,47 @@ class Logger {
     private logLevel: LogLevel = LogLevel.INFO,
   ) {}
 
-  private log(level: LogLevel, message: string, data?: any): void {
-    if (this.logLevel <= level) {
-      const currentTimestamp = Date.now();
-      const timestamp = new Date(currentTimestamp).toISOString().slice(11, -1);
-      console.log(
-        `[${LogLevel[level].slice(0, 3)}] ${timestamp} ${
-          this.name
-        }: ${message}`,
-      );
-      this.lastLogTimestamp = currentTimestamp;
-      if (data) {
-        console.log(data instanceof Object ? JSON.stringify(data) : data);
-      }
+  private getColor(level: LogLevel): string {
+    switch (level) {
+      case LogLevel.DEBUG:
+        return "\x1b[36m"; // Cyan
+      case LogLevel.INFO:
+        return "\x1b[32m"; // Green
+      case LogLevel.WARN:
+        return "\x1b[33m"; // Yellow
+      case LogLevel.ERROR:
+        return "\x1b[31m"; // Red
+      default:
+        return "\x1b[0m"; // No color
     }
   }
 
-  debug(message: string, data?: any, saveToFile?: boolean): void {
+  private log(level: LogLevel, message: string, data?: any): void {
+    if (this.logLevel > level) return;
+
+    const currentTimestamp = Date.now();
+    const timestamp = new Date(currentTimestamp).toISOString().slice(11, -5);
+    const logLevelName = LogLevel[level].slice(0, 3);
+    const color = this.getColor(level);
+
+    const logMessage = `${color}[${logLevelName}] ${timestamp} ${this.name}: ${message}\x1b[0m`;
+
+    console.log(logMessage);
+    if (data) {
+      try {
+        if (data instanceof Error) {
+          data = { message: data.message, stack: data.stack };
+        }
+        console.log(JSON.stringify(data, null, 2));
+      } catch (error) {
+        console.log(data);
+      }
+    }
+    this.lastLogTimestamp = currentTimestamp;
+  }
+
+  debug(message: string, data?: any): void {
     this.log(LogLevel.DEBUG, message, data);
-    // if (false) {
-    //   const filePath = path.join(__dirname, "debug.json");
-    //   const logEntry = { message, data, timestamp: new Date().toISOString() };
-
-    //   let json: { message: string; data: any; timestamp: string }[] = [];
-
-    //   try {
-    //     const fileData = fs.readFileSync(filePath, "utf8");
-    //     if (fileData.trim() !== "") {
-    //       json = JSON.parse(fileData);
-    //     }
-    //   } catch (e) {
-    //     console.error("Error reading or parsing file", e);
-    //   }
-
-    //   json.push(logEntry);
-
-    //   json.sort(
-    //     (
-    //       a: { timestamp: string | number | Date },
-    //       b: { timestamp: string | number | Date }
-    //     ) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-    //   );
-
-    //   try {
-    //     fs.writeFileSync(filePath, JSON.stringify(json, null, 2), "utf8");
-    //   } catch (e) {
-    //     console.error("Error writing file", e);
-    //   }
-    // }
   }
 
   info(message: string, data?: any): void {
@@ -83,9 +74,7 @@ class Logger {
   }
 
   logTrackTitles(tracks: SpotifyApi.TrackObjectFull[]): void {
-    tracks.forEach((track) => {
-      this.info(`Track: ${track.name}`);
-    });
+    tracks.forEach((track) => this.info(`Track: ${track.name}`));
   }
 }
 

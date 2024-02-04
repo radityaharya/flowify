@@ -35,7 +35,7 @@ export default class Order extends Base {
    */
   static sort(sources: any[], params: { sortKey: string; sortOrder: string }) {
     log.info("Sorting...");
-    log.debug("Sort Sources:", sources, true);
+    log.debug("Sort Sources:", sources);
 
     let tracks = [] as any;
 
@@ -87,7 +87,7 @@ export default class Order extends Base {
   }
   static shuffle(sources: any[], params: {}) {
     log.info("Shuffling...");
-    log.debug("Shuffle Sources:", sources, true);
+    log.debug("Shuffle Sources:", sources);
 
     let tracks = [] as any;
 

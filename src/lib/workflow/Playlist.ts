@@ -93,7 +93,7 @@ export default class Playlist extends Base {
     params: { playlistId: string },
   ) {
     log.info("Saving as append playlist...");
-    log.debug("SaveAsAppend Sources:", sources, true);
+    log.debug("SaveAsAppend Sources:", sources);
 
     const playlistId = params.playlistId;
 
@@ -139,7 +139,7 @@ export default class Playlist extends Base {
     },
   ) {
     log.info("Saving as new playlist...");
-    log.debug("SaveAsNew Sources:", sources, true);
+    log.debug("SaveAsNew Sources:", sources);
 
     const playlistName = params.name;
 
@@ -197,7 +197,7 @@ export default class Playlist extends Base {
     params: { playlistId: string },
   ) {
     log.info("Saving as replace playlist...");
-    log.debug("SaveAsReplace Sources:", sources, true);
+    log.debug("SaveAsReplace Sources:", sources);
 
     const playlistId = params.playlistId;
 
@@ -250,7 +250,7 @@ export default class Playlist extends Base {
     params: { playlistId: string },
   ) {
     log.info("Getting playlist tracks...");
-    log.debug("GetPlaylistTracks Sources:", sources, true);
+    log.debug("GetPlaylistTracks Sources:", sources);
 
     const playlistId = params.playlistId;
 
@@ -274,7 +274,7 @@ export default class Playlist extends Base {
     params: getTracksRecomendationParams,
   ) {
     log.info("Getting recommended tracks...");
-    log.debug("GetRecommendedTracks Sources:", sources, true);
+    log.debug("GetRecommendedTracks Sources:", sources);
 
     const MAX_SEEDS = 5;
     const MAX_LIMIT = 100;
