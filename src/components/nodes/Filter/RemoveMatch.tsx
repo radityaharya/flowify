@@ -70,8 +70,8 @@ const RemoveMatch: React.FC<PlaylistProps> = React.memo(({ id, data }) => {
     if (data) {
       const parsedData = {
         filterKey: data.filterKey,
-        operation: data.filterValue.substring(0, 2).trim(),
-        filterValue: data.filterValue.substring(2).trim(),
+        operation: data.filterValue?.substring(0, 2).trim(),
+        filterValue: data.filterValue?.substring(2).trim(),
       };
       form!.reset(parsedData);
       form?.setValue("operation", parsedData.operation);

@@ -80,7 +80,7 @@ function Sidebar() {
 
   return (
     <aside
-      className="col-span-1 flex h-full max-h-screen flex-col justify-between border-r"
+      className="col-span-1 flex h-full max-h-screen flex-col justify-between border-r select-none"
       onDragOver={onDragOver}
       onDrop={onDrop}
     >
