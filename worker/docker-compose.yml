@@ -1,0 +1,8 @@
+version: '3'
+services:
+  flowify-worker:
+    build:
+      context: ../
+      dockerfile: worker/Dockerfile
+    env_file:
+      - ../stack.env
