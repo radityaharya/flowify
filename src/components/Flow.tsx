@@ -202,7 +202,7 @@ export default function App() {
           <Background
             color="#aaaaaa"
             gap={20}
-            className="dark:bg-gray-800"
+            className="bg-background"
             size={2}
             patternClassName="opacity-20"
           />

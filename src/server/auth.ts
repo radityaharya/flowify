@@ -9,7 +9,7 @@ import SpotifyProvider from "next-auth/providers/spotify";
 import { type TokenSet } from "@auth/core/types";
 import { env } from "~/env";
 import { db } from "~/server/db";
-import { accounts, mysqlTable } from "~/server/db/schema";
+import { accounts, table } from "~/server/db/schema";
 import { eq, and } from "drizzle-orm";
 
 /**
@@ -119,7 +119,7 @@ export const authOptions: NextAuthOptions = {
     },
   },
   // @ts-expect-error, the DrizzleAdapter type is not compatible with the NextAuthOptions type
-  adapter: DrizzleAdapter(db, mysqlTable),
+  adapter: DrizzleAdapter(db, table),
   providers: [
     SpotifyProvider({
       clientId: env.SPOTIFY_CLIENT_ID,

@@ -1,15 +1,14 @@
 import { relations, sql } from "drizzle-orm";
 import {
+  pgTableCreator,
   index,
-  int,
-  mediumtext,
-  mysqlTableCreator,
+  integer as int,
   primaryKey,
   text,
   timestamp,
   varchar,
   json,
-} from "drizzle-orm/mysql-core";
+} from "drizzle-orm/pg-core";
 import { type AdapterAccount } from "next-auth/adapters";
 
 /**
@@ -18,14 +17,14 @@ import { type AdapterAccount } from "next-auth/adapters";
  *
  * @see https://orm.drizzle.team/docs/goodies#multi-project-schema
  */
-export const mysqlTable = mysqlTableCreator((name) => `flowify_${name}`);
-export const users = mysqlTable("user", {
+
+export const table = pgTableCreator((name) => `flowify_${name}`);
+export const users = table("user", {
   id: varchar("id", { length: 255 }).notNull().primaryKey(),
   name: varchar("name", { length: 255 }),
   email: varchar("email", { length: 255 }).notNull(),
   emailVerified: timestamp("emailVerified", {
     mode: "date",
-    fsp: 3,
   }).default(sql`CURRENT_TIMESTAMP(3)`),
   image: varchar("image", { length: 255 }),
 });
@@ -35,7 +34,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   sessions: many(sessions),
 }));
 
-export const accounts = mysqlTable(
+export const accounts = table(
   "account",
   {
     userId: varchar("userId", { length: 255 }).notNull(),
@@ -56,7 +55,7 @@ export const accounts = mysqlTable(
     compoundKey: primaryKey({
       columns: [account.provider, account.providerAccountId],
     }),
-    userIdIdx: index("userId_idx").on(account.userId),
+    userIdIdx: index("accounts_userId_idx").on(account.userId),
   }),
 );
 
@@ -64,7 +63,7 @@ export const accountsRelations = relations(accounts, ({ one }) => ({
   user: one(users, { fields: [accounts.userId], references: [users.id] }),
 }));
 
-export const sessions = mysqlTable(
+export const sessions = table(
   "session",
   {
     sessionToken: varchar("sessionToken", { length: 255 })
@@ -74,7 +73,7 @@ export const sessions = mysqlTable(
     expires: timestamp("expires", { mode: "date" }).notNull(),
   },
   (session) => ({
-    userIdIdx: index("userId_idx").on(session.userId),
+    userIdIdx: index("sessions_userId_idx").on(session.userId),
   }),
 );
 
@@ -82,7 +81,7 @@ export const sessionsRelations = relations(sessions, ({ one }) => ({
   user: one(users, { fields: [sessions.userId], references: [users.id] }),
 }));
 
-export const verificationTokens = mysqlTable(
+export const verificationTokens = table(
   "verificationToken",
   {
     identifier: varchar("identifier", { length: 255 }).notNull(),
@@ -94,7 +93,7 @@ export const verificationTokens = mysqlTable(
   }),
 );
 
-export const workflowJobs = mysqlTable(
+export const workflowJobs = table(
   "workflowJob",
   {
     id: varchar("id", { length: 255 }).notNull().primaryKey(),
@@ -107,14 +106,14 @@ export const workflowJobs = mysqlTable(
     cron: varchar("cron", { length: 255 }),
   },
   (workflowJob) => ({
-    userIdIdx: index("userId_idx").on(workflowJob.userId),
-    workflowIdIdx: index("workflowId_idx").on(workflowJob.id),
+    userIdIdx: index("workflowJobs_userId_idx").on(workflowJob.userId),
+    workflowIdIdx: index("workflowJobs_workflowId_idx").on(workflowJob.id),
   }),
 );
 export const workflowJobsRelations = relations(workflowJobs, ({ one }) => ({
   user: one(users, { fields: [workflowJobs.userId], references: [users.id] }),
 }));
-export const workflowRuns = mysqlTable(
+export const workflowRuns = table(
   "workflowRun",
   {
     id: varchar("id", { length: 255 }).notNull().primaryKey(),
@@ -124,10 +123,10 @@ export const workflowRuns = mysqlTable(
     startedAt: timestamp("startedAt", { mode: "date" }),
     completedAt: timestamp("completedAt", { mode: "date" }),
     workerId: varchar("workerId", { length: 255 }),
-    returnValues: mediumtext("returnValues"),
+    returnValues: text("returnValues"),
   },
   (workflowRun) => ({
-    workflowIdIdx: index("workflowId_idx").on(workflowRun.id),
+    workflowIdIdx: index("workflowRuns_workflowId_idx").on(workflowRun.id),
   }),
 );
 export const workflowRunsRelations = relations(workflowRuns, ({ one }) => ({
@@ -136,7 +135,7 @@ export const workflowRunsRelations = relations(workflowRuns, ({ one }) => ({
     references: [workflowJobs.id],
   }),
 }));
-// export const trackModifications = mysqlTable(
+// export const trackModifications = table(
 //   "trackModificattion",
 //   {
 //     id: varchar("id", { length: 36 }).notNull().primaryKey(),
@@ -170,7 +169,7 @@ export const workflowRunsRelations = relations(workflowRuns, ({ one }) => ({
 //     }),
 //   }),
 // );
-export const workerPoll = mysqlTable(
+export const workerPoll = table(
   "workerPoll",
   {
     deviceHash: varchar("deviceHash", { length: 255 }).notNull().primaryKey(),
