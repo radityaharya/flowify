@@ -38,7 +38,7 @@
     "dotenv-cli": "^7.3.0",
     "drizzle-kit": "^0.20.13",
     "eslint": "^8.54.0",
-    "mysql2": "^3.6.1",
+    "mysql2": "^3.9.4",
     "typescript": "^5.1.6"
   },
   "ct3aMetadata": {
