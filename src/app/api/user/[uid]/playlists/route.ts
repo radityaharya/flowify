@@ -59,7 +59,7 @@ export async function GET(
       playlistId: playlist.id,
       name: playlist.name,
       description: playlist.description,
-      image: playlist.images[0]?.url,
+      image: playlist.images?.[0]?.url,
       total: playlist.tracks.total,
       owner: playlist.owner.display_name,
     }));
@@ -72,7 +72,7 @@ export async function GET(
       playlistId: playlist.id,
       name: playlist.name,
       description: playlist.description,
-      image: playlist.images[0]?.url,
+      image: playlist.images?.[0]?.url,
       total: playlist.tracks.total,
       owner: playlist.owner.display_name,
     }));

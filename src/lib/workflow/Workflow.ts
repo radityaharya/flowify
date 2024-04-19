@@ -600,10 +600,7 @@ export class Runner extends Base {
         const sortedOperations = this.sortOperations(workflow);
 
         workflow.operations = sortedOperations;
-        const [valid, errors] = (await this.validateWorkflow(workflow)) as [
-          boolean,
-          string[] | null,
-        ];
+        const [valid, errors] = (await this.validateWorkflow(workflow));
 
         if (!valid && errors) {
           throw new Error(`Invalid workflow: ${errors.join("\n")}`);

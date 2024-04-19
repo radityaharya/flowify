@@ -123,6 +123,7 @@ export const workflowRuns = table(
     startedAt: timestamp("startedAt", { mode: "date" }),
     completedAt: timestamp("completedAt", { mode: "date" }),
     workerId: varchar("workerId", { length: 255 }),
+    prevState: text("prevState"),
     returnValues: text("returnValues"),
   },
   (workflowRun) => ({

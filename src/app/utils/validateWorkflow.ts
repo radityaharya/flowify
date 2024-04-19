@@ -1,6 +1,4 @@
 import { toast } from "sonner";
-import { error } from "console";
-import { string } from "zod";
 
 type validationResponse = {
   valid: boolean;
@@ -33,7 +31,7 @@ export async function validateWorkflow(workflow: WorkflowObject) {
 
   toast.promise(validatePromise, {
     loading: "Validating workflow...",
-    success: async (validationResult: { valid: boolean; errors: any[] }) => {
+    success: (validationResult: { valid: boolean; errors: any[] }) => {
       const { valid, errors } = validationResult;
       console.log("validationResult", validationResult);
       if (!valid) {

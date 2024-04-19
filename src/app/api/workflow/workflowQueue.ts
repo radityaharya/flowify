@@ -1,6 +1,6 @@
 import { Queue } from "bullmq";
 
-import Redis from "ioredis";
+import Redis from 'ioredis';
 import { env } from "~/env";
 import { db } from "~/server/db";
 import { workflowJobs, workflowRuns } from "~/server/db/schema";
@@ -111,6 +111,7 @@ export async function updateWorkflowRun(
   status?: string,
   workerId?: string,
   returnValues?: any,
+  prevState?: string,
 ) {
   try {
     log.info("Updating workflow run", jobId);
@@ -151,6 +152,7 @@ export async function updateWorkflowRun(
         error: job.failedReason,
         completedAt: completedAt,
         workerId: workerId,
+        prevState: JSON.stringify(prevState),
         returnValues: JSON.stringify(returnValues),
       })
       .where(eq(workflowRuns.id, jobId));

@@ -9,6 +9,7 @@ import { Separator } from "../ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import General from "./tabs/General";
+import History from "./tabs/History";
 export function SettingsDialog() {
   return (
     <DialogContent className="h-[90svh] w-[90svw]">
@@ -38,6 +39,12 @@ export function SettingsDialog() {
         </TabsList>
         <TabsContent value="general" className="h-full w-full">
           <General />
+        </TabsContent>
+        <TabsContent value="schedule" className="h-full w-full">
+          Schedule
+        </TabsContent>
+        <TabsContent value="history" className="h-full w-full">
+          <History />
         </TabsContent>
       </Tabs>
     </DialogContent>

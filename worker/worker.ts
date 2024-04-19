@@ -3,7 +3,7 @@ import { Runner } from "../src/lib/workflow/Workflow";
 import { getAccessTokenFromUserId } from "../src/server/db/helper";
 import { Worker } from "bullmq";
 import { updateWorkflowRun } from "../src/app/api/workflow/workflowQueue";
-import Redis from "ioredis";
+import Redis from 'ioredis';
 import os from "os";
 import { Logger } from "@/lib/log";
 import { db } from "@/server/db";
