@@ -9,7 +9,7 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-} from "@tanstack/react-table"
+} from "@tanstack/react-table";
 
 import {
   Table,
@@ -99,7 +99,7 @@ function DataTable<TData, TValue>({
   data = [],
   isLoading,
 }: DataTableProps<TData, TValue> & { isLoading: boolean }) {
-  const [sorting, setSorting] = useState<SortingState>([])
+  const [sorting, setSorting] = useState<SortingState>([]);
   const table = useReactTable({
     data,
     columns,
@@ -184,9 +184,11 @@ const fetcher = async (url) => {
   const data = (await res.json()) as HistoryResponse;
   const runs = data.runs.map((run) => ({
     ...run,
-    startedAt: run.startedAt ? new Date(run.startedAt).toLocaleString() : 'N/A',
-    completedAt: run.completedAt ? new Date(run.completedAt).toLocaleString() : 'N/A',
-    status: run.status || 'unknown',
+    startedAt: run.startedAt ? new Date(run.startedAt).toLocaleString() : "N/A",
+    completedAt: run.completedAt
+      ? new Date(run.completedAt).toLocaleString()
+      : "N/A",
+    status: run.status || "unknown",
     returnValues: `${run.returnValues.length} Tracks`,
   }));
 

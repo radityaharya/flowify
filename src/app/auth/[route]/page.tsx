@@ -31,7 +31,7 @@ export default function Page({
         >
           {isLogin ? "Sign up" : "Login"}
         </Link> */}
-        <div className="relative hidden h-full flex-col p-10 lg:flex dark:border-r">
+        <div className="relative hidden h-full flex-col p-10 dark:border-r lg:flex">
           <GradientBackground />
           {/* <div className="relative z-20 flex items-center text-lg font-medium">
             <svg

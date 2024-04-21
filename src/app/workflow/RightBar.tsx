@@ -2,7 +2,7 @@
 "use client";
 
 import { Input } from "src/components/ui/input";
-import reactFlowToWorkflow from "../utils/reactFlowToWorkflow";
+import reactFlowToWorkflow from "@/app/utils/reactFlowToWorkflow";
 
 import {
   Accordion,
@@ -11,7 +11,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import useStore from "../states/store";
+import useStore from "@/app/states/store";
 import { useShallow } from "zustand/react/shallow";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";

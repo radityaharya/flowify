@@ -24,15 +24,9 @@ export function SettingsDialog() {
         className="flex h-full w-full flex-row gap-6"
       >
         <TabsList className="flex w-[15%] flex-col gap-4">
-          <TabsTrigger value="general">
-            General
-          </TabsTrigger>
-          <TabsTrigger value="schedule">
-            Schedule
-          </TabsTrigger>
-          <TabsTrigger value="history">
-            History
-          </TabsTrigger>
+          <TabsTrigger value="general">General</TabsTrigger>
+          <TabsTrigger value="schedule">Schedule</TabsTrigger>
+          <TabsTrigger value="history">History</TabsTrigger>
         </TabsList>
         <TabsContent value="general" className="h-full w-full">
           <General />

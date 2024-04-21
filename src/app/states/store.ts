@@ -69,6 +69,7 @@ type RFState = {
   }) => void;
   reactFlowInstance?: ReactFlowInstance;
   setReactFlowInstance: (instance: ReactFlowInstance) => void;
+  resetReactFlow: () => void;
 };
 
 const useStore = create<RFState>((set, get) => ({
@@ -214,6 +215,21 @@ const useStore = create<RFState>((set, get) => ({
     set({
       reactFlowInstance: instance,
     });
+  },
+  resetReactFlow: () => {
+    set({
+      nodes: [],
+      edges: [],
+      flowState: {
+        id: undefined,
+        name: "",
+        description: "",
+        workflow: undefined,
+      },
+    });
+
+    get().reactFlowInstance?.fitView();
+    get().reactFlowInstance?.zoomTo(1);
   },
 }));
 

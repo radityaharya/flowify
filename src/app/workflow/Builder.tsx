@@ -5,9 +5,9 @@ import { type Edge, type Node } from "@xyflow/react";
 // import styles from "./page.module.css";
 import { useSession } from "next-auth/react";
 import { useEffect } from "react";
-import Flow from "../../components/Flow";
+import Flow from "@/components/Flow";
 
-import useStore from "../states/store";
+import useStore from "@/app/states/store";
 import Sidebar from "./Sidebar";
 
 import {
@@ -21,10 +21,16 @@ import useSWR from "swr";
 
 import { useRouter } from "next/navigation";
 
-function Builder({ searchParams }: { searchParams: any }) {
+function Builder({
+  params,
+  searchParams,
+}: {
+  params: { id: string };
+  searchParams: any;
+}) {
   const { data: session } = useSession();
 
-  const flowId = searchParams.id;
+  const flowId = params.id;
 
   const router = useRouter();
 
@@ -207,6 +213,4 @@ const LoadingSVG = () => (
   </svg>
 );
 
-export default function Page({ searchParams }: { searchParams: any }) {
-  return <Builder searchParams={searchParams} />;
-}
+export default Builder;

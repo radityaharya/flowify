@@ -62,6 +62,9 @@ const sentryConfig = withSentryConfig(
   },
 );
 
-const prodConfig = million.next(sentryConfig, { auto: { rsc: true }, mute: true });
+const prodConfig = million.next(sentryConfig, {
+  auto: { rsc: true },
+  mute: true,
+});
 
 export default process.env.NODE_ENV === "development" ? config : prodConfig;

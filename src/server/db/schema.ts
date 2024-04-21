@@ -110,9 +110,14 @@ export const workflowJobs = table(
     workflowIdIdx: index("workflowJobs_workflowId_idx").on(workflowJob.id),
   }),
 );
-export const workflowJobsRelations = relations(workflowJobs, ({ one }) => ({
-  user: one(users, { fields: [workflowJobs.userId], references: [users.id] }),
-}));
+export const workflowJobsRelations = relations(
+  workflowJobs,
+  ({ one, many }) => ({
+    user: one(users, { fields: [workflowJobs.userId], references: [users.id] }),
+    workflowRuns: many(workflowRuns),
+  }),
+);
+
 export const workflowRuns = table(
   "workflowRun",
   {

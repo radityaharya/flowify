@@ -9,8 +9,15 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { useSession } from "next-auth/react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+
+import useStore from "@/app/states/store";
+
 export function MainNav() {
   const pathname = usePathname();
+
+  const { resetReactFlow } = useStore((state) => ({
+    resetReactFlow: state.resetReactFlow,
+  }));
 
   return (
     <div className="mr-4 flex">
@@ -33,10 +40,11 @@ export function MainNav() {
       </Link>
       <nav className="flex items-center gap-6 text-sm">
         <Link
-          href="/flow"
+          href="/workflow"
+          onClick={() => resetReactFlow()}
           className={cn(
             "transition-colors hover:text-foreground/80",
-            pathname === "/flow" ? "text-foreground" : "text-foreground/60",
+            pathname === "/workflow" ? "text-foreground" : "text-foreground/60",
           )}
         >
           Builder
@@ -84,7 +92,9 @@ export function SiteNav({ className }: { className?: string }) {
       className={cn(
         "sticky top-0 z-[3] flex w-full items-center justify-between bg-transparent px-6 py-4 backdrop-blur-md",
         className,
-        pathname === "/flow" ? "absolute border-b bg-background backdrop-blur-none" : "",
+        /\/workflow(?!s)/.test(pathname)
+          ? "absolute border-b bg-background backdrop-blur-none"
+          : "",
         pathname === "/" ? "absolute" : "",
         pathname.startsWith("/auth/login")
           ? "bg-transparent backdrop-blur-none"
