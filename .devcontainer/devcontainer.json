@@ -2,6 +2,7 @@
   "image": "mcr.microsoft.com/devcontainers/javascript-node:20",
   "runArgs": ["--device=/dev/net/tun"],
   "features": {
-    "ghcr.io/tailscale/codespace/tailscale": {}
+    "ghcr.io/tailscale/codespace/tailscale": {},
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
   }
 }

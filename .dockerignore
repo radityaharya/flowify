@@ -15,7 +15,6 @@ worker/node_modules
 /prisma/db.sqlite-journal
 
 # next.js
-/.next/
 /out/
 next-env.d.ts
 

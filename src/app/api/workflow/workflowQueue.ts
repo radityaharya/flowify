@@ -1,6 +1,4 @@
 import { Queue } from "bullmq";
-
-import Redis from "ioredis";
 import { env } from "~/env";
 import { db } from "~/server/db";
 import { workflowJobs, workflowRuns } from "~/server/db/schema";
@@ -10,12 +8,11 @@ import { Logger } from "@/lib/log";
 
 const log = new Logger("workflowQueue");
 
-const connection = new Redis(env.REDIS_URL, {
-  maxRetriesPerRequest: null,
-});
 
 export const workflowQueue = new Queue("workflowQueue", {
-  connection,
+  connection: {
+    path: env.REDIS_URL,
+  },
   defaultJobOptions: {
     attempts: 2,
     backoff: {

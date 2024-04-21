@@ -86,14 +86,14 @@ const usePlaylistLogic = (id: string, formSchema?: ZodObject<any>) => {
 
       const {
         playlistId,
-        playlistIds,
+        playlistIds = [],
         total,
         name,
         description,
         image,
         owner,
-        playlists,
-      } = target;
+        playlists = [],
+      } = target as any;
 
       const hasPlaylistId = Boolean(playlistId);
       const hasPlaylistIds = Boolean(playlistIds && playlistIds.length > 0);
@@ -104,7 +104,14 @@ const usePlaylistLogic = (id: string, formSchema?: ZodObject<any>) => {
 
       setIsValid(hasPlaylistId || hasPlaylistIds);
 
-      const playlist = { playlistId, name, description, image, owner, total };
+      const playlist: Playlist = {
+        playlistId: playlistId as string,
+        name: name as string,
+        description: description as string,
+        image: image as string,
+        owner: owner as string,
+        total: total as number,
+      };
       playlistsSet.add(playlist);
       playlistIdsSet.add(playlistId as string);
 

@@ -3,13 +3,31 @@ import {
   type NextRequest,
   NextResponse,
 } from "next/server";
-import { getSession } from "next-auth/react";
 import { Logger } from "~/lib/log";
 import { env } from "~/env";
+import { type Session } from "next-auth";
 
 const logger = new Logger("middleware:userApi");
 
 const matchPaths = ["/api/user"];
+
+async function getSession(req: NextRequest) {
+  const response = await fetch(
+    process.env.NEXTAUTH_URL + "/api/auth/session",
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Cookie: req.headers.get("cookie") ?? "",
+      },
+      method: "GET",
+    },
+  );
+  if (!response.ok) {
+    return null;
+  }
+  const session = await response.json();
+  return session as Session;
+}
 
 export const withUserApi = (
   nextHandler: (arg0: NextRequest, arg1: NextFetchEvent) => any,
@@ -18,18 +36,11 @@ export const withUserApi = (
     const { pathname, search } = request.nextUrl;
 
     if (matchPaths.some((path) => pathname.startsWith(path))) {
-      logger.info("Match!");
+      logger.debug("Match!");
 
-      const req = {
-        headers: Object.fromEntries(request.headers.entries()),
-        method: request.method,
-        url: request.nextUrl.href,
-        body: request.body,
-      };
+      const session = await getSession(request);
 
-      const session = await getSession({ req });
-
-      if (!session) {
+      if (!session || !session.user) {
         logger.error("Not authenticated");
         return NextResponse.json(
           {
