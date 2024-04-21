@@ -11,7 +11,11 @@ class Logger {
 
   constructor(
     private readonly name: string,
-    private logLevel: LogLevel = LogLevel.INFO,
+    private logLevel: LogLevel = process.env.DEBUG
+      ? LogLevel.DEBUG
+      : process.env.LOG_LEVEL
+        ? LogLevel[process.env.LOG_LEVEL as keyof typeof LogLevel]
+        : LogLevel.INFO,
   ) {}
 
   private getColor(level: LogLevel): string {
