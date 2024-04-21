@@ -82,9 +82,10 @@ export function SiteNav({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "absolute top-0 z-[3] flex w-full items-center justify-between bg-transparent px-6 py-4 backdrop-blur-md",
+        "sticky top-0 z-[3] flex w-full items-center justify-between bg-transparent px-6 py-4 backdrop-blur-md",
         className,
-        pathname === "/flow" ? "border-b bg-background backdrop-blur-none" : "",
+        pathname === "/flow" ? "absolute border-b bg-background backdrop-blur-none" : "",
+        pathname === "/" ? "absolute" : "",
         pathname.startsWith("/auth/login")
           ? "bg-transparent backdrop-blur-none"
           : "",
