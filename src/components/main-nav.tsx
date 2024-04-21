@@ -44,7 +44,7 @@ export function MainNav() {
           onClick={() => resetReactFlow()}
           className={cn(
             "transition-colors hover:text-foreground/80",
-            pathname === "/workflow" ? "text-foreground" : "text-foreground/60",
+            /\/workflow(?!s)/.test(pathname) ? "text-foreground" : "text-foreground/60",
           )}
         >
           Builder

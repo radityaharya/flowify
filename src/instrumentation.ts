@@ -14,8 +14,12 @@ export const register = async () => {
     console.log("Registering worker");
     console.log("Worker ID", WORKER_ID);
     const { Worker } = await import("bullmq");
+    const Redis = (await import("ioredis")).default;
     const updateWorkflowRun = (await import("~/app/api/workflow/workflowQueue"))
       .updateWorkflowRun;
+    const connection = new Redis(env.REDIS_URL, {
+      maxRetriesPerRequest: null,
+    });
 
     new Worker(
       "workflowQueue",
@@ -45,9 +49,7 @@ export const register = async () => {
         return res.map((obj: any) => obj.track.id);
       },
       {
-        connection: {
-          path: env.REDIS_URL,
-        },
+        connection,
         concurrency: 5,
         removeOnComplete: { count: 1000 },
         removeOnFail: { count: 5000 },
