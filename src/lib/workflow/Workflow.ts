@@ -438,21 +438,25 @@ export class Runner extends Base {
           }
           operationIds.add(operation.id);
 
-          // Validate operation type
-          const [className, methodName] = operation.type.split(".") as [
-            keyof Operations,
-            keyof Operations[keyof Operations],
-          ];
-          const operationClass = operations[className];
-          if (
-            !operationClass ||
-            typeof operationClass[methodName] !== "function"
-          ) {
+          const operationType = operation.type;
+          if (!operationParamsTypesMap.hasOwnProperty(operationType)) {
             errors.push(
-              `Invalid operation type: ${
-                operation.type
-              } in operation: ${JSON.stringify(operation)}`,
+              `Invalid operation type: ${operationType} in operation: ${JSON.stringify(operation)}`,
             );
+          } else {
+            const [className, methodName] = operationType.split(".") as [
+              keyof Operations,
+              keyof Operations[keyof Operations],
+            ];
+            const operationClass = operations[className];
+            if (
+              !operationClass ||
+              typeof operationClass[methodName] !== "function"
+            ) {
+              errors.push(
+                `Invalid operation type: ${operationType} in operation: ${JSON.stringify(operation)}`,
+              );
+            }
           }
 
           const operationParams = operationParamsTypesMap[
@@ -600,7 +604,7 @@ export class Runner extends Base {
         const sortedOperations = this.sortOperations(workflow);
 
         workflow.operations = sortedOperations;
-        const [valid, errors] = (await this.validateWorkflow(workflow));
+        const [valid, errors] = await this.validateWorkflow(workflow);
 
         if (!valid && errors) {
           throw new Error(`Invalid workflow: ${errors.join("\n")}`);

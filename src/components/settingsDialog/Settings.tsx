@@ -13,7 +13,7 @@ import History from "./tabs/History";
 export function SettingsDialog() {
   return (
     <DialogContent className="h-[90svh] w-[90svw]">
-      <DialogHeader className="gap-1 pb-8">
+      <DialogHeader className="gap-1">
         <DialogTitle className="mb-4 text-xl font-bold">
           Workflow Settings
         </DialogTitle>
@@ -23,17 +23,14 @@ export function SettingsDialog() {
         defaultValue="general"
         className="flex h-full w-full flex-row gap-6"
       >
-        <TabsList className="flex w-[15%] flex-col gap-6">
+        <TabsList className="flex w-[15%] flex-col gap-4">
           <TabsTrigger value="general">
-            <SettingsIcon size={20} />
             General
           </TabsTrigger>
           <TabsTrigger value="schedule">
-            <CalendarClockIcon size={20} />
             Schedule
           </TabsTrigger>
           <TabsTrigger value="history">
-            <HistoryIcon size={20} />
             History
           </TabsTrigger>
         </TabsList>

@@ -40,7 +40,7 @@ export function SourceList({
         {state.playlists
           ? state.playlists?.map((playlist) =>
               playlist && isValid ? (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2" key={playlist.id}>
                   <Image
                     className="h-8 w-8 rounded-sm"
                     src={playlist.image}

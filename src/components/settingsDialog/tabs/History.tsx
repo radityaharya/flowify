@@ -219,20 +219,18 @@ const History = () => {
   };
 
   return (
-    <>
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <h2 className="mb-2 text-xl font-semibold leading-none tracking-tight">
-            History
-          </h2>
-          <Button onClick={refreshData}>Refresh</Button>
-        </div>
-        <div className="space-y-1">
-          {error && <div>Error loading history</div>}
-          <DataTable columns={columns} data={data} isLoading={isLoading} />
-        </div>
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center justify-between">
+        <h2 className="mb-2 text-xl font-semibold leading-none tracking-tight">
+          History
+        </h2>
+        <Button onClick={refreshData}>Refresh</Button>
       </div>
-    </>
+      <div className="space-y-1">
+        {error && <div>Error loading history</div>}
+        <DataTable columns={columns} data={data} isLoading={isLoading} />
+      </div>
+    </div>
   );
 };
 
