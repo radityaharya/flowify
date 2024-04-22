@@ -247,7 +247,7 @@ const columns: ColumnDef<WorkflowsTableColumn>[] = [
     accessorKey: "createdAt",
     cell: ({ row, getValue }) => {
       const createdAt = getValue() as WorkflowResponse["createdAt"];
-      return relativeDate(createdAt);
+      return relativeDate(createdAt!);
     },
   },
   {

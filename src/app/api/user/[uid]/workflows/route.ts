@@ -3,7 +3,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/server/auth";
 import { db } from "@/server/db";
 import { Logger } from "@/lib/log";
-import { type API } from "~/types/workflows";
 
 const log = new Logger("/api/workflow/[id]");
 
@@ -36,7 +35,7 @@ export async function GET(
       createdAt: createdAt?.getTime(),
       lastRunAt: workflowRuns[0]?.startedAt?.getTime(),
     }),
-  ) as API.WorkflowsResponse;
+  ) as WorkflowResponse[];
 
   log.info(`Returning workflows for user ${session.user.id}`);
   return NextResponse.json(res);

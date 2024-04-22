@@ -91,7 +91,7 @@ interface WorkflowResponse {
   name: string;
   workflow: WorkflowObject;
   cron?: string;
-  createdAt: number;
+  createdAt?: number;
   lastRunAt?: number;
   modifiedAt?: number;
 }
