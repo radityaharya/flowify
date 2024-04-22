@@ -133,7 +133,7 @@ export default function App() {
       edges,
     });
     const saveResponse = await saveWorkflow(workflowResponse);
-    router.push(`/flow?id=${saveResponse.id}`);
+    router.push(`/workflow/${saveResponse.id}`);
   }
 
   return (

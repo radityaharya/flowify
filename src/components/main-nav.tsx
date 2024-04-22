@@ -96,8 +96,8 @@ export function SiteNav({ className }: { className?: string }) {
           ? "absolute border-b bg-background backdrop-blur-none"
           : "",
         pathname === "/" ? "absolute" : "",
-        pathname.startsWith("/auth/login")
-          ? "bg-transparent backdrop-blur-none"
+        pathname.startsWith("/auth")
+          ? "bg-transparent absolute backdrop-blur-none"
           : "",
       )}
     >

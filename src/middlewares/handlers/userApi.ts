@@ -5,7 +5,6 @@ import {
 } from "next/server";
 import { Logger } from "~/lib/log";
 import { env } from "~/env";
-import { type Session } from "next-auth";
 
 const logger = new Logger("middleware:userApi");
 
@@ -26,7 +25,7 @@ async function getSession(req: NextRequest) {
     return null;
   }
   const session = await response.json();
-  return session as Session;
+  return session;
 }
 
 export const withUserApi = (
@@ -40,7 +39,7 @@ export const withUserApi = (
 
       const session = await getSession(request);
 
-      if (!session || !session.user) {
+      if (!session?.user) {
         logger.error("Not authenticated");
         return NextResponse.json(
           {
@@ -65,7 +64,7 @@ export const withUserApi = (
         logger.debug(`userParam: ${userParam}`);
 
         if (userParam === "@me") {
-          const userId = session.user.providerAccountId;
+          const userId = session.user.providerAccountId as string;
           const url = new URL(
             pathname.replace("@me", encodeURIComponent(userId)) + search,
             env.NEXTAUTH_URL,

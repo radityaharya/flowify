@@ -57,7 +57,7 @@ const General = () => {
     if (saveResponse) {
       toast.success(flowState.id ? "Workflow updated" : "Workflow created");
     }
-    router.push(`/flow?id=${saveResponse.id}`);
+    router.push(`/workflow/${saveResponse.id}`);
   };
 
   useEffect(() => {

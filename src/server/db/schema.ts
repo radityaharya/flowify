@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import { relations, sql } from "drizzle-orm";
 import {
   pgTableCreator,
@@ -8,6 +9,8 @@ import {
   timestamp,
   varchar,
   json,
+  integer,
+  pgTable
 } from "drizzle-orm/pg-core";
 import { type AdapterAccount } from "next-auth/adapters";
 
@@ -18,70 +21,63 @@ import { type AdapterAccount } from "next-auth/adapters";
  * @see https://orm.drizzle.team/docs/goodies#multi-project-schema
  */
 
-export const table = pgTableCreator((name) => `flowify_${name}`);
-export const users = table("user", {
-  id: varchar("id", { length: 255 }).notNull().primaryKey(),
-  name: varchar("name", { length: 255 }),
-  email: varchar("email", { length: 255 }).notNull(),
-  emailVerified: timestamp("emailVerified", {
-    mode: "date",
-  }).default(sql`CURRENT_TIMESTAMP(3)`),
-  image: varchar("image", { length: 255 }),
-});
+export const users = pgTable("user", {
+  id: text("id").primaryKey().$defaultFn(() => randomUUID()),
+  name: text("name"),
+  email: text("email").notNull().unique(),
+  emailVerified: timestamp("emailVerified", { mode: "date" }),
+  image: text("image"),
+})
 
 export const usersRelations = relations(users, ({ many }) => ({
   accounts: many(accounts),
   sessions: many(sessions),
 }));
 
-export const accounts = table(
+export const accounts = pgTable(
   "account",
   {
-    userId: varchar("userId", { length: 255 }).notNull(),
-    type: varchar("type", { length: 255 })
-      .$type<AdapterAccount["type"]>()
-      .notNull(),
-    provider: varchar("provider", { length: 255 }).notNull(),
-    providerAccountId: varchar("providerAccountId", { length: 255 }).notNull(),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    type: text("type").$type<AdapterAccount["type"]>().notNull(),
+    provider: text("provider").notNull(),
+    providerAccountId: text("providerAccountId").notNull(),
     refresh_token: text("refresh_token"),
     access_token: text("access_token"),
-    expires_at: int("expires_at"),
-    token_type: varchar("token_type", { length: 255 }),
-    scope: varchar("scope", { length: 2048 }),
+    expires_at: integer("expires_at"),
+    token_type: text("token_type"),
+    scope: text("scope"),
     id_token: text("id_token"),
-    session_state: varchar("session_state", { length: 255 }),
+    session_state: text("session_state"),
   },
   (account) => ({
+    userIdIdx: index().on(account.userId),
     compoundKey: primaryKey({
       columns: [account.provider, account.providerAccountId],
     }),
-    userIdIdx: index("accounts_userId_idx").on(account.userId),
-  }),
-);
-
+  })
+)
 export const accountsRelations = relations(accounts, ({ one }) => ({
   user: one(users, { fields: [accounts.userId], references: [users.id] }),
 }));
 
-export const sessions = table(
-  "session",
-  {
-    sessionToken: varchar("sessionToken", { length: 255 })
-      .notNull()
-      .primaryKey(),
-    userId: varchar("userId", { length: 255 }).notNull(),
-    expires: timestamp("expires", { mode: "date" }).notNull(),
-  },
-  (session) => ({
-    userIdIdx: index("sessions_userId_idx").on(session.userId),
-  }),
-);
+export const sessions = pgTable("session", {
+  id: text("id").primaryKey().$defaultFn(() => randomUUID()),
+  sessionToken: text("sessionToken").notNull().unique(),
+  userId: text("userId")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  expires: timestamp("expires", { mode: "date" }).notNull(),
+ }, (session) => ({
+   userIdIdx: index().on(session.userId)
+ }))
 
 export const sessionsRelations = relations(sessions, ({ one }) => ({
   user: one(users, { fields: [sessions.userId], references: [users.id] }),
 }));
 
-export const verificationTokens = table(
+export const verificationTokens = pgTable(
   "verificationToken",
   {
     identifier: varchar("identifier", { length: 255 }).notNull(),
@@ -93,7 +89,7 @@ export const verificationTokens = table(
   }),
 );
 
-export const workflowJobs = table(
+export const workflowJobs = pgTable(
   "workflowJob",
   {
     id: varchar("id", { length: 255 }).notNull().primaryKey(),
@@ -118,7 +114,7 @@ export const workflowJobsRelations = relations(
   }),
 );
 
-export const workflowRuns = table(
+export const workflowRuns = pgTable(
   "workflowRun",
   {
     id: varchar("id", { length: 255 }).notNull().primaryKey(),
@@ -141,7 +137,7 @@ export const workflowRunsRelations = relations(workflowRuns, ({ one }) => ({
     references: [workflowJobs.id],
   }),
 }));
-// export const trackModifications = table(
+// export const trackModifications = pgTable(
 //   "trackModificattion",
 //   {
 //     id: varchar("id", { length: 36 }).notNull().primaryKey(),
@@ -175,7 +171,7 @@ export const workflowRunsRelations = relations(workflowRuns, ({ one }) => ({
 //     }),
 //   }),
 // );
-export const workerPoll = table(
+export const workerPoll = pgTable(
   "workerPoll",
   {
     deviceHash: varchar("deviceHash", { length: 255 }).notNull().primaryKey(),

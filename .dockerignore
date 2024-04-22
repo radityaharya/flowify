@@ -17,6 +17,7 @@ worker/node_modules
 # next.js
 /out/
 next-env.d.ts
+.next
 
 # production
 /build

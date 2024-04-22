@@ -95,7 +95,7 @@ function Builder({
   useEffect(() => {
     if (workflowData === undefined && workflowError !== undefined) {
       toast.error(workflowError.info);
-      router.push("/flow");
+      router.push("/workflow");
       return;
     }
     if (workflowData?.workflow !== undefined) {
