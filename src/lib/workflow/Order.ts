@@ -5,113 +5,75 @@ import { Base } from "./Base";
 import _ from "radash";
 import type { AccessToken } from "./Base";
 import { Logger } from "../log";
+import type SpotifyWebApi from "spotify-web-api-node";
 
 const log = new Logger("Order");
 export default class Order extends Base {
-  constructor(accessToken: AccessToken) {
-    super(accessToken);
-  }
-
-  static isPlaylistTrackObject(
-    obj: any,
-  ): obj is SpotifyApi.PlaylistTrackObject {
-    return obj?.hasOwnProperty("track");
-  }
-
-  static isPlaylistTrackObjectArray(
-    obj: any,
-  ): obj is SpotifyApi.PlaylistTrackObject[] {
-    return (
-      Array.isArray(obj) &&
-      obj.every((item: any) => this.isPlaylistTrackObject(item))
-    );
-  }
-
   /**
    * The function sorts an array of objects based on a specified sort key and sort order.
    * @param {Operation[]} sources - An array of Operation objects.
    * @param params - The `params` parameter is an object that contains two properties:
    * @returns an array of sorted Operation objects.
    */
-  static sort(sources: any[], params: { sortKey: string; sortOrder: string }) {
+  static sort(
+    spClient: SpotifyWebApi,
+    sources: any[],
+    params: { sortKey: string; sortOrder: string },
+  ) {
     log.info("Sorting...");
     log.debug("Sort Sources:", sources);
 
-    let tracks = [] as any;
-
-    if (
-      Array.isArray(sources) &&
-      Array.isArray(sources[0]) &&
-      Order.isPlaylistTrackObjectArray(sources[0])
-    ) {
-      // If the first source is an array of PlaylistTrackObjects, assume all sources are
-      tracks = sources.flat();
-    } else if (Array.isArray(sources) && sources[0]!.hasOwnProperty("tracks")) {
-      // If the first source has a 'tracks' property that is an array, assume all sources do
-      for (const source of sources) {
-        tracks.push(...source.tracks);
-      }
-    } else if (Order.isPlaylistTrackObjectArray(sources)) {
-      tracks = sources;
-    } else {
-      throw new Error(
-        `Invalid source type: ${typeof sources[0]} in ${
-          sources[0]
-        } located in sources: ${JSON.stringify(sources)}`,
-      );
-    }
+    const tracks = this.getTracks(sources);
 
     function getOrderKey(obj, path) {
       return path.split(".").reduce((o, i) => {
-        if (/^\d+$/.test(i)) {
-          return o[parseInt(i, 10)];
+        let indexMatch;
+        if ((indexMatch = i.match(/^(\w+)\[(\d+)\]$/))) {
+          // Handle array access
+          const propName = indexMatch[1];
+          const index = parseInt(indexMatch[2], 10);
+          if (
+            o?.hasOwnProperty(propName) &&
+            Array.isArray(o[propName]) &&
+            o[propName].length > index
+          ) {
+            return o[propName][index];
+          } else {
+            log.error(`Failed to access property '${i}' on object:`, o);
+            return undefined; // Or handle the error differently
+          }
         } else {
+          // Handle object property access
+          if (!o?.hasOwnProperty(i)) {
+            log.error(`Failed to access property '${i}' on object:`, o);
+            return undefined; // Or handle the error differently
+          }
           return o[i];
         }
       }, obj);
     }
-
+    
     if (Array.isArray(tracks)) {
       log.info("Sorting by", [params.sortKey, params.sortOrder]);
-      const sortKey = params.sortKey || "track.popularity";
+      const sortKey = params.sortKey || "popularity";
       const sortOrder = params.sortOrder === "asc" ? "asc" : "desc";
-      return tracks.sort((a, b) => {
+      const sortedTracks = tracks.sort((a, b) => {
         const keyA = getOrderKey(a, sortKey);
         const keyB = getOrderKey(b, sortKey);
         if (keyA < keyB) return sortOrder === "asc" ? -1 : 1;
         if (keyA > keyB) return sortOrder === "asc" ? 1 : -1;
         return 0;
       });
+      return sortedTracks;
     }
     return [];
   }
-  static shuffle(sources: any[], params: {}) {
+
+  static shuffle(spClient: SpotifyWebApi, sources: any[], params: {}) {
     log.info("Shuffling...");
     log.debug("Shuffle Sources:", sources);
 
-    let tracks = [] as any;
-
-    if (
-      Array.isArray(sources) &&
-      Array.isArray(sources[0]) &&
-      Order.isPlaylistTrackObjectArray(sources[0])
-    ) {
-      // If the first source is an array of PlaylistTrackObjects, assume all sources are
-      tracks = sources.flat();
-    } else if (Array.isArray(sources) && sources[0]!.hasOwnProperty("tracks")) {
-      // If the first source has a 'tracks' property that is an array, assume all sources do
-      for (const source of sources) {
-        tracks.push(...source.tracks);
-      }
-    } else if (Order.isPlaylistTrackObjectArray(sources)) {
-      tracks = sources;
-    } else {
-      throw new Error(
-        `Invalid source type: ${typeof sources[0]} in ${
-          sources[0]
-        } located in sources: ${JSON.stringify(sources)}`,
-      );
-    }
+    const tracks = this.getTracks(sources);
 
     if (Array.isArray(tracks)) {
       return tracks.sort(() => Math.random() - 0.5);

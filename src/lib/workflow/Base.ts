@@ -130,4 +130,77 @@ export class Base {
       );
     }
   }
+
+  static isPlaylistTrackObject(
+    obj: any,
+  ): obj is SpotifyApi.PlaylistTrackObject {
+    return obj?.hasOwnProperty("track");
+  }
+
+  static isPlaylistTrackObjectArray(
+    obj: any,
+  ): obj is SpotifyApi.PlaylistTrackObject[] {
+    return (
+      Array.isArray(obj) &&
+      obj.every((item: any) => this.isPlaylistTrackObject(item))
+    );
+  }
+
+  /**
+   * Retrieves the tracks from the given sources.
+   *
+   * @param sources - An array of sources from which to retrieve the tracks.
+   * @returns An array of tracks.
+   * @throws {Error} If the source type is invalid.
+   */
+  static getTracks(sources: any[]) {
+    const tracks = [] as SpotifyApi.TrackObjectFull[];
+
+    for (const source of sources) {
+      let trackSource;
+
+      if (source.hasOwnProperty("tracks")) {
+        trackSource = source.tracks;
+      } else if (source.hasOwnProperty("items")) {
+        trackSource = source.items;
+      } else if (
+        source.hasOwnProperty("track") &&
+        typeof source.track != "object"
+      ) {
+        trackSource = source.track ? [source.track] : [];
+      } else if (Array.isArray(source)) {
+        trackSource = source;
+      }
+
+      if (!trackSource) continue;
+
+      if (trackSource.hasOwnProperty("tracks")) {
+        for (const track of trackSource) {
+          if (track.track && track.track.type === "track") {
+            tracks.push(track.track as SpotifyApi.TrackObjectFull);
+          } else if (track.track && track.type === "track") {
+            throw new Error("Invalid source type");
+          }
+        }
+      } else if (
+        Array.isArray(trackSource) &&
+        typeof trackSource[0] == "object"
+      ) {
+        for (const track of trackSource) {
+          if (track.track && track.track.type === "track") {
+            tracks.push(track.track as SpotifyApi.TrackObjectFull);
+          } else if (track.track && track.type === "track") {
+            tracks.push(track as SpotifyApi.TrackObjectFull);
+          } else {
+            throw new Error("Invalid source type");
+          }
+        }
+      } else {
+        console.error("ERROR", trackSource);
+        throw new Error("Invalid source type");
+      }
+    }
+
+    return tracks;
+  }
 }

@@ -74,18 +74,9 @@ export const operationParamsTypesMap = {
   },
 } as Record<string, Record<string, { type: string; required?: boolean }>>;
 
-// import * as _ from "radash";
-interface Operations {
-  Filter: typeof Filter;
-  Combiner: typeof Combiner;
-  Utility: typeof Utility;
-  Order: typeof Order;
-  Playlist: typeof Playlist;
-  Library: typeof Library;
-  [key: string]: any;
-}
+import type { Workflow } from "./types/base";
 
-export const operations: Operations = {
+export const operations: Workflow.Operations = {
   Filter,
   Combiner,
   Utility,
@@ -131,7 +122,7 @@ export class Runner extends Base {
     return sourceValues;
   }
 
-  async fetchSourceTracks(source) {
+  async fetchSourceTracks(source: Source) {
     let tracks: SpotifyApi.PlaylistTrackObject[] = [];
     log.info(
       `Loading source ${source.id} of type ${
@@ -140,16 +131,17 @@ export class Runner extends Base {
     );
 
     if (source.type === "Source.playlist") {
-      log.info(`Loading playlist ${source.params.playlistId}`);
+      log.info(`Loading playlist ${source.params?.playlistId ?? ""}`);
       const limit = 25;
       let offset = 0;
       let result;
       let retryAfter = 0;
+      let maxRetries = 5;
 
-      while (true) {
+      while (true && maxRetries > 0) {
         try {
           log.debug("Getting playlist tracks", {
-            id: source.params.playlistId,
+            id: source.params?.playlistId ?? "",
             limit,
             offset,
           });
@@ -157,7 +149,7 @@ export class Runner extends Base {
             setTimeout(resolve, retryAfter * 1000),
           );
           result = await this.spClient.getPlaylistTracks(
-            source.params.playlistId as string,
+            source.params?.playlistId as string,
             {
               limit,
               offset,
@@ -170,6 +162,7 @@ export class Runner extends Base {
           if (error.statusCode === 429) {
             retryAfter = error.headers["retry-after"];
             log.warn(`Rate limited. Retrying after ${retryAfter} seconds.`);
+            maxRetries--;
             continue;
           } else {
             throw error;
@@ -181,7 +174,7 @@ export class Runner extends Base {
         }
       }
     } else if (source.type === "Library.likedTracks") {
-      const limit = source.params.limit ?? 50;
+      const limit = source.params?.limit ?? 50;
       tracks = await operations.Library.likedTracks(this.spClient, {
         limit,
         offset: 0,
@@ -262,21 +255,18 @@ export class Runner extends Base {
 
     // Split the operation type into class name and method name
     const [className, methodName] = operation.type.split(".") as [
-      keyof Operations,
-      keyof Operations[keyof Operations],
+      keyof Workflow.Operations,
+      keyof Workflow.Operations[keyof Workflow.Operations],
     ];
 
     // Get the class from the operations object
     const operationClass = operations[className];
 
-    const result =
-      className === "Playlist" || className === "Library"
-        ? await operationClass[methodName](
-            this.spClient,
-            sources,
-            operation.params,
-          )
-        : await operationClass[methodName](sources, operation.params);
+    const result = await operationClass[methodName](
+      this.spClient,
+      sources,
+      operation.params,
+    );
 
     sourceValues.set(operationId, result);
     return result;
@@ -445,8 +435,8 @@ export class Runner extends Base {
             );
           } else {
             const [className, methodName] = operationType.split(".") as [
-              keyof Operations,
-              keyof Operations[keyof Operations],
+              keyof Workflow.Operations,
+              keyof Workflow.Operations[keyof Workflow.Operations],
             ];
             const operationClass = operations[className];
             if (

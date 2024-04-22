@@ -13,56 +13,19 @@ export default class Library extends Base {
     super(accessToken, spClient);
   }
 
-  static async likedTracks(
-    spClient: SpotifyWebApi,
-    { limit = 50, offset = 0 }: { limit?: number; offset?: number },
-  ) {
-    const tracks: SpotifyApi.PlaylistTrackObject[] = [];
-    let result;
-    let retryAfter = 0;
-
-    while (true) {
-      try {
-        await new Promise((resolve) => setTimeout(resolve, retryAfter * 1000));
-        result = await spClient.getMySavedTracks({
-          limit: Math.min(limit - tracks.length, limit),
-          offset: offset + tracks.length,
-        });
-        tracks.push(...result.body.items);
-        if (tracks.length >= limit || result.body.items.length < limit) {
-          break;
-        }
-      } catch (error: any) {
-        if (error.statusCode === 429) {
-          retryAfter = error.headers["retry-after"];
-          log.warn(`Rate limited. Retrying after ${retryAfter} seconds.`);
-          continue;
-        } else {
-          throw error;
-        }
-      }
-    }
-
-    return tracks;
-  }
-
-  static isPlaylistTrackObject(
-    obj: any,
-  ): obj is SpotifyApi.PlaylistTrackObject {
+  static isTrackObjectFull(obj: any): obj is SpotifyApi.TrackObjectFull {
     return obj?.hasOwnProperty("track");
   }
 
-  static isPlaylistTrackObjectArray(
-    obj: any,
-  ): obj is SpotifyApi.PlaylistTrackObject[] {
+  static isTrackObjectFullArray(obj: any): obj is SpotifyApi.TrackObjectFull[] {
     return (
       Array.isArray(obj) &&
-      obj.every((item: any) => this.isPlaylistTrackObject(item))
+      obj.every((item: any) => this.isTrackObjectFull(item))
     );
   }
 
   static async _getPlaylistWithTracks(spClient: SpotifyWebApi, id: string) {
-    let tracks: SpotifyApi.PlaylistTrackObject[] = [];
+    let tracks: SpotifyApi.TrackObjectFull[] = [];
     let offset = 0;
     let result;
     let retryAfter = 0;
@@ -121,31 +84,9 @@ export default class Library extends Base {
 
     const id = params.id;
 
-    let tracks = [] as any;
+    const tracks = this.getTracks(sources);
 
-    if (
-      Array.isArray(sources) &&
-      Array.isArray(sources[0]) &&
-      Library.isPlaylistTrackObjectArray(sources[0])
-    ) {
-      // If the first source is an array of PlaylistTrackObjects, assume all sources are
-      tracks = sources.flat();
-    } else if (Array.isArray(sources) && sources[0]!.hasOwnProperty("tracks")) {
-      // If the first source has a 'tracks' property that is an array, assume all sources do
-      for (const source of sources) {
-        tracks.push(...source.tracks);
-      }
-    } else if (Library.isPlaylistTrackObjectArray(sources)) {
-      tracks = sources;
-    } else {
-      throw new Error(
-        `Invalid source type: ${typeof sources[0]} in ${
-          sources[0]
-        } located in sources: ${JSON.stringify(sources)}`,
-      );
-    }
-
-    const trackUris = tracks.map((track: any) => track.track.uri) as string[];
+    const trackUris = tracks.map((track: any) => `spotify:track:${track.id}`);
 
     await Library.addTracksBatch(spClient, id, trackUris);
 
@@ -167,31 +108,9 @@ export default class Library extends Base {
 
     const playlistName = params.name;
 
-    let tracks = [] as any;
+    const tracks = this.getTracks(sources);
 
-    if (
-      Array.isArray(sources) &&
-      Array.isArray(sources[0]) &&
-      Library.isPlaylistTrackObjectArray(sources[0])
-    ) {
-      // If the first source is an array of PlaylistTrackObjects, assume all sources are
-      tracks = sources.flat();
-    } else if (Array.isArray(sources) && sources[0]!.hasOwnProperty("tracks")) {
-      // If the first source has a 'tracks' property that is an array, assume all sources do
-      for (const source of sources) {
-        tracks.push(...source.tracks);
-      }
-    } else if (Library.isPlaylistTrackObjectArray(sources)) {
-      tracks = sources;
-    } else {
-      throw new Error(
-        `Invalid source type: ${typeof sources[0]} in ${
-          sources[0]
-        } located in sources: ${JSON.stringify(sources)}`,
-      );
-    }
-
-    const trackUris = tracks.map((track: any) => track.track.uri) as string[];
+    const trackUris = tracks.map((track: any) => `spotify:track:${track.id}`);
 
     const response = await spClient.createPlaylist(playlistName, {
       public: params.isPublic ?? false,
@@ -225,35 +144,50 @@ export default class Library extends Base {
 
     const id = params.id;
 
-    let tracks = [] as any;
+    const tracks = this.getTracks(sources);
 
-    if (
-      Array.isArray(sources) &&
-      Array.isArray(sources[0]) &&
-      Library.isPlaylistTrackObjectArray(sources[0])
-    ) {
-      // If the first source is an array of PlaylistTrackObjects, assume all sources are
-      tracks = sources.flat();
-    } else if (Array.isArray(sources) && sources[0]!.hasOwnProperty("tracks")) {
-      // If the first source has a 'tracks' property that is an array, assume all sources do
-      for (const source of sources) {
-        tracks.push(...source.tracks);
-      }
-    } else if (Library.isPlaylistTrackObjectArray(sources)) {
-      tracks = sources;
-    } else {
-      throw new Error(
-        `Invalid source type: ${typeof sources[0]} in ${
-          sources[0]
-        } located in sources: ${JSON.stringify(sources)}`,
-      );
-    }
+    // console.log("trackSaveAsReplace", tracks[0]);
 
-    const trackUris = tracks.map((track: any) => track.track.uri) as string[];
+    const trackUris = tracks.map((track: any) => `spotify:track:${track.id}`);
+
+    console.log("trackUris", trackUris);
 
     // await spClient.replaceTracksInPlaylist(id, trackUris);
     await Library.replaceTracksBatch(spClient, id, trackUris);
 
     return Library._getPlaylistWithTracks(spClient, id);
+  }
+
+  static async likedTracks(
+    spClient: SpotifyWebApi,
+    { limit = 50, offset = 0 }: { limit?: number; offset?: number },
+  ) {
+    const tracks: SpotifyApi.TrackObjectFull[] = [];
+    let result;
+    let retryAfter = 0;
+
+    while (true) {
+      try {
+        await new Promise((resolve) => setTimeout(resolve, retryAfter * 1000));
+        result = await spClient.getMySavedTracks({
+          limit: Math.min(limit - tracks.length, limit),
+          offset: offset + tracks.length,
+        });
+        tracks.push(...result.body.items);
+        if (tracks.length >= limit || result.body.items.length < limit) {
+          break;
+        }
+      } catch (error: any) {
+        if (error.statusCode === 429) {
+          retryAfter = error.headers["retry-after"];
+          log.warn(`Rate limited. Retrying after ${retryAfter} seconds.`);
+          continue;
+        } else {
+          throw error;
+        }
+      }
+    }
+
+    return tracks;
   }
 }

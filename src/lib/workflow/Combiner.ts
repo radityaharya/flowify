@@ -5,14 +5,11 @@ import { Base } from "./Base";
 import _ from "radash";
 import type { AccessToken } from "./Base";
 import { Logger } from "../log";
+import type SpotifyWebApi from "spotify-web-api-node";
 
 const log = new Logger("Combiner");
 export default class Combiner extends Base {
-  constructor(accessToken: AccessToken) {
-    super(accessToken);
-  }
-
-  static push(sources: any[], params: {}) {
+  static push(spClient: SpotifyWebApi, sources: any[], params: {}) {
     log.debug("Push Sources:", sources);
     log.info("Pushing...");
     const result = [] as SpotifyApi.PlaylistTrackObject[];
@@ -34,7 +31,7 @@ export default class Combiner extends Base {
     return obj?.hasOwnProperty("track");
   }
 
-  static alternate(sources: any[], params: {}) {
+  static alternate(spClient: SpotifyWebApi, sources: any[], params: {}) {
     log.debug("Alternate Sources:", sources);
     log.info("Alternating...");
     const result = [] as SpotifyApi.PlaylistTrackObject[];

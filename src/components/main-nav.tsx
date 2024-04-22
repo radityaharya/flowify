@@ -44,7 +44,9 @@ export function MainNav() {
           onClick={() => resetReactFlow()}
           className={cn(
             "transition-colors hover:text-foreground/80",
-            /\/workflow(?!s)/.test(pathname) ? "text-foreground" : "text-foreground/60",
+            /\/workflow(?!s)/.test(pathname)
+              ? "text-foreground"
+              : "text-foreground/60",
           )}
         >
           Builder
@@ -97,7 +99,7 @@ export function SiteNav({ className }: { className?: string }) {
           : "",
         pathname === "/" ? "absolute" : "",
         pathname.startsWith("/auth")
-          ? "bg-transparent absolute backdrop-blur-none"
+          ? "absolute bg-transparent backdrop-blur-none"
           : "",
       )}
     >

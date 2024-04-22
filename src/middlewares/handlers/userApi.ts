@@ -11,16 +11,13 @@ const logger = new Logger("middleware:userApi");
 const matchPaths = ["/api/user"];
 
 async function getSession(req: NextRequest) {
-  const response = await fetch(
-    process.env.NEXTAUTH_URL + "/api/auth/session",
-    {
-      headers: {
-        "Content-Type": "application/json",
-        Cookie: req.headers.get("cookie") ?? "",
-      },
-      method: "GET",
+  const response = await fetch(process.env.NEXTAUTH_URL + "/api/auth/session", {
+    headers: {
+      "Content-Type": "application/json",
+      Cookie: req.headers.get("cookie") ?? "",
     },
-  );
+    method: "GET",
+  });
   if (!response.ok) {
     return null;
   }

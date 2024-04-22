@@ -10,7 +10,7 @@ import {
   varchar,
   json,
   integer,
-  pgTable
+  pgTable,
 } from "drizzle-orm/pg-core";
 import { type AdapterAccount } from "next-auth/adapters";
 
@@ -22,12 +22,14 @@ import { type AdapterAccount } from "next-auth/adapters";
  */
 
 export const users = pgTable("user", {
-  id: text("id").primaryKey().$defaultFn(() => randomUUID()),
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => randomUUID()),
   name: text("name"),
   email: text("email").notNull().unique(),
   emailVerified: timestamp("emailVerified", { mode: "date" }),
   image: text("image"),
-})
+});
 
 export const usersRelations = relations(users, ({ many }) => ({
   accounts: many(accounts),
@@ -56,22 +58,28 @@ export const accounts = pgTable(
     compoundKey: primaryKey({
       columns: [account.provider, account.providerAccountId],
     }),
-  })
-)
+  }),
+);
 export const accountsRelations = relations(accounts, ({ one }) => ({
   user: one(users, { fields: [accounts.userId], references: [users.id] }),
 }));
 
-export const sessions = pgTable("session", {
-  id: text("id").primaryKey().$defaultFn(() => randomUUID()),
-  sessionToken: text("sessionToken").notNull().unique(),
-  userId: text("userId")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  expires: timestamp("expires", { mode: "date" }).notNull(),
- }, (session) => ({
-   userIdIdx: index().on(session.userId)
- }))
+export const sessions = pgTable(
+  "session",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => randomUUID()),
+    sessionToken: text("sessionToken").notNull().unique(),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    expires: timestamp("expires", { mode: "date" }).notNull(),
+  },
+  (session) => ({
+    userIdIdx: index().on(session.userId),
+  }),
+);
 
 export const sessionsRelations = relations(sessions, ({ one }) => ({
   user: one(users, { fields: [sessions.userId], references: [users.id] }),

@@ -4,57 +4,19 @@ import { Base } from "./Base";
 import * as _ from "radash";
 import type { AccessToken } from "./Base";
 import { Logger } from "../log";
+import type SpotifyWebApi from "spotify-web-api-node";
 
 const log = new Logger("Workflow");
 export default class Filter extends Base {
-  constructor(accessToken: AccessToken) {
-    super(accessToken);
-  }
-  static isPlaylistTrackObject(
-    obj: any,
-  ): obj is SpotifyApi.PlaylistTrackObject {
-    return obj?.hasOwnProperty("track");
-  }
-
-  static isPlaylistTrackObjectArray(
-    obj: any,
-  ): obj is SpotifyApi.PlaylistTrackObject[] {
-    return (
-      Array.isArray(obj) &&
-      obj.every((item: any) => this.isPlaylistTrackObject(item))
-    );
-  }
-
   static filter(
+    spClient: SpotifyWebApi,
     sources: any[],
     params: { filterKey: string; filterValue: string },
   ) {
     log.info("Filtering...");
     log.debug("Filter Sources:", sources);
 
-    let tracks = [] as any;
-
-    if (
-      Array.isArray(sources) &&
-      Array.isArray(sources[0]) &&
-      Filter.isPlaylistTrackObjectArray(sources[0])
-    ) {
-      // If the first source is an array of PlaylistTrackObjects, assume all sources are
-      tracks = sources.flat();
-    } else if (Array.isArray(sources) && sources[0]!.hasOwnProperty("tracks")) {
-      // If the first source has a 'tracks' property that is an array, assume all sources do
-      for (const source of sources) {
-        tracks.push(...source.tracks);
-      }
-    } else if (Filter.isPlaylistTrackObjectArray(sources)) {
-      tracks = sources;
-    } else {
-      throw new Error(
-        `Invalid source type: ${typeof sources[0]} in ${
-          sources[0]
-        } located in sources: ${JSON.stringify(sources)}`,
-      );
-    }
+    const tracks = this.getTracks(sources);
 
     if (Array.isArray(tracks)) {
       const res = tracks.filter((track: any) => {
@@ -133,105 +95,40 @@ export default class Filter extends Base {
     }
   }
 
-  static dedupeTracks(sources: any[], params: {}) {
+  static dedupeTracks(spClient: SpotifyWebApi, sources: any[], params: {}) {
     log.info("Deduping tracks...");
     log.debug("DedupeTracks Sources:", sources);
 
-    let tracks = [] as any;
-
-    if (
-      Array.isArray(sources) &&
-      Array.isArray(sources[0]) &&
-      Filter.isPlaylistTrackObjectArray(sources[0])
-    ) {
-      // If the first source is an array of PlaylistTrackObjects, assume all sources are
-      tracks = sources.flat();
-    } else if (Array.isArray(sources) && sources[0]!.hasOwnProperty("tracks")) {
-      // If the first source has a 'tracks' property that is an array, assume all sources do
-      for (const source of sources) {
-        tracks.push(...source.tracks);
-      }
-    } else if (Filter.isPlaylistTrackObjectArray(sources)) {
-      tracks = sources;
-    } else {
-      throw new Error(
-        `Invalid source type: ${typeof sources[0]} in ${
-          sources[0]
-        } located in sources: ${JSON.stringify(sources)}`,
-      );
-    }
+    const tracks = this.getTracks(sources);
 
     if (Array.isArray(tracks)) {
-      return [
-        ...new Map(tracks.map((item) => [item.id, item])).values(),
-      ] as SpotifyApi.PlaylistTrackObject[];
+      return [...new Map(tracks.map((item) => [item.id, item])).values()];
     }
     return [];
   }
 
-  static dedupeArtists(sources: any[], params: {}) {
+  static dedupeArtists(spClient: SpotifyWebApi, sources: any[], params: {}) {
     log.info("Deduping artists...");
     log.debug("DedupeArtists Sources:", sources);
-    let tracks = [] as any;
-
-    if (
-      Array.isArray(sources) &&
-      Array.isArray(sources[0]) &&
-      Filter.isPlaylistTrackObjectArray(sources[0])
-    ) {
-      // If the first source is an array of PlaylistTrackObjects, assume all sources are
-      tracks = sources.flat();
-    } else if (Array.isArray(sources) && sources[0]!.hasOwnProperty("tracks")) {
-      // If the first source has a 'tracks' property that is an array, assume all sources do
-      for (const source of sources) {
-        tracks.push(...source.tracks);
-      }
-    } else if (Filter.isPlaylistTrackObjectArray(sources)) {
-      tracks = sources;
-    } else {
-      throw new Error(
-        `Invalid source type: ${typeof sources[0]} in ${
-          sources[0]
-        } located in sources: ${JSON.stringify(sources)}`,
-      );
-    }
+    const tracks = this.getTracks(sources);
 
     if (_.isArray(tracks)) {
       return _.unique(tracks, (track): string | number | symbol =>
         _.get(track, "track.artists[0].id"),
-      ) as SpotifyApi.PlaylistTrackObject[];
+      );
     }
     return [];
   }
 
   static match(
+    spClient: SpotifyWebApi,
     sources: any[],
     params: { matchKey: string; matchValue: string },
   ) {
     log.info("Matching...");
     log.debug("Match Sources:", sources);
 
-    let tracks = [] as any;
-
-    if (
-      Array.isArray(sources) &&
-      Array.isArray(sources[0]) &&
-      Filter.isPlaylistTrackObjectArray(sources[0])
-    ) {
-      tracks = sources.flat();
-    } else if (Array.isArray(sources) && sources[0]!.hasOwnProperty("tracks")) {
-      for (const source of sources) {
-        tracks.push(...source.tracks);
-      }
-    } else if (Filter.isPlaylistTrackObjectArray(sources)) {
-      tracks = sources;
-    } else {
-      throw new Error(
-        `Invalid source type: ${typeof sources[0]} in ${
-          sources[0]
-        } located in sources: ${JSON.stringify(sources)}`,
-      );
-    }
+    const tracks = this.getTracks(sources);
 
     if (Array.isArray(tracks)) {
       const res = tracks.filter((track: any) => {
@@ -310,33 +207,15 @@ export default class Filter extends Base {
     }
   }
 
-  static limit(sources: any[], params: { limit?: number }) {
+  static limit(
+    spClient: SpotifyWebApi,
+    sources: any[],
+    params: { limit?: number },
+  ) {
     log.info("Limiting...");
     log.debug("Limit Sources:", sources);
 
-    let tracks = [] as any;
-
-    if (
-      Array.isArray(sources) &&
-      Array.isArray(sources[0]) &&
-      Filter.isPlaylistTrackObjectArray(sources[0])
-    ) {
-      // If the first source is an array of PlaylistTrackObjects, assume all sources are
-      tracks = sources.flat();
-    } else if (Array.isArray(sources) && sources[0]!.hasOwnProperty("tracks")) {
-      // If the first source has a 'tracks' property that is an array, assume all sources do
-      for (const source of sources) {
-        tracks.push(...source.tracks);
-      }
-    } else if (Filter.isPlaylistTrackObjectArray(sources)) {
-      tracks = sources;
-    } else {
-      throw new Error(
-        `Invalid source type: ${typeof sources[0]} in ${
-          sources[0]
-        } located in sources: ${JSON.stringify(sources)}`,
-      );
-    }
+    const tracks = this.getTracks(sources);
 
     if (Array.isArray(tracks)) {
       return tracks.slice(0, params.limit);

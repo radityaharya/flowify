@@ -44,195 +44,6 @@ export default class Playlist extends Base {
     super(accessToken, spClient);
   }
 
-  static isPlaylistTrackObject(
-    obj: any,
-  ): obj is SpotifyApi.PlaylistTrackObject {
-    return obj?.hasOwnProperty("track");
-  }
-
-  static isPlaylistTrackObjectArray(
-    obj: any,
-  ): obj is SpotifyApi.PlaylistTrackObject[] {
-    return (
-      Array.isArray(obj) &&
-      obj.every((item: any) => this.isPlaylistTrackObject(item))
-    );
-  }
-
-  static async _getPlaylistWithTracks(
-    spClient: SpotifyWebApi,
-    playlistId: string,
-  ) {
-    return spClient
-      .getPlaylist(playlistId)
-      .then((response) => ({
-        playlistId: response.body.id,
-        tracks: response.body.tracks.items,
-      }))
-      .catch((error) => {
-        log.error("Error getting playlist tracks", error);
-        throw new Error(
-          "Error getting playlist tracks " + (error as Error).message,
-        );
-      });
-  }
-
-  /**
-   * The `saveAsAppend` saves a list of tracks to a Spotify playlist by
-   * appending them to the existing tracks in the playlist.
-   * @param {SpotifyWebApi} spClient - The `spClient` parameter is an instance of the SpotifyWebApi
-   * class, which is used to make API requests to the Spotify API.
-   * @param {any[]} sources - The `sources` parameter is an array that contains the sources of tracks
-   * to be added to the playlist. It can have different formats:
-   * @param params - { playlistId: string }
-   * @returns the playlist with the added tracks.
-   */
-  static async saveAsAppend(
-    spClient: SpotifyWebApi,
-    sources: any[],
-    params: { playlistId: string },
-  ) {
-    log.info("Saving as append playlist...");
-    log.debug("SaveAsAppend Sources:", sources);
-
-    const playlistId = params.playlistId;
-
-    let tracks = [] as any;
-
-    if (
-      Array.isArray(sources) &&
-      Array.isArray(sources[0]) &&
-      Playlist.isPlaylistTrackObjectArray(sources[0])
-    ) {
-      // If the first source is an array of PlaylistTrackObjects, assume all sources are
-      tracks = sources.flat();
-    } else if (Array.isArray(sources) && sources[0]!.hasOwnProperty("tracks")) {
-      // If the first source has a 'tracks' property that is an array, assume all sources do
-      for (const source of sources) {
-        tracks.push(...source.tracks);
-      }
-    } else if (Playlist.isPlaylistTrackObjectArray(sources)) {
-      tracks = sources;
-    } else {
-      throw new Error(
-        `Invalid source type: ${typeof sources[0]} in ${
-          sources[0]
-        } located in sources: ${JSON.stringify(sources)}`,
-      );
-    }
-
-    const trackUris = tracks.map((track: any) => track.track.uri) as string[];
-
-    await Playlist.addTracksBatch(spClient, playlistId, trackUris);
-
-    return Playlist._getPlaylistWithTracks(spClient, playlistId);
-  }
-
-  static async saveAsNew(
-    spClient: SpotifyWebApi,
-    sources: any[],
-    params: {
-      name: string;
-      isPublic?: boolean;
-      collaborative?: boolean;
-      description?: string;
-    },
-  ) {
-    log.info("Saving as new playlist...");
-    log.debug("SaveAsNew Sources:", sources);
-
-    const playlistName = params.name;
-
-    let tracks = [] as any;
-
-    if (
-      Array.isArray(sources) &&
-      Array.isArray(sources[0]) &&
-      Playlist.isPlaylistTrackObjectArray(sources[0])
-    ) {
-      // If the first source is an array of PlaylistTrackObjects, assume all sources are
-      tracks = sources.flat();
-    } else if (Array.isArray(sources) && sources[0]!.hasOwnProperty("tracks")) {
-      // If the first source has a 'tracks' property that is an array, assume all sources do
-      for (const source of sources) {
-        tracks.push(...source.tracks);
-      }
-    } else if (Playlist.isPlaylistTrackObjectArray(sources)) {
-      tracks = sources;
-    } else {
-      throw new Error(
-        `Invalid source type: ${typeof sources[0]} in ${
-          sources[0]
-        } located in sources: ${JSON.stringify(sources)}`,
-      );
-    }
-
-    const trackUris = tracks.map((track: any) => track.track.uri) as string[];
-
-    const response = await spClient.createPlaylist(playlistName, {
-      public: params.isPublic ?? false,
-      collaborative: params.collaborative ?? false,
-      description: params.description ?? "",
-    });
-
-    await Playlist.addTracksBatch(spClient, response.body.id, trackUris);
-
-    return Playlist._getPlaylistWithTracks(spClient, response.body.id);
-  }
-
-  /**
-   * The function `saveAsReplace` takes in a Spotify client, an array of sources, and a playlist ID,
-   * and replaces the tracks in the playlist with the tracks from the sources.
-   * @param {SpotifyWebApi} spClient - The `spClient` parameter is an instance of the `SpotifyWebApi`
-   * class, which is used to make API requests to the Spotify Web API.
-   * @param {any[]} sources - The `sources` parameter is an array that contains the sources of tracks
-   * to be saved. It can have different formats:
-   * @param params - { playlistId: string }
-   * @returns the result of calling the `_getPlaylistWithTracks` method with the `spClient` and
-   * `playlistId` as arguments.
-   */
-  static async saveAsReplace(
-    spClient: SpotifyWebApi,
-    sources: any[],
-    params: { playlistId: string },
-  ) {
-    log.info("Saving as replace playlist...");
-    log.debug("SaveAsReplace Sources:", sources);
-
-    const playlistId = params.playlistId;
-
-    let tracks = [] as any;
-
-    if (
-      Array.isArray(sources) &&
-      Array.isArray(sources[0]) &&
-      Playlist.isPlaylistTrackObjectArray(sources[0])
-    ) {
-      // If the first source is an array of PlaylistTrackObjects, assume all sources are
-      tracks = sources.flat();
-    } else if (Array.isArray(sources) && sources[0]!.hasOwnProperty("tracks")) {
-      // If the first source has a 'tracks' property that is an array, assume all sources do
-      for (const source of sources) {
-        tracks.push(...source.tracks);
-      }
-    } else if (Playlist.isPlaylistTrackObjectArray(sources)) {
-      tracks = sources;
-    } else {
-      throw new Error(
-        `Invalid source type: ${typeof sources[0]} in ${
-          sources[0]
-        } located in sources: ${JSON.stringify(sources)}`,
-      );
-    }
-
-    const trackUris = tracks.map((track: any) => track.track.uri) as string[];
-
-    // await spClient.replaceTracksInPlaylist(playlistId, trackUris);
-    await Playlist.replaceTracksBatch(spClient, playlistId, trackUris);
-
-    return Playlist._getPlaylistWithTracks(spClient, playlistId);
-  }
-
   /**
    * The function `getPlaylistTracks` retrieves the tracks of a playlist using the Spotify Web API.
    * @param {SpotifyWebApi} spClient - The `spClient` parameter is an instance of the `SpotifyWebApi`
@@ -244,19 +55,6 @@ export default class Playlist extends Base {
    * @returns the result of calling the `_getPlaylistWithTracks` method of the `Playlist` class with
    * the `spClient` and `playlistId` parameters.
    */
-  static async getPlaylistTracks(
-    spClient: SpotifyWebApi,
-    sources: any[],
-    params: { playlistId: string },
-  ) {
-    log.info("Getting playlist tracks...");
-    log.debug("GetPlaylistTracks Sources:", sources);
-
-    const playlistId = params.playlistId;
-
-    return Playlist._getPlaylistWithTracks(spClient, playlistId);
-  }
-
   /**
    * The function `getRecommendedTracks` retrieves recommended tracks from Spotify based on given
    * sources and parameters.
@@ -287,29 +85,7 @@ export default class Playlist extends Base {
       throw new Error(`Limit cannot be greater than ${MAX_LIMIT}`);
     }
 
-    let tracks = [] as any;
-
-    if (
-      Array.isArray(sources) &&
-      Array.isArray(sources[0]) &&
-      Playlist.isPlaylistTrackObjectArray(sources[0])
-    ) {
-      // If the first source is an array of PlaylistTrackObjects, assume all sources are
-      tracks = sources.flat();
-    } else if (Array.isArray(sources) && sources[0]!.hasOwnProperty("tracks")) {
-      // If the first source has a 'tracks' property that is an array, assume all sources do
-      for (const source of sources) {
-        tracks.push(...source.tracks);
-      }
-    } else if (Playlist.isPlaylistTrackObjectArray(sources)) {
-      tracks = sources;
-    } else {
-      throw new Error(
-        `Invalid source type: ${typeof sources[0]} in ${
-          sources[0]
-        } located in sources: ${JSON.stringify(sources)}`,
-      );
-    }
+    const tracks = this.getTracks(sources);
 
     const options = { ...params } as getTracksRecomendationParams;
 
@@ -329,5 +105,20 @@ export default class Playlist extends Base {
     const response = await spClient.getRecommendations(options);
 
     return response.body.tracks;
+  }
+
+  static async albumTracks(
+    spClient: SpotifyWebApi,
+    sources: any[],
+    params: {
+      albumId: string;
+    },
+  ): Promise<SpotifyApi.TrackObjectFull[]> {
+    const tracks: SpotifyApi.TrackObjectFull[] = [];
+    const tracksResponse = await spClient.getAlbumTracks(params.albumId);
+    const trackIds = tracksResponse.body.items.map((track) => track.id);
+    const trackObjects = await spClient.getTracks(trackIds);
+    tracks.push(...trackObjects.body.tracks);
+    return tracks;
   }
 }

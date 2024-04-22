@@ -23,8 +23,8 @@ const config = {
   },
 };
 
-let sentryConfig
-let millionConfig
+let sentryConfig;
+let millionConfig;
 
 if (process.env.SENTRY) {
   sentryConfig = withSentryConfig(
