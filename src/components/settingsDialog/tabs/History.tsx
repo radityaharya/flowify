@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import useSWR from "swr";
 import useStore from "~/app/states/store";
 import {
-  ColumnDef,
-  SortingState,
+  type ColumnDef,
+  type SortingState,
   flexRender,
   getCoreRowModel,
   getPaginationRowModel,
@@ -24,6 +24,7 @@ import { Button } from "~/components/ui/button";
 import "@tanstack/react-table";
 import { Badge } from "~/components/ui/badge";
 import { ArrowUpDown, MoreHorizontal } from "lucide-react";
+import { fetcher } from "@/app/utils/fetcher";
 
 type HistoryResponseItem = {
   id: string;
@@ -169,19 +170,9 @@ function DataTable<TData, TValue>({
   );
 }
 
-const fetcher = async (url) => {
-  const res = await fetch(url as string);
-  if (!res.ok) {
-    const error = {
-      status: res.status,
-      info: "An error occurred while fetching the data.",
-    };
-    const json = await res.json();
-    error.info = json.error;
-    throw error;
-  }
+const getData = async (url) => {
+  const data = (await fetcher(url as string)) as HistoryResponse;
 
-  const data = (await res.json()) as HistoryResponse;
   const runs = data.runs.map((run) => ({
     ...run,
     startedAt: run.startedAt ? new Date(run.startedAt).toLocaleString() : "N/A",
@@ -209,7 +200,7 @@ const History = () => {
     mutate,
   } = useSWR<any[] | undefined>(
     flowState ? `/api/workflow/${flowState.id}/history` : null,
-    fetcher,
+    getData,
   );
 
   const isLoading = isSWRLoading || isRefreshing;

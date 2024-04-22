@@ -89,8 +89,11 @@ interface WorkflowObject {
 interface WorkflowResponse {
   id?: string;
   name: string;
-  workflow?: WorkflowObject;
+  workflow: WorkflowObject;
   cron?: string;
+  createdAt: number;
+  lastRunAt?: number;
+  modifiedAt?: number;
 }
 
 interface QueueResponse {

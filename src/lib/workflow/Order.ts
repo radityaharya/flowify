@@ -52,7 +52,7 @@ export default class Order extends Base {
         }
       }, obj);
     }
-    
+
     if (Array.isArray(tracks)) {
       log.info("Sorting by", [params.sortKey, params.sortOrder]);
       const sortKey = params.sortKey || "popularity";

@@ -25,7 +25,6 @@ import { Button } from "~/components/ui/button";
 import "@tanstack/react-table";
 import { Badge } from "~/components/ui/badge";
 import { ArrowUpDown, ChevronsUpDown, MoreHorizontal } from "lucide-react";
-import { type API } from "~/types/workflows";
 import {
   Card,
   CardContent,
@@ -47,6 +46,7 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { fetcher } from "@/app/utils/fetcher";
 
 type WorkflowsTableColumn = {
   name: string;
@@ -58,9 +58,7 @@ type WorkflowsTableColumn = {
   cron: string;
 };
 
-function getTargets(
-  operations: API.WorkflowResponse["workflow"]["operations"],
-) {
+function getTargets(operations: WorkflowResponse["workflow"]["operations"]) {
   const targets = operations.filter((operation) => {
     return operation.type.startsWith("Library.saveAs"); //TODO: Find a better way to filter
   });
@@ -211,7 +209,7 @@ const columns: ColumnDef<WorkflowsTableColumn>[] = [
     },
     accessorKey: "workflow.name",
     cell: ({ row, getValue }) => {
-      const name = getValue() as API.WorkflowResponse["workflow"]["name"];
+      const name = getValue() as WorkflowResponse["workflow"]["name"];
       const id = (row.original as any).id;
       return (
         <div className="font-medium">
@@ -224,7 +222,7 @@ const columns: ColumnDef<WorkflowsTableColumn>[] = [
     accessorKey: "workflow.sources",
     header: "Sources",
     cell: ({ row, getValue }) => {
-      const sources = getValue() as API.WorkflowResponse["workflow"]["sources"];
+      const sources = getValue() as WorkflowResponse["workflow"]["sources"];
       return <ColapsiblePlaylists sources={sources} />;
     },
     meta: {
@@ -236,7 +234,7 @@ const columns: ColumnDef<WorkflowsTableColumn>[] = [
     header: "Targets", //TODO: temp
     cell: ({ row, getValue }) => {
       const operations =
-        getValue() as API.WorkflowResponse["workflow"]["operations"];
+        getValue() as WorkflowResponse["workflow"]["operations"];
       const targets = getTargets(operations);
       return <ColapsiblePlaylists sources={targets} />;
     },
@@ -248,7 +246,7 @@ const columns: ColumnDef<WorkflowsTableColumn>[] = [
     header: "Created",
     accessorKey: "createdAt",
     cell: ({ row, getValue }) => {
-      const createdAt = getValue() as API.WorkflowResponse["createdAt"];
+      const createdAt = getValue() as WorkflowResponse["createdAt"];
       return relativeDate(createdAt);
     },
   },
@@ -256,7 +254,7 @@ const columns: ColumnDef<WorkflowsTableColumn>[] = [
     header: "Last Run",
     accessorKey: "lastRunAt",
     cell: ({ row, getValue }) => {
-      const lastRunAt = getValue() as API.WorkflowResponse["lastRunAt"];
+      const lastRunAt = getValue() as WorkflowResponse["lastRunAt"];
       return lastRunAt ? relativeDate(lastRunAt) : "Never";
     },
   },
@@ -264,7 +262,7 @@ const columns: ColumnDef<WorkflowsTableColumn>[] = [
     header: "Modified",
     accessorKey: "modifiedAt",
     cell: ({ row, getValue }) => {
-      const modifiedAt = getValue() as API.WorkflowResponse["modifiedAt"];
+      const modifiedAt = getValue() as WorkflowResponse["modifiedAt"];
       return modifiedAt ? relativeDate(modifiedAt) : "N/A";
     },
   },
@@ -361,30 +359,10 @@ function DataTable<TData, TValue>({
   );
 }
 
-const fetcher = async (url) => {
-  const res = await fetch(url as string);
-  if (!res.ok) {
-    const error = {
-      status: res.status,
-      info: "An error occurred while fetching the data.",
-    };
-    const json = await res.json();
-    error.info = json.error;
-    throw error;
-  }
-
-  const data = (await res.json()) as API.WorkflowResponse[];
-  return data;
-};
-
 type WorkflowTableProps = {
-  workflows?: API.WorkflowResponse[];
+  workflows?: WorkflowResponse[];
 };
 export function WorkflowTable({ workflows }: WorkflowTableProps) {
-  const { session } = useStore((state) => ({
-    session: state.session,
-  }));
-
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const {

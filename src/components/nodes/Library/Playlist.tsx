@@ -114,10 +114,13 @@ function PlaylistComponent({ id, data }: PlaylistProps) {
     updateNodeData,
   } = useBasicNodeState(id, formSchema);
 
-  const { session, userPlaylists } = useStore((state) => ({
-    session: state.session,
-    userPlaylists: state.userPlaylists,
-  }));
+  const { session, userPlaylists, setUserPlaylistsStore } = useStore(
+    (state) => ({
+      session: state.session,
+      userPlaylists: state.userPlaylists,
+      setUserPlaylistsStore: state.setUserPlaylists,
+    }),
+  );
 
   React.useEffect(() => {
     if (data) {
@@ -152,7 +155,7 @@ function PlaylistComponent({ id, data }: PlaylistProps) {
             `/api/user/${session.user.providerAccountId}/playlists?q=${search}`,
           );
           const data = await response.json();
-          useStore.setState({ userPlaylists: data });
+          setUserPlaylistsStore(data as any[]);
         } catch (err) {
           console.error(err);
         }
@@ -165,7 +168,7 @@ function PlaylistComponent({ id, data }: PlaylistProps) {
           `/api/user/${session.user.providerAccountId}/playlists`,
         );
         const data = await response.json();
-        useStore.setState({ userPlaylists: data });
+        setUserPlaylistsStore(data as any[]);
       } catch (err) {
         console.error(err);
       }

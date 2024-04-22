@@ -20,6 +20,8 @@ import { toast } from "sonner";
 import useSWR from "swr";
 
 import { useRouter } from "next/navigation";
+import { useWorkflowData } from "~/hooks/useWorkflowData";
+import { fetcher } from "@/app/utils/fetcher";
 
 function Builder({
   params,
@@ -44,8 +46,8 @@ function Builder({
     setNodes,
     setEdges,
     setSessionStore,
-    sessionStore,
     setUserPlaylists,
+    sessionStore,
     setFlowState,
     reactFlowInstance,
   } = useStore((state) => ({
@@ -53,44 +55,16 @@ function Builder({
     setEdges: state.setEdges,
     setSessionStore: state.setSession,
     sessionStore: state.session,
-    setUserPlaylists: state.setUserPlaylists,
     setFlowState: state.setFlowState,
+    setUserPlaylists: state.setUserPlaylists,
     reactFlowInstance: state.reactFlowInstance,
   }));
-
-  const fetcher = async (url) => {
-    const res = await fetch(url as string);
-    if (!res.ok) {
-      const error = {
-        status: res.status,
-        info: "An error occurred while fetching the data.",
-      };
-      const json = await res.json();
-      error.info = json.error;
-      throw error;
-    }
-
-    return res.json();
-  };
 
   const {
     data: workflowData,
     error: workflowError,
     isLoading: workflowIsLoading,
-  } = useSWR(flowId ? `/api/workflow/${flowId}` : null, fetcher) as {
-    data: {
-      id: string;
-      workflow?: WorkflowObject;
-      userId: string;
-      createdAt: string;
-      cron?: string;
-    };
-    error: {
-      status: number;
-      info: string;
-    };
-    isLoading: boolean;
-  };
+  } = useWorkflowData(flowId);
 
   useEffect(() => {
     if (workflowData === undefined && workflowError !== undefined) {
@@ -179,7 +153,7 @@ function Builder({
           </ResizablePanel>
           <ResizableHandle withHandle />
           <ResizablePanel defaultSize={80}>
-            {workflowIsLoading && sessionStore === null ? (
+            {workflowIsLoading || sessionStore === null ? (
               <div className="flex h-full items-center justify-center">
                 <LoadingSVG />
                 <div className="ml-2">Loading...</div>
