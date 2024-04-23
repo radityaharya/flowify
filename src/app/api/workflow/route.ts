@@ -9,7 +9,7 @@ import {
   storeWorkflowJob,
   updateWorkflowJob,
   workflowExists,
-} from "./workflowQueue";
+} from "@lib/workflow/utils/workflowQueue";
 
 const log = new Logger("/api/workflow");
 

@@ -2,6 +2,8 @@
 "use client";
 
 import { Handle, Position } from "@xyflow/react";
+import NodeHandle from "../Primitives/NodeHandle";
+
 import React from "react";
 
 import {
@@ -82,12 +84,12 @@ const PlaylistComponent: React.FC<PlaylistProps> = React.memo(
         status={formState!.isValid ? "success" : "error"}
         info="Get a list of the songs saved in your ‘Your Music’ library."
       >
-        <Handle
+        <NodeHandle
           type="source"
           position={Position.Right}
           style={{ background: "#555" }}
         />
-        <Handle
+        <NodeHandle
           type="target"
           position={Position.Left}
           style={{ background: "#555" }}

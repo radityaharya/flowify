@@ -181,6 +181,41 @@ function Sidebar() {
               />
             </AccordionContent>
           </AccordionItem>
+          <AccordionItem value="item-5">
+            <AccordionTrigger>Selectors</AccordionTrigger>
+            <AccordionContent className="flex flex-col gap-2">
+              <DragableNode
+                nodeType="Selector.first"
+                title="First"
+                description="Selects the first item from the input"
+                type="Selector"
+              />
+              <DragableNode
+                nodeType="Selector.last"
+                title="Last"
+                description="Selects the last item from the input"
+                type="Selector"
+              />
+              <DragableNode
+                nodeType="Selector.allButFirst"
+                title="All But First"
+                description="Selects all but the first item from the input"
+                type="Selector"
+              />
+              <DragableNode
+                nodeType="Selector.allButlast"
+                title="All But Last"
+                description="Selects all but the last item from the input"
+                type="Selector"
+              />
+              <DragableNode
+                nodeType="Selector.recommend"
+                title="Recommend"
+                description="Get a list of recommended tracks based on the input." 
+                type="Selector"
+              />
+            </AccordionContent>
+          </AccordionItem>
         </Accordion>
       </div>
     </aside>

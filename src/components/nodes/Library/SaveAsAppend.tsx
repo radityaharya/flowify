@@ -3,6 +3,7 @@
 
 import { Handle, Position, useHandleConnections } from "@xyflow/react";
 import React from "react";
+import NodeHandle from "../Primitives/NodeHandle";
 
 import { ChevronsUpDown } from "lucide-react";
 
@@ -33,6 +34,8 @@ import * as z from "zod";
 
 import { Form, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import Debug from "../Primitives/Debug";
+import useBasicNodeState from "~/hooks/useBasicNodeState";
+import {PlaylistItem as PlaylistItemPrimitive} from "../Primitives/PlaylistItem"
 
 type PlaylistProps = {
   id: string;
@@ -66,22 +69,7 @@ const PlaylistItem = ({
     value={playlist.playlistId}
     onSelect={onSelect}
   >
-    <div className="flex items-center gap-2">
-      <Image
-        className="h-8 w-8 rounded-sm"
-        src={playlist.image ?? "/images/spotify.png"}
-        alt=""
-        width={32}
-        height={32}
-        unoptimized
-      />
-      <div className="flex flex-col">
-        <span className="font-medium text-sm">{playlist.name}</span>
-        <span className="text-gray-400 text-xs">
-          {playlist.owner} - {playlist.total} tracks
-        </span>
-      </div>
-    </div>
+    <PlaylistItemPrimitive playlist={playlist} />
   </CommandItem>
 );
 
@@ -90,46 +78,25 @@ function SaveAsReplaceComponent({ id, data }: PlaylistProps) {
   const [selectedPlaylist, setSelectedPlaylist] = React.useState<Playlist>({});
   const [search, setSearch] = React.useState("");
 
-  const { session, updateNodeData, userPlaylists, nodes } = useStore(
+  const { session, userPlaylists, nodes } = useStore(
     (state) => ({
       session: state.session,
-      updateNodeData: state.updateNodeData,
       userPlaylists: state.userPlaylists,
       nodes: state.nodes,
     }),
   );
 
-  const form = useForm({
-    resolver: zodResolver(formSchema),
-    mode: "all",
-    shouldUnregister: false,
-  });
-  const { formState, register } = form;
-
-  const TargetConnections = useHandleConnections({
-    type: "target",
-  });
-  const SourceConnections = useHandleConnections({
-    type: "source",
-  });
-
-  const watch = form.watch();
-  const prevWatchRef = React.useRef(watch);
-  const prevSelectedPlaylistRef = React.useRef(selectedPlaylist);
-
-  React.useEffect(() => {
-    if (
-      JSON.stringify(prevWatchRef.current) !== JSON.stringify(watch) ||
-      JSON.stringify(prevSelectedPlaylistRef.current) !==
-        JSON.stringify(selectedPlaylist)
-    ) {
-      updateNodeData(id, {
-        id: watch.playlistId,
-      });
-    }
-    prevWatchRef.current = watch;
-    prevSelectedPlaylistRef.current = selectedPlaylist;
-  }, [watch, selectedPlaylist, id, updateNodeData]);
+  const {
+    state,
+    isValid,
+    targetConnections,
+    sourceConnections,
+    form,
+    formState,
+    register,
+    getNodeData,
+    updateNodeData,
+  } = useBasicNodeState(id, formSchema);
 
   React.useEffect(() => {
     const userPlaylists = async () => {
@@ -154,14 +121,10 @@ function SaveAsReplaceComponent({ id, data }: PlaylistProps) {
       });
   }, [session]);
 
-  function getNodeData(id: string) {
-    const node = nodes.find((node) => node.id === id);
-    return node?.data;
-  }
 
   const handleSelect = (playlist) => {
     console.info("handle select", playlist);
-    form.setValue("playlistId", playlist.playlistId, {
+    form!.setValue("playlistId", playlist.playlistId, {
       shouldValidate: true,
     });
     console.info("data after update", getNodeData(id));
@@ -174,24 +137,24 @@ function SaveAsReplaceComponent({ id, data }: PlaylistProps) {
       title={`Save as Replace`}
       id={id}
       type="Library"
-      status={formState.isValid ? "success" : "error"}
+      status={formState!.isValid ? "success" : "error"}
       info="Replace all tracks in a playlist with new tracks."
     >
-      <Handle
+      <NodeHandle
         type="source"
         position={Position.Right}
         style={{ background: "#555" }}
       />
-      <Handle
+      <NodeHandle
         type="target"
         position={Position.Left}
         style={{ background: "#555" }}
       />
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit((data) => console.info(data))}>
+      <Form {...form!}>
+        <form onSubmit={form!.handleSubmit((data) => console.info(data))}>
           <div className="flex flex-col gap-4">
             <FormField
-              control={form.control}
+              control={form!.control}
               name="playlistId"
               render={({ field, formState }) => (
                 <FormItem className="flex flex-col">
@@ -291,9 +254,9 @@ function SaveAsReplaceComponent({ id, data }: PlaylistProps) {
       </Form>
       <Debug
         id={id}
-        isValid={formState.isValid}
-        TargetConnections={TargetConnections}
-        SourceConnections={SourceConnections}
+        isValid={formState!.isValid}
+        TargetConnections={targetConnections}
+        SourceConnections={sourceConnections}
       />
     </CardWithHeader>
   );

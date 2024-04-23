@@ -6,7 +6,6 @@ import { Handle, Position } from "@xyflow/react";
 import NodeHandle from "../Primitives/NodeHandle";
 
 import React from "react";
-import { Separator } from "~/components/ui/separator";
 import useBasicNodeState from "~/hooks/useBasicNodeState";
 import { CardWithHeader } from "../Primitives/Card";
 import Debug from "../Primitives/Debug";
@@ -17,17 +16,17 @@ type PlaylistProps = {
   data: any;
 };
 
-const AlternateComponent: React.FC<PlaylistProps> = ({ id, data }) => {
+const AllButLastComponent: React.FC<PlaylistProps> = React.memo(({ id, data }) => {
   const { state, isValid, targetConnections, sourceConnections } =
     useBasicNodeState(id);
 
   return (
     <CardWithHeader
-      title={`Push`}
+      title={`All But Last`}
       id={id}
-      type="Combiner"
+      type="Selector"
       status={isValid === null ? "loading" : isValid ? "success" : "error"}
-      info="Appends source tracks"
+      info="Selects the All elements from the given sources array except the last element"
     >
       <NodeHandle
         type="source"
@@ -40,8 +39,7 @@ const AlternateComponent: React.FC<PlaylistProps> = ({ id, data }) => {
         style={{ background: "#555" }}
       />
       <div className="flex flex-col gap-4">
-        <SourceList state={state} isValid={isValid} operationType="Combining" />
-        <Separator />
+        <SourceList state={state} isValid={isValid} operationType="Selecting" />
         <Debug
           id={id}
           isValid={isValid}
@@ -51,6 +49,6 @@ const AlternateComponent: React.FC<PlaylistProps> = ({ id, data }) => {
       </div>
     </CardWithHeader>
   );
-};
+});
 
-export default AlternateComponent;
+export default AllButLastComponent;

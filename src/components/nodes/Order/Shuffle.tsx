@@ -3,6 +3,8 @@
 "use client";
 
 import { Handle, Position } from "@xyflow/react";
+import NodeHandle from "../Primitives/NodeHandle";
+
 import React from "react";
 
 import useBasicNodeState from "~/hooks/useBasicNodeState";
@@ -27,12 +29,12 @@ const DedupeArtistsComponent: React.FC<PlaylistProps> = React.memo(
         status={isValid === null ? "loading" : isValid ? "success" : "error"}
         info="Randomly shuffle the order of tracks"
       >
-        <Handle
+        <NodeHandle
           type="source"
           position={Position.Right}
           style={{ background: "#555" }}
         />
-        <Handle
+        <NodeHandle
           type="target"
           position={Position.Left}
           style={{ background: "#555" }}

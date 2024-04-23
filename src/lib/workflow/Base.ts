@@ -177,7 +177,7 @@ export class Base {
           if (track.track && track.track.type === "track") {
             tracks.push(track.track as SpotifyApi.TrackObjectFull);
           } else if (track.track && track.type === "track") {
-            throw new Error("Invalid source type");
+            tracks.push(track as SpotifyApi.TrackObjectFull);
           }
         }
       } else if (
@@ -190,11 +190,12 @@ export class Base {
           } else if (track.track && track.type === "track") {
             tracks.push(track as SpotifyApi.TrackObjectFull);
           } else {
-            throw new Error("Invalid source type");
+            // log.error("ERROR1", track);
+            tracks.push(track as SpotifyApi.TrackObjectFull);
           }
         }
       } else {
-        console.error("ERROR", trackSource);
+        log.error("ERROR2", trackSource);
         throw new Error("Invalid source type");
       }
     }

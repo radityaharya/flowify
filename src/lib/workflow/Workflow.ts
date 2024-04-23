@@ -9,6 +9,7 @@ import Library from "./Library";
 import Order from "./Order";
 import Playlist from "./Playlist";
 import Utility from "./Utility";
+import Selector from "./Selector";
 
 import { Logger } from "../log";
 
@@ -71,6 +72,18 @@ export const operationParamsTypesMap = {
     limit: { type: "number" },
     offset: { type: "number" },
   },
+  "Selector.first": {
+    count: { type: "number" },
+  },
+  "Selector.last": {
+    count: { type: "number" },
+  },
+  "Selector.allButFirst": {},
+  "Selector.allButLast": {},
+  "Selector.recommend":{
+    seedType: { type: "string"},
+    count: { type: "number"},
+  }
 } as Record<string, Record<string, { type: string; required?: boolean }>>;
 
 import type { Workflow } from "./types/base";
@@ -82,6 +95,7 @@ export const operations: Workflow.Operations = {
   Order,
   Playlist,
   Library,
+  Selector
 };
 export class Runner extends Base {
   /**

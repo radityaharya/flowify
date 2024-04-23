@@ -2,6 +2,8 @@
 "use client";
 
 import { Handle, Position } from "@xyflow/react";
+import NodeHandle from "../Primitives/NodeHandle";
+
 import React from "react";
 
 import { ChevronsUpDown } from "lucide-react";
@@ -41,7 +43,7 @@ import * as z from "zod";
 import { Form, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import useBasicNodeState from "~/hooks/useBasicNodeState";
 import Debug from "../Primitives/Debug";
-
+import {PlaylistItem as PlaylistItemPrimitive} from "../Primitives/PlaylistItem"
 type PlaylistProps = {
   id: string;
   // TODO type on playlist
@@ -77,22 +79,7 @@ const PlaylistItem = ({
     value={playlist.playlistId}
     onSelect={onSelect}
   >
-    <div className="flex items-center gap-2">
-      <Image
-        className="h-8 w-8 rounded-sm"
-        src={playlist.image ?? "/images/spotify.png"}
-        alt=""
-        width={32}
-        height={32}
-        unoptimized
-      />
-      <div className="flex flex-col">
-        <span className="font-medium text-sm">{playlist.name}</span>
-        <span className="text-gray-400 text-xs">
-          {playlist.owner} - {playlist.total} tracks
-        </span>
-      </div>
-    </div>
+    <PlaylistItemPrimitive playlist={playlist} />
   </CommandItem>
 );
 
@@ -209,12 +196,12 @@ function PlaylistComponent({ id, data }: PlaylistProps) {
       status={formState!.isValid ? "success" : "error"}
       info="Get a list of the songs in a playlist."
     >
-      <Handle
+      <NodeHandle
         type="source"
         position={Position.Right}
         style={{ background: "#555" }}
       />
-      <Handle
+      <NodeHandle
         type="target"
         position={Position.Left}
         style={{ background: "#555" }}

@@ -26,7 +26,7 @@ export default class Selector extends Base {
     const tracks = Selector.getTracks(sources);
 
     if (Array.isArray(tracks)) {
-      return tracks.slice(0, params.count);
+      return tracks.slice(0, params.count || 1);
     } else {
       throw new Error(`Invalid source type: ${typeof tracks}`);
     }
@@ -52,7 +52,7 @@ export default class Selector extends Base {
     const tracks = Selector.getTracks(sources);
 
     if (Array.isArray(tracks)) {
-      return tracks.slice(tracks.length - params.count);
+      return tracks.slice(tracks.length - params.count || 1);
     } else {
       throw new Error(`Invalid source type: ${typeof tracks}`);
     }
@@ -68,11 +68,7 @@ export default class Selector extends Base {
    * @returns An array of tracks excluding the first track.
    * @throws Error if the source type is invalid.
    */
-  static allButFirst(
-    _spClient: SpotifyWebApi,
-    sources: any[],
-    _params: { count: number },
-  ) {
+  static allButFirst(_spClient: SpotifyWebApi, sources: any[], _params: {}) {
     log.info("All But First Selection...");
     log.debug("All But First Sources:", sources);
 
@@ -95,11 +91,7 @@ export default class Selector extends Base {
    * @returns An array containing all but the last element from the sources array.
    * @throws An error if the source type is invalid.
    */
-  static allButLast(
-    _spClient: SpotifyWebApi,
-    sources: any[],
-    _params: { count: number },
-  ) {
+  static allButLast(_spClient: SpotifyWebApi, sources: any[], _params: {}) {
     log.info("All But Last Selection...");
     log.debug("All But Last Sources:", sources);
 
@@ -153,11 +145,13 @@ export default class Selector extends Base {
   static recommend(
     spClient: SpotifyWebApi,
     sources: any[],
-    params: { count: number; seedType: "tracks" | "artists" },
+    params: { count: number; seedType: "tracks" | "artists" } = {
+      count: 20,
+      seedType: "tracks",
+    },
   ) {
     log.info("Recommendation...");
     log.debug("Recommendation Sources:", sources);
-
     const tracks = Selector.getTracks(sources);
 
     const seedTracks = new Array<SpotifyApi.TrackObjectFull>();
@@ -179,11 +173,12 @@ export default class Selector extends Base {
       (track) => track.artists[0]!.id,
     );
     if (Array.isArray(seedTracks)) {
-      return spClient.getRecommendations({
+      const rec =  spClient.getRecommendations({
         seed_tracks: params.seedType === "tracks" ? seedTrackIds : undefined,
         seed_artists: params.seedType === "artists" ? seedArtists : undefined,
         limit: params.count,
       });
+      return rec.then((res) => res.body);
     } else {
       throw new Error(`Invalid source type: ${typeof seedTracks}`);
     }

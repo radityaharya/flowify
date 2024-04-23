@@ -1,5 +1,5 @@
-import Image from "next/image";
 import { AlertComponent } from "./Alert";
+import { PlaylistItem as PlaylistItemPrimitive } from "../Primitives/PlaylistItem";
 
 export function SourceList({
   state,
@@ -12,7 +12,7 @@ export function SourceList({
 }) {
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col font-medium text-sm">
+      <div className="flex flex-col text-sm font-medium">
         {state.playlistIds.length === 0 ? (
           <AlertComponent
             variant="destructive"
@@ -24,7 +24,7 @@ export function SourceList({
             <span>
               {operationType} {state.playlistIds.length} playlists
             </span>
-            <span className="font-normal text-xs opacity-80">
+            <span className="text-xs font-normal opacity-80">
               Total of {state.summary.total} tracks
             </span>
           </div>
@@ -40,24 +40,7 @@ export function SourceList({
         {state.playlists
           ? state.playlists?.map((playlist) =>
               playlist && isValid ? (
-                <div className="flex items-center gap-2" key={playlist.id}>
-                  <Image
-                    className="h-8 w-8 rounded-sm"
-                    src={playlist.image}
-                    alt=""
-                    width={32}
-                    height={32}
-                    unoptimized
-                  />
-                  <div className="flex w-[160px] flex-col items-start">
-                    <div className="max-w-full overflow-hidden overflow-ellipsis whitespace-nowrap font-medium text-sm">
-                      {playlist.name}
-                    </div>
-                    <div className="text-xs opacity-80">
-                      {playlist.owner} - {playlist.total} tracks
-                    </div>
-                  </div>
-                </div>
+                <PlaylistItemPrimitive key={playlist.id} playlist={playlist} />
               ) : null,
             )
           : "No playlists found"}

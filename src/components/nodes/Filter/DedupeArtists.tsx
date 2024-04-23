@@ -3,6 +3,8 @@
 "use client";
 
 import { Handle, Position } from "@xyflow/react";
+import NodeHandle from "../Primitives/NodeHandle";
+
 import React from "react";
 import useBasicNodeState from "~/hooks/useBasicNodeState";
 import { CardWithHeader } from "../Primitives/Card";
@@ -27,7 +29,7 @@ const DedupeArtistsComponent: React.FC<PlaylistProps> = React.memo(
         status={isValid === null ? "loading" : isValid ? "success" : "error"}
         info="Remove duplicate artists from multiple playlists"
       >
-        <Handle
+        <NodeHandle
           type="source"
           position={Position.Right}
           style={{
@@ -37,7 +39,7 @@ const DedupeArtistsComponent: React.FC<PlaylistProps> = React.memo(
             border: "1px solid #555",
           }}
         />
-        <Handle
+        <NodeHandle
           type="target"
           position={Position.Left}
           style={{

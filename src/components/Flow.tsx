@@ -1,7 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 "use client";
 
-import { Background, Controls, Panel, ReactFlow } from "@xyflow/react";
+import {
+  Background,
+  Controls,
+  Panel,
+  ReactFlow,
+  getOutgoers,
+} from "@xyflow/react";
 import { useCallback, useRef } from "react";
 
 import useStore from "~/app/states/store";
@@ -26,6 +32,12 @@ import RemoveMatch from "./nodes/Filter/RemoveMatch";
 import Shuffle from "./nodes/Order/Shuffle";
 import Sort from "./nodes/Order/Sort";
 
+import AllButFirst from "./nodes/Selectors/AllButFirst";
+import AllButLast from "./nodes/Selectors/AllButLast";
+import First from "./nodes/Selectors/First";
+import Last from "./nodes/Selectors/Last";
+import Recommend from "./nodes/Selectors/Recommend";
+
 import { Button } from "@/components/ui/button";
 import { PlayIcon, SaveIcon, Settings as SettingsIcon } from "lucide-react";
 import { SettingsDialog } from "./settingsDialog/Settings";
@@ -36,6 +48,7 @@ import { saveWorkflow } from "~/app/utils/saveWorkflow";
 
 import { useRouter } from "next/navigation";
 import { runWorkflow } from "~/app/utils/runWorkflow";
+import { toast } from "sonner";
 
 const nodeTypes = {
   "Combiner.alternate": Alternate,
@@ -54,6 +67,12 @@ const nodeTypes = {
 
   "Order.shuffle": Shuffle,
   "Order.sort": Sort,
+
+  "Selector.allButFirst": AllButFirst,
+  "Selector.allButLast": AllButLast,
+  "Selector.first": First,
+  "Selector.last": Last,
+  "Selector.recommend": Recommend,
 };
 export default function App() {
   const reactFlowWrapper = useRef(null);
@@ -64,6 +83,8 @@ export default function App() {
     onEdgesChange,
     addEdge,
     addNode,
+    getEdges,
+    getNodes,
     onNodesDelete,
     flowState,
     reactFlowInstance,
@@ -76,6 +97,8 @@ export default function App() {
       onEdgesChange: state.onEdgesChange,
       addEdge: state.addEdge,
       addNode: state.addNode,
+      getEdges: state.getEdges,
+      getNodes: state.getNodes,
       onNodesDelete: state.onNodesDelete,
       flowState: state.flowState,
       reactFlowInstance: state.reactFlowInstance,
@@ -115,8 +138,56 @@ export default function App() {
       };
 
       addNode(newNode);
+
+      // check for dropped spotify links
+      // const text = event.dataTransfer.getData("text");
+      // if (text) {
+      //   const url = new URL(text);
+      //   if (url.hostname === "open.spotify.com") {
+      //     const path = url.pathname.split("/");
+      //     if (path[1] === "playlist") {
+      //       addNode({
+      //         nodeType: "Source.playlist",
+      //         position: reactFlowInstance!.screenToFlowPosition({
+      //           x: event.clientX,
+      //           y: event.clientY,
+      //         }),
+      //         data: {
+      //           playlistId: path[2],
+      //         },
+      //       });
+      //     }
+      //   }
+      // }
     },
     [reactFlowInstance, addNode],
+  );
+
+  const isValidConnection = useCallback(
+    (connection) => {
+      const nodes = getNodes();
+      const edges = getEdges();
+
+      const target = nodes.find((node) => node.id === connection.target);
+      const hasCycle = (node, visited = new Set()) => {
+        if (visited.has(node.id)) return false;
+
+        visited.add(node.id);
+
+        for (const outgoer of getOutgoers(node, nodes, edges)) {
+          if (outgoer.id === connection.source) return true;
+          if (hasCycle(outgoer, visited)) return true;
+        }
+      };
+
+      if (hasCycle(target)) {
+        toast.error("You can't create a cycle");
+      }
+
+      if (target?.id === connection.source) return false;
+      return !hasCycle(target);
+    },
+    [getNodes, getEdges],
   );
 
   async function handleRun() {
@@ -149,6 +220,7 @@ export default function App() {
           onDrop={onDrop}
           onDragOver={onDragOver}
           onNodesDelete={onNodesDelete}
+          isValidConnection={isValidConnection}
           fitView
           snapToGrid={true}
           nodeTypes={nodeTypes}

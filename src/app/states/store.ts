@@ -20,6 +20,15 @@ import { v4 as uuidv4 } from "uuid";
 type RFState = {
   nodes: Node[];
   edges: Edge[];
+  reactFlowInstance?: ReactFlowInstance;
+  flowState: {
+    id?: string | null;
+    name: string;
+    description: string;
+    workflow?: WorkflowObject;
+    cron?: string;
+  };
+
   onNodesChange: OnNodesChange;
   onEdgesChange: OnEdgesChange;
   onConnect: OnConnect;
@@ -29,6 +38,11 @@ type RFState = {
   addEdge: (data: any) => void;
   updateNodeData: (id: string, data: any) => void;
   onNodesDelete: (deleted: Node[]) => void;
+
+  getNode: (id: string) => Node | undefined;
+  getEdge: (id: string) => Edge | undefined;
+  getNodes: () => Node[];
+  getEdges: () => Edge[];
 
   userPlaylists: any[];
   setUserPlaylists: (playlists: any[]) => void;
@@ -49,14 +63,6 @@ type RFState = {
       type: string;
     } | null,
   ) => void;
-
-  flowState: {
-    id?: string | null;
-    name: string;
-    description: string;
-    workflow?: WorkflowObject;
-    cron?: string;
-  };
   setFlowState: (flowState: {
     id?: string | null;
     name: string;
@@ -64,7 +70,6 @@ type RFState = {
     workflow?: WorkflowObject;
     cron?: string;
   }) => void;
-  reactFlowInstance?: ReactFlowInstance;
   setReactFlowInstance: (instance: ReactFlowInstance) => void;
   resetReactFlow: () => void;
 };
@@ -72,6 +77,13 @@ type RFState = {
 const useStore = create<RFState>((set, get) => ({
   nodes: [],
   edges: [],
+  flowState: {
+    id: undefined,
+    name: "",
+    description: "",
+    workflow: undefined,
+  },
+  reactFlowInstance: undefined,
   setNodes: (nodes) => {
     console.info("setNodes", nodes);
     set({
@@ -163,6 +175,45 @@ const useStore = create<RFState>((set, get) => ({
     });
   },
 
+  getNode: (id: string) => {
+    return get().nodes.find((node) => node.id === id);
+  },
+  getEdge: (id: string) => {
+    return get().edges.find((edge) => edge.id === id);
+  },
+  getNodes: () => {
+    return get().nodes;
+  },
+  getEdges: () => {
+    return get().edges;
+  },
+
+  setFlowState: (flowState) => {
+    set({
+      flowState: flowState,
+    });
+  },
+  setReactFlowInstance: (instance) => {
+    set({
+      reactFlowInstance: instance,
+    });
+  },
+  resetReactFlow: () => {
+    set({
+      nodes: [],
+      edges: [],
+      flowState: {
+        id: undefined,
+        name: "",
+        description: "",
+        workflow: undefined,
+      },
+    });
+
+    get().reactFlowInstance?.fitView();
+    get().reactFlowInstance?.zoomTo(1);
+  },
+
   // user playlists
   userPlaylists: [],
   setUserPlaylists: (playlists) => {
@@ -196,38 +247,6 @@ const useStore = create<RFState>((set, get) => ({
     });
   },
 
-  flowState: {
-    id: undefined,
-    name: "",
-    description: "",
-    workflow: undefined,
-  },
-  setFlowState: (flowState) => {
-    set({
-      flowState: flowState,
-    });
-  },
-  reactFlowInstance: undefined,
-  setReactFlowInstance: (instance) => {
-    set({
-      reactFlowInstance: instance,
-    });
-  },
-  resetReactFlow: () => {
-    set({
-      nodes: [],
-      edges: [],
-      flowState: {
-        id: undefined,
-        name: "",
-        description: "",
-        workflow: undefined,
-      },
-    });
-
-    get().reactFlowInstance?.fitView();
-    get().reactFlowInstance?.zoomTo(1);
-  },
 }));
 
 export default useStore;

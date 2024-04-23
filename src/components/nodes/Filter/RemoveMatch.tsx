@@ -2,6 +2,8 @@
 "use client";
 
 import { Handle, Position } from "@xyflow/react";
+import NodeHandle from "../Primitives/NodeHandle";
+
 import React from "react";
 
 import { InfoIcon } from "lucide-react";
@@ -110,12 +112,12 @@ const RemoveMatch: React.FC<PlaylistProps> = React.memo(({ id, data }) => {
       status={nodeValid ? "success" : "error"}
       info="Get a list of the songs in a playlist."
     >
-      <Handle
+      <NodeHandle
         type="source"
         position={Position.Right}
         style={{ background: "#555" }}
       />
-      <Handle
+      <NodeHandle
         type="target"
         position={Position.Left}
         style={{ background: "#555" }}
