@@ -3,7 +3,6 @@ import {
   type NextRequest,
   NextResponse,
 } from "next/server";
-import { env } from "~/env";
 import { Logger } from "~/lib/log";
 
 const logger = new Logger("middleware:userApi");
@@ -30,7 +29,6 @@ export const withUserApi = (
 ) => {
   return async (request: NextRequest, _next: NextFetchEvent) => {
     const { pathname, search } = request.nextUrl;
-
     if (matchPaths.some((path) => pathname.startsWith(path))) {
       logger.debug("Match!");
 
@@ -64,7 +62,7 @@ export const withUserApi = (
           const userId = session.user.providerAccountId as string;
           const url = new URL(
             pathname.replace("@me", encodeURIComponent(userId)) + search,
-            env.NEXTAUTH_URL,
+            process.env.NEXTAUTH_URL,
           );
           logger.debug(`REWRITE: ${url.href}`);
           return NextResponse.rewrite(url);
