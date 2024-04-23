@@ -13,7 +13,7 @@ export class Base {
 
   constructor(
     public accessToken: AccessToken,
-    spClient?: SpotifyWebApi,
+    _spClient?: SpotifyWebApi,
   ) {
     this.spClient = new SpotifyWebApi({
       clientId: env.SPOTIFY_CLIENT_ID,
@@ -69,7 +69,6 @@ export class Base {
             if (error.statusCode === 429) {
               retryAfter = error.headers["retry-after"];
               log.warn(`Rate limited. Retrying after ${retryAfter} seconds.`);
-              continue;
             } else {
               throw error;
             }
@@ -116,7 +115,6 @@ export class Base {
             if (error.statusCode === 429) {
               retryAfter = error.headers["retry-after"];
               log.warn(`Rate limited. Retrying after ${retryAfter} seconds.`);
-              continue;
             } else {
               throw error;
             }
@@ -142,7 +140,7 @@ export class Base {
   ): obj is SpotifyApi.PlaylistTrackObject[] {
     return (
       Array.isArray(obj) &&
-      obj.every((item: any) => this.isPlaylistTrackObject(item))
+      obj.every((item: any) => Base.isPlaylistTrackObject(item))
     );
   }
 
@@ -165,7 +163,7 @@ export class Base {
         trackSource = source.items;
       } else if (
         source.hasOwnProperty("track") &&
-        typeof source.track != "object"
+        typeof source.track !== "object"
       ) {
         trackSource = source.track ? [source.track] : [];
       } else if (Array.isArray(source)) {
@@ -184,7 +182,7 @@ export class Base {
         }
       } else if (
         Array.isArray(trackSource) &&
-        typeof trackSource[0] == "object"
+        typeof trackSource[0] === "object"
       ) {
         for (const track of trackSource) {
           if (track.track && track.track.type === "track") {

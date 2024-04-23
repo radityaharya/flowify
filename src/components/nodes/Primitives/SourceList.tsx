@@ -1,5 +1,5 @@
-import { AlertComponent } from "./Alert";
 import Image from "next/image";
+import { AlertComponent } from "./Alert";
 
 export function SourceList({
   state,
@@ -12,7 +12,7 @@ export function SourceList({
 }) {
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col text-sm font-medium">
+      <div className="flex flex-col font-medium text-sm">
         {state.playlistIds.length === 0 ? (
           <AlertComponent
             variant="destructive"
@@ -24,7 +24,7 @@ export function SourceList({
             <span>
               {operationType} {state.playlistIds.length} playlists
             </span>
-            <span className="text-xs font-normal opacity-80">
+            <span className="font-normal text-xs opacity-80">
               Total of {state.summary.total} tracks
             </span>
           </div>
@@ -50,7 +50,7 @@ export function SourceList({
                     unoptimized
                   />
                   <div className="flex w-[160px] flex-col items-start">
-                    <div className="max-w-full overflow-hidden overflow-ellipsis whitespace-nowrap text-sm font-medium">
+                    <div className="max-w-full overflow-hidden overflow-ellipsis whitespace-nowrap font-medium text-sm">
                       {playlist.name}
                     </div>
                     <div className="text-xs opacity-80">

@@ -3,13 +3,12 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
 import { Base } from "./Base";
-import type { AccessToken } from "./Base";
-import Filter from "./Filter";
 import Combiner from "./Combiner";
-import Utility from "./Utility";
+import Filter from "./Filter";
+import Library from "./Library";
 import Order from "./Order";
 import Playlist from "./Playlist";
-import Library from "./Library";
+import Utility from "./Utility";
 
 import { Logger } from "../log";
 
@@ -85,10 +84,6 @@ export const operations: Workflow.Operations = {
   Library,
 };
 export class Runner extends Base {
-  constructor(accessToken: AccessToken) {
-    super(accessToken);
-  }
-
   /**
    * Fetches the source values for a given workflow.
    *
@@ -138,7 +133,7 @@ export class Runner extends Base {
       let retryAfter = 0;
       let maxRetries = 5;
 
-      while (true && maxRetries > 0) {
+      while (maxRetries > 0) {
         try {
           log.debug("Getting playlist tracks", {
             id: source.params?.playlistId ?? "",
@@ -366,7 +361,7 @@ export class Runner extends Base {
     log.info("Validating workflow...");
 
     // let timeoutOccurred = false;
-    const timeout = new Promise<[boolean, string[]]>((resolve, reject) =>
+    const timeout = new Promise<[boolean, string[]]>((_resolve, reject) =>
       setTimeout(() => {
         // timeoutOccurred = true;
         reject(new Error(`Validation timed out after ${5000 / 1000} seconds`));
@@ -381,10 +376,12 @@ export class Runner extends Base {
         const errors = [] as string[];
 
         if (
-          !workflow.sources ||
-          !workflow.operations ||
-          !Array.isArray(workflow.sources) ||
-          !Array.isArray(workflow.operations)
+          !(
+            workflow.sources &&
+            workflow.operations &&
+            Array.isArray(workflow.sources) &&
+            Array.isArray(workflow.operations)
+          )
         ) {
           errors.push(
             "Workflow must have 'sources' and 'operations' properties.",
@@ -431,7 +428,9 @@ export class Runner extends Base {
           const operationType = operation.type;
           if (!operationParamsTypesMap.hasOwnProperty(operationType)) {
             errors.push(
-              `Invalid operation type: ${operationType} in operation: ${JSON.stringify(operation)}`,
+              `Invalid operation type: ${operationType} in operation: ${JSON.stringify(
+                operation,
+              )}`,
             );
           } else {
             const [className, methodName] = operationType.split(".") as [
@@ -444,7 +443,9 @@ export class Runner extends Base {
               typeof operationClass[methodName] !== "function"
             ) {
               errors.push(
-                `Invalid operation type: ${operationType} in operation: ${JSON.stringify(operation)}`,
+                `Invalid operation type: ${operationType} in operation: ${JSON.stringify(
+                  operation,
+                )}`,
               );
             }
           }
@@ -464,9 +465,11 @@ export class Runner extends Base {
               }
               if (paramType.type === "string[]") {
                 if (
-                  !Array.isArray(operation.params[param]) ||
-                  !operation.params[param].every(
-                    (item: any) => typeof item === "string",
+                  !(
+                    Array.isArray(operation.params[param]) &&
+                    operation.params[param].every(
+                      (item: any) => typeof item === "string",
+                    )
                   )
                 ) {
                   throw new Error(
@@ -479,9 +482,11 @@ export class Runner extends Base {
                 }
               } else if (paramType.type === "number[]") {
                 if (
-                  !Array.isArray(operation.params[param]) ||
-                  !operation.params[param].every(
-                    (item: any) => typeof item === "number",
+                  !(
+                    Array.isArray(operation.params[param]) &&
+                    operation.params[param].every(
+                      (item: any) => typeof item === "number",
+                    )
                   )
                 ) {
                   throw new Error(
@@ -492,6 +497,7 @@ export class Runner extends Base {
                     ]}`,
                   );
                 }
+                // biome-ignore lint/suspicious/useValidTypeof: <explanation>
               } else if (typeof operation.params[param] !== paramType.type) {
                 throw new Error(
                   `Invalid param type: ${param} in operation: ${JSON.stringify(
@@ -516,7 +522,7 @@ export class Runner extends Base {
           // Validate operation sources
           if (operation.sources) {
             for (const source of operation.sources) {
-              if (!sourceIds.has(source) && !operationIds.has(source)) {
+              if (!(sourceIds.has(source) || operationIds.has(source))) {
                 errors.push(
                   `Invalid source: ${source} in operation: ${JSON.stringify(
                     operation,
@@ -531,10 +537,12 @@ export class Runner extends Base {
           }
 
           if (
-            !operation.id ||
-            !operation.type ||
-            !operation.params ||
-            !operation.sources
+            !(
+              operation.id &&
+              operation.type &&
+              operation.params &&
+              operation.sources
+            )
           ) {
             const missing = [] as string[];
             if (!operation.id) missing.push("id");
@@ -551,7 +559,7 @@ export class Runner extends Base {
 
         // Validate sources
         for (const source of workflow.sources) {
-          if (!source.id || !source.type || !source.params) {
+          if (!(source.id && source.type && source.params)) {
             errors.push(`Invalid source structure: ${JSON.stringify(source)}`);
           }
         }
@@ -589,6 +597,7 @@ export class Runner extends Base {
       }, timeoutAfter),
     );
 
+    // biome-ignore lint/suspicious/noAsyncPromiseExecutor: <explanation>
     const workflowPromise = new Promise(async (resolve, reject) => {
       try {
         const sortedOperations = this.sortOperations(workflow);

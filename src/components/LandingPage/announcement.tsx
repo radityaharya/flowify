@@ -1,13 +1,12 @@
 import Link from "next/link";
 
 import { Separator } from "@/components/ui/separator";
-import { ArrowRightIcon } from "lucide-react";
 
 export function Announcement() {
   return (
     <Link
       href="#"
-      className="inline-flex items-center rounded-lg bg-muted px-3 py-1 text-sm font-medium"
+      className="inline-flex items-center rounded-lg bg-muted px-3 py-1 font-medium text-sm"
     >
       ⚠️
       <Separator className="mx-2 h-4" orientation="vertical" />{" "}

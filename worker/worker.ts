@@ -137,7 +137,7 @@ Starting worker ${WORKER_ID} with concurrency ${CONCURRENCY}
 `);
   await reportInit();
   const workers = await allWorkers();
-  console.log(workers);
+  console.info(workers);
 }
 
 process.on("SIGTERM", () => {

@@ -1,6 +1,6 @@
+import { cn } from "@/lib/utils";
 import Balance from "react-wrap-balancer";
 import GradientBackground from "../animatedBackground/GradientsBackground";
-import { cn } from "@/lib/utils";
 
 function PageHeader({
   className,
@@ -8,17 +8,17 @@ function PageHeader({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <section className="mx-auto flex flex-col items-center gap-2 py-12 md:pb-8 lg:py-24 lg:pb-20">
+    <section className="mx-auto flex flex-col items-center gap-2 py-12 lg:py-24 lg:pb-20 md:pb-8">
       <div
         className={cn(
-          "z-[2] mx-auto flex max-w-[980px] flex-col items-center gap-4 py-12 md:pb-8 lg:py-24 lg:pb-20",
+          "z-[2] mx-auto flex max-w-[980px] flex-col items-center gap-4 py-12 lg:py-24 lg:pb-20 md:pb-8",
           className,
         )}
         {...props}
       >
         {children}
       </div>
-      <div className="absolute left-0 top-0 z-[1] h-full w-full bg-background opacity-70" />
+      <div className="absolute top-0 left-0 z-[1] h-full w-full bg-background opacity-70" />
       <GradientBackground />
     </section>
   );
@@ -31,7 +31,7 @@ function PageHeaderHeading({
   return (
     <h1
       className={cn(
-        "text-center text-3xl font-bold leading-tight tracking-tighter md:text-6xl lg:leading-[1.1]",
+        "text-center font-bold text-3xl leading-tight tracking-tighter md:text-6xl lg:leading-[1.1]",
         className,
       )}
       {...props}

@@ -16,7 +16,7 @@ export async function saveWorkflow(workflow: WorkflowResponse) {
     });
   toast.promise(promise, {
     loading: "Saving workflow...",
-    success: (data) => {
+    success: (_data) => {
       return `${workflow.name} saved successfully`;
     },
     error: "Error saving workflow",

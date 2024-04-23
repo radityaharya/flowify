@@ -1,15 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import React from "react";
-import Draggable from "react-draggable";
-
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import useStore from "@/app/states/store";
 import {
   Tooltip,
   TooltipContent,
@@ -17,7 +6,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { GripVertical, InfoIcon } from "lucide-react";
-import useStore from "@/app/states/store";
 import { useShallow } from "zustand/react/shallow";
 
 type DragableNodeProps = {
@@ -38,7 +26,7 @@ export const DragableNode = ({
   };
 
   const { nodes, addNode, addEdge } = useStore(
-    useShallow((state) => ({
+    useShallow((state: any) => ({
       nodes: state.nodes,
       addNode: state.addNode,
       addEdge: state.addEdge,
@@ -70,16 +58,17 @@ export const DragableNode = ({
   return (
     <TooltipProvider>
       <Tooltip>
-        <div className="h-min-content group w-full">
+        <div className="group h-min-content w-full">
           <div
             className="flex w-full flex-row items-center justify-between gap-2 rounded-md p-2 dark:bg-accent"
             onDragStart={onDragStart}
             onClick={onClick}
+            onKeyDown={onClick}
             draggable
           >
             <div className="flex flex-row gap-2">
               {/* <span className="text-sm font-medium">{type} :</span> */}
-              <span className="flex flex-row gap-2 text-sm font-medium">
+              <span className="flex flex-row gap-2 font-medium text-sm">
                 <TooltipTrigger className="hidden w-0 group-hover:block group-hover:w-min">
                   <InfoIcon size={12} />
                 </TooltipTrigger>

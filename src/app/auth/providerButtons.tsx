@@ -1,9 +1,9 @@
 "use client";
 
 import { getProviders, signIn, useSession } from "next-auth/react";
+import { redirect } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "~/components/ui/button";
-import { redirect } from "next/navigation";
 
 type Provider = {
   id: string;
@@ -94,9 +94,9 @@ export default function ProviderButtons() {
 
   useEffect(() => {
     if (status === "authenticated") {
-      redirect("/");
+      redirect("/workflows");
     }
-  }, [session]);
+  }, [status]);
 
   useEffect(() => {
     async function getprov() {

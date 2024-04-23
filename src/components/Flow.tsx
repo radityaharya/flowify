@@ -2,7 +2,7 @@
 "use client";
 
 import { Background, Controls, Panel, ReactFlow } from "@xyflow/react";
-import React, { useCallback, useRef } from "react";
+import { useCallback, useRef } from "react";
 
 import useStore from "~/app/states/store";
 
@@ -116,7 +116,7 @@ export default function App() {
 
       addNode(newNode);
     },
-    [reactFlowInstance],
+    [reactFlowInstance, addNode],
   );
 
   async function handleRun() {
@@ -124,7 +124,7 @@ export default function App() {
       nodes,
       edges,
     });
-    const runResponse = await runWorkflow(workflowResponse);
+    const _runResponse = await runWorkflow(workflowResponse);
   }
 
   async function handleSave() {
@@ -191,10 +191,10 @@ export default function App() {
             </div>
           </Panel>
           <Panel position="top-left" className="pt-20">
-            <p className="text-lg font-medium drop-shadow-lg">
+            <p className="font-medium text-lg drop-shadow-lg">
               {flowState.name}
             </p>
-            <p className="text-xs font-medium opacity-80">
+            <p className="font-medium text-xs opacity-80">
               {" "}
               {flowState.description}
             </p>

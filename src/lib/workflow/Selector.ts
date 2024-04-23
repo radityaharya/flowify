@@ -1,9 +1,8 @@
+import type SpotifyWebApi from "spotify-web-api-node";
+import { Logger } from "../log";
 /* eslint-disable @typescript-eslint/ban-types */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Base } from "./Base";
-import type { AccessToken } from "./Base";
-import { Logger } from "../log";
-import type SpotifyWebApi from "spotify-web-api-node";
 
 const log = new Logger("Workflow");
 export default class Selector extends Base {
@@ -17,14 +16,14 @@ export default class Selector extends Base {
    * @throws Error if the source type is invalid.
    */
   static first(
-    spClient: SpotifyWebApi,
+    _spClient: SpotifyWebApi,
     sources: any[],
     params: { count: number },
   ) {
     log.info("First Selection...");
     log.debug("First Sources:", sources);
 
-    const tracks = this.getTracks(sources);
+    const tracks = Selector.getTracks(sources);
 
     if (Array.isArray(tracks)) {
       return tracks.slice(0, params.count);
@@ -43,14 +42,14 @@ export default class Selector extends Base {
    * @throws Error if the source type is invalid.
    */
   static last(
-    spClient: SpotifyWebApi,
+    _spClient: SpotifyWebApi,
     sources: any[],
     params: { count: number },
   ) {
     log.info("Last Selection...");
     log.debug("Last Sources:", sources);
 
-    const tracks = this.getTracks(sources);
+    const tracks = Selector.getTracks(sources);
 
     if (Array.isArray(tracks)) {
       return tracks.slice(tracks.length - params.count);
@@ -70,14 +69,14 @@ export default class Selector extends Base {
    * @throws Error if the source type is invalid.
    */
   static allButFirst(
-    spClient: SpotifyWebApi,
+    _spClient: SpotifyWebApi,
     sources: any[],
-    params: { count: number },
+    _params: { count: number },
   ) {
     log.info("All But First Selection...");
     log.debug("All But First Sources:", sources);
 
-    const tracks = this.getTracks(sources);
+    const tracks = Selector.getTracks(sources);
 
     if (Array.isArray(tracks)) {
       return tracks.slice(1);
@@ -97,14 +96,14 @@ export default class Selector extends Base {
    * @throws An error if the source type is invalid.
    */
   static allButLast(
-    spClient: SpotifyWebApi,
+    _spClient: SpotifyWebApi,
     sources: any[],
-    params: { count: number },
+    _params: { count: number },
   ) {
     log.info("All But Last Selection...");
     log.debug("All But Last Sources:", sources);
 
-    const tracks = this.getTracks(sources);
+    const tracks = Selector.getTracks(sources);
 
     if (Array.isArray(tracks)) {
       return tracks.slice(0, tracks.length - 1);
@@ -121,14 +120,14 @@ export default class Selector extends Base {
    * @param params.count - The number of elements to select.
    */
   static random(
-    spClient: SpotifyWebApi,
+    _spClient: SpotifyWebApi,
     sources: any[],
     params: { count: number },
   ) {
     log.info("Random Selection...");
     log.debug("Random Sources:", sources);
 
-    const tracks = this.getTracks(sources);
+    const tracks = Selector.getTracks(sources);
 
     if (Array.isArray(tracks)) {
       const res = new Set();
@@ -159,7 +158,7 @@ export default class Selector extends Base {
     log.info("Recommendation...");
     log.debug("Recommendation Sources:", sources);
 
-    const tracks = this.getTracks(sources);
+    const tracks = Selector.getTracks(sources);
 
     const seedTracks = new Array<SpotifyApi.TrackObjectFull>();
 

@@ -1,16 +1,16 @@
-import React, { useState } from "react";
-import useSWR from "swr";
-import useStore from "~/app/states/store";
 import {
   type ColumnDef,
   type SortingState,
   flexRender,
   getCoreRowModel,
-  getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+import React, { useState } from "react";
+import useSWR from "swr";
+import useStore from "~/app/states/store";
 
+import { fetcher } from "@/app/utils/fetcher";
 import {
   Table,
   TableBody,
@@ -19,12 +19,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Skeleton } from "~/components/ui/skeleton";
-import { Button } from "~/components/ui/button";
 import "@tanstack/react-table";
+import { ArrowUpDown } from "lucide-react";
 import { Badge } from "~/components/ui/badge";
-import { ArrowUpDown, MoreHorizontal } from "lucide-react";
-import { fetcher } from "@/app/utils/fetcher";
+import { Button } from "~/components/ui/button";
+import { Skeleton } from "~/components/ui/skeleton";
 
 type HistoryResponseItem = {
   id: string;
@@ -137,7 +136,7 @@ function DataTable<TData, TValue>({
           {isLoading ? (
             [...Array(10)].map((_, index) => (
               <TableRow key={index}>
-                {columns.map((column, columnIndex) => (
+                {columns.map((_column, columnIndex) => (
                   <TableCell key={columnIndex}>
                     <Skeleton className="h-[20px] w-[100px] rounded-full" />
                   </TableCell>
@@ -214,7 +213,7 @@ const History = () => {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h2 className="mb-2 text-xl font-semibold leading-none tracking-tight">
+        <h2 className="mb-2 font-semibold text-xl leading-none tracking-tight">
           History
         </h2>
         <Button onClick={refreshData}>Refresh</Button>

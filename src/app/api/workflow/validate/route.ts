@@ -1,9 +1,9 @@
-import { NextResponse, type NextRequest } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/server/auth";
-import { getAccessTokenFromUserId } from "~/server/db/helper";
-import { Runner } from "~/lib/workflow/Workflow";
 import { Logger } from "@/lib/log";
+import { authOptions } from "@/server/auth";
+import { getServerSession } from "next-auth";
+import { type NextRequest, NextResponse } from "next/server";
+import { Runner } from "~/lib/workflow/Workflow";
+import { getAccessTokenFromUserId } from "~/server/db/helper";
 
 const log = new Logger("/api/workflow/validate");
 export async function POST(request: NextRequest) {
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
       let operationObj = {};
       try {
         operationObj = operation ? JSON.parse(operation) : undefined;
-      } catch (e) {
+      } catch (_e) {
         operationObj = operation;
       }
       return {

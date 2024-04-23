@@ -1,6 +1,5 @@
 import Link from "next/link";
 
-import { cn } from "@/lib/utils";
 import { Announcement } from "@/components/LandingPage/announcement";
 import {
   PageActions,
@@ -9,6 +8,7 @@ import {
   PageHeaderHeading,
 } from "@/components/LandingPage/page-header";
 import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { getServerSession } from "next-auth";
 import { authOptions } from "~/server/auth";
 
@@ -16,14 +16,12 @@ export default async function IndexPage() {
   const session = await getServerSession(authOptions);
 
   return (
-    <div className="relative">
+    <div className="relative h-[100dvh]">
       <PageHeader>
         <Announcement />
-        <PageHeaderHeading>Better Playlists, Faster.</PageHeaderHeading>
+        <PageHeaderHeading>Insert Cheesy Tagline Here</PageHeaderHeading>
         <PageHeaderDescription>
-          Craft Spotify Playlists with Ease: Unleash the Power of Flowify's
-          Intelligent Workflow Builder – Effortless, Innovative, and Open
-          Source.
+          Something something... make playlist
         </PageHeaderDescription>
         <PageActions>
           <Link

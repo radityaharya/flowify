@@ -8,6 +8,9 @@ const config = {
   experimental: {
     instrumentationHook: process.env.NO_WORKER ? false : true,
   },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   output: process.env.STANDALONE_OUTPUT ? "standalone" : undefined,
   images: {
     remotePatterns: [

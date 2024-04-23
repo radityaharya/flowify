@@ -1,8 +1,8 @@
-import { NextResponse, type NextRequest } from "next/server";
-import { getServerSession } from "next-auth";
+import { Logger } from "@/lib/log";
 import { authOptions } from "@/server/auth";
 import { db } from "@/server/db";
-import { Logger } from "@/lib/log";
+import { getServerSession } from "next-auth";
+import { type NextRequest, NextResponse } from "next/server";
 
 const log = new Logger("/api/workflow/[id]");
 

@@ -1,12 +1,12 @@
 import { Queue } from "bullmq";
 
+import { Logger } from "@/lib/log";
+import { eq } from "drizzle-orm";
 import Redis from "ioredis";
+import { v4 as uuidv4 } from "uuid";
 import { env } from "~/env";
 import { db } from "~/server/db";
 import { workflowJobs, workflowRuns } from "~/server/db/schema";
-import { v4 as uuidv4 } from "uuid";
-import { eq } from "drizzle-orm";
-import { Logger } from "@/lib/log";
 
 const log = new Logger("workflowQueue");
 
@@ -39,7 +39,7 @@ export async function storeWorkflowJob(userId: string, job: any) {
   return res;
 }
 
-export async function updateWorkflowJob(userId: string, job: any) {
+export async function updateWorkflowJob(_userId: string, job: any) {
   log.info("Updating workflow job", job.id);
   await db
     .update(workflowJobs)
@@ -165,24 +165,24 @@ export async function updateWorkflowRun(
 
 function compressReturnValues(returnValues: any) {
   returnValues.forEach((obj: any) => {
-    delete obj.track.audio_features;
-    delete obj.track.available_markets;
-    delete obj.album.release_date_precision;
-    delete obj.added_by;
-    delete obj.video_thumbnail;
-    delete obj.track.preview_url;
-    delete obj.track.external_ids;
-    delete obj.track.external_urls;
+    obj.track.audio_features = undefined;
+    obj.track.available_markets = undefined;
+    obj.album.release_date_precision = undefined;
+    obj.added_by = undefined;
+    obj.video_thumbnail = undefined;
+    obj.track.preview_url = undefined;
+    obj.track.external_ids = undefined;
+    obj.track.external_urls = undefined;
 
     obj.track.album.artists.forEach((artist: any) => {
-      delete artist.external_urls;
-      delete artist.href;
-      delete artist.uri;
+      artist.external_urls = undefined;
+      artist.href = undefined;
+      artist.uri = undefined;
     });
     obj.track.artists.forEach((artist: any) => {
-      delete artist.external_urls;
-      delete artist.href;
-      delete artist.uri;
+      artist.external_urls = undefined;
+      artist.href = undefined;
+      artist.uri = undefined;
     });
   });
   return returnValues;

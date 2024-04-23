@@ -1,9 +1,9 @@
 import "~/styles/globals.css";
 
-import { Inter } from "next/font/google";
-import NextAuthProvider from "~/providers/NextAuthProvider";
-import { SiteNav } from "~/components/main-nav";
 import { Toaster } from "@/components/ui/sonner";
+import { Inter } from "next/font/google";
+import { SiteNav } from "~/components/main-nav";
+import NextAuthProvider from "~/providers/NextAuthProvider";
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans",

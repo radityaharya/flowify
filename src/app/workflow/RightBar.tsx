@@ -1,38 +1,24 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
-import { Input } from "src/components/ui/input";
-import reactFlowToWorkflow from "@/app/utils/reactFlowToWorkflow";
-
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import useStore from "@/app/states/store";
-import { useShallow } from "zustand/react/shallow";
-
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { DragableNode } from "@/components/DragableNode";
-import { Button } from "@/components/ui/button";
-import { ClockIcon, InfoIcon, PlayIcon } from "lucide-react";
-import { Label } from "@/components/ui/label";
+import reactFlowToWorkflow from "@/app/utils/reactFlowToWorkflow";
 import {
   AlertDialog,
   AlertDialogAction,
-  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { ClockIcon, PlayIcon } from "lucide-react";
 import { useEffect, useState } from "react";
-import React from "react";
+import { Input } from "src/components/ui/input";
+import { useShallow } from "zustand/react/shallow";
 function RightBar() {
   const { session, nodes, edges, alert, setAlertStore } = useStore(
     useShallow((state) => ({
@@ -50,7 +36,7 @@ function RightBar() {
     event.dataTransfer.dropEffect = "move";
   };
 
-  const onDrop = (event) => {
+  const onDrop = (_event) => {
     return;
   };
 
@@ -59,8 +45,8 @@ function RightBar() {
     const blob = new Blob([JSON.stringify(workflow)], {
       type: "application/json",
     });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
+    const _url = URL.createObjectURL(blob);
+    const _link = document.createElement("a");
     // link.download = "workflow.json";
     // link.href = url;
     // link.click();
@@ -120,10 +106,8 @@ function RightBar() {
               <AlertDialogTitle>{alert?.title}</AlertDialogTitle>
               <AlertDialogDescription>
                 {alert?.message.split("\n").map((line, index) => (
-                  <code>
-                    <p key={index} className={index === 0 ? "font-medium" : ""}>
-                      {line}
-                    </p>
+                  <code key={index}>
+                    <p className={index === 0 ? "font-medium" : ""}>{line}</p>
                   </code>
                 ))}
               </AlertDialogDescription>

@@ -13,8 +13,10 @@
     "dev": "next dev",
     "dev:turbo": "next dev --turbo",
     "bun:dev": "bun --bun next dev",
-    "lint": "next lint",
-    "format": "prettier --write .",
+    "lint": "biome lint . --diagnostic-level=error",
+    "lint:next": "next lint",
+    "format": "biome format --changed --write .",
+    "check": "biome check --apply ./src",
     "start": "next start",
     "start:worker": "dotenv -e .env bun ./worker/worker.ts",
     "dev:worker": "bun run --watch ./worker/worker.ts"
@@ -80,6 +82,7 @@
     "zustand": "^4.5.2"
   },
   "devDependencies": {
+    "@biomejs/biome": "1.7.1",
     "@next/eslint-plugin-next": "^14.2.2",
     "@types/eslint": "^8.56.9",
     "@types/node": "^20.12.7",

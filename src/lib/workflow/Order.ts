@@ -1,11 +1,9 @@
+import type SpotifyWebApi from "spotify-web-api-node";
+import { Logger } from "../log";
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/ban-types */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Base } from "./Base";
-import _ from "radash";
-import type { AccessToken } from "./Base";
-import { Logger } from "../log";
-import type SpotifyWebApi from "spotify-web-api-node";
 
 const log = new Logger("Order");
 export default class Order extends Base {
@@ -16,18 +14,19 @@ export default class Order extends Base {
    * @returns an array of sorted Operation objects.
    */
   static sort(
-    spClient: SpotifyWebApi,
+    _spClient: SpotifyWebApi,
     sources: any[],
     params: { sortKey: string; sortOrder: string },
   ) {
     log.info("Sorting...");
     log.debug("Sort Sources:", sources);
 
-    const tracks = this.getTracks(sources);
+    const tracks = Order.getTracks(sources);
 
     function getOrderKey(obj, path) {
       return path.split(".").reduce((o, i) => {
         let indexMatch;
+        // biome-ignore lint/suspicious/noAssignInExpressions: <explanation>
         if ((indexMatch = i.match(/^(\w+)\[(\d+)\]$/))) {
           // Handle array access
           const propName = indexMatch[1];
@@ -69,11 +68,11 @@ export default class Order extends Base {
     return [];
   }
 
-  static shuffle(spClient: SpotifyWebApi, sources: any[], params: {}) {
+  static shuffle(_spClient: SpotifyWebApi, sources: any[], _params: {}) {
     log.info("Shuffling...");
     log.debug("Shuffle Sources:", sources);
 
-    const tracks = this.getTracks(sources);
+    const tracks = Order.getTracks(sources);
 
     if (Array.isArray(tracks)) {
       return tracks.sort(() => Math.random() - 0.5);

@@ -1,17 +1,10 @@
 "use client";
-import React, { useState } from "react";
-import useSWR from "swr";
-import useStore from "~/app/states/store";
+import { fetcher } from "@/app/utils/fetcher";
 import {
-  type ColumnDef,
-  type SortingState,
-  flexRender,
-  getCoreRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-import Image from "next/image";
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import {
   Table,
   TableBody,
@@ -20,18 +13,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Skeleton } from "~/components/ui/skeleton";
-import { Button } from "~/components/ui/button";
-import "@tanstack/react-table";
-import { Badge } from "~/components/ui/badge";
-import { ArrowUpDown, ChevronsUpDown, MoreHorizontal } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "~/components/ui/card";
 import {
   Tooltip,
   TooltipContent,
@@ -39,14 +20,30 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+  type ColumnDef,
+  type SortingState,
+  flexRender,
+  getCoreRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import "@tanstack/react-table";
 import { formatDistanceToNow } from "date-fns";
-import { useRouter } from "next/navigation";
+import { ArrowUpDown, ChevronsUpDown } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
-import { fetcher } from "@/app/utils/fetcher";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import useSWR from "swr";
+import { Button } from "~/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "~/components/ui/card";
+import { Skeleton } from "~/components/ui/skeleton";
 
 type WorkflowsTableColumn = {
   name: string;
@@ -68,7 +65,7 @@ function getTargets(operations: WorkflowResponse["workflow"]["operations"]) {
 
 function relativeDate(date: number) {
   const dateObj = new Date(date);
-  if (isNaN(dateObj.getTime())) {
+  if (Number.isNaN(dateObj.getTime())) {
     return "Invalid date";
   }
   const relativeDate = formatDistanceToNow(dateObj, { addSuffix: true });
@@ -110,7 +107,7 @@ function PlaylistCard({ source }: PlaylistCardProps) {
         unoptimized
       />
       <div className="flex w-full flex-col items-start">
-        <div className="max-w-[160px] overflow-hidden overflow-ellipsis whitespace-nowrap text-sm font-medium">
+        <div className="max-w-[160px] overflow-hidden overflow-ellipsis whitespace-nowrap font-medium text-sm">
           {source.params.name}
         </div>
         <div className="text-xs opacity-80">
@@ -145,7 +142,7 @@ function PlaylistCardTrigger({ source, setIsOpen }) {
         unoptimized
       />
       <div className="flex w-full flex-col items-start">
-        <div className="max-w-full overflow-hidden overflow-ellipsis whitespace-nowrap text-sm font-medium">
+        <div className="max-w-full overflow-hidden overflow-ellipsis whitespace-nowrap font-medium text-sm">
           {source.params.name}
         </div>
         <div className="text-xs opacity-80">
@@ -178,14 +175,16 @@ function ColapsiblePlaylists({ sources }: { sources: any[] }) {
               params: {
                 image: sources[0].params.image,
                 name: `${sources[0].params.name} + ${sources.length - 1} more`,
-                owner: `${sources[0].params.owner} + ${sources.length - 1} more`,
+                owner: `${sources[0].params.owner} + ${
+                  sources.length - 1
+                } more`,
               },
             }}
             setIsOpen={setIsOpen}
           />
         </CollapsibleTrigger>
-        {sources.map((source, index) => (
-          <CollapsibleContent className="my-2" asChild>
+        {sources.map((source, _index) => (
+          <CollapsibleContent className="my-2" asChild key={source.id}>
             <PlaylistCard source={source} />
           </CollapsibleContent>
         ))}
@@ -297,7 +296,7 @@ function DataTable<TData, TValue>({
       sorting,
     },
   });
-  const router = useRouter();
+  const _router = useRouter();
 
   return (
     <Table>
@@ -322,8 +321,10 @@ function DataTable<TData, TValue>({
       <TableBody>
         {isLoading ? (
           [...Array(5)].map((_, index) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
             <TableRow key={index}>
               {columns.map((column, columnIndex) => (
+                // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
                 <TableCell key={columnIndex}>
                   {column.meta?.type === "playlist" ? (
                     <PlaylistCardSkeleton />

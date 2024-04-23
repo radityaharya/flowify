@@ -1,22 +1,21 @@
+import * as _ from "radash";
+import type SpotifyWebApi from "spotify-web-api-node";
+import { Logger } from "../log";
 /* eslint-disable @typescript-eslint/ban-types */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Base } from "./Base";
-import * as _ from "radash";
-import type { AccessToken } from "./Base";
-import { Logger } from "../log";
-import type SpotifyWebApi from "spotify-web-api-node";
 
 const log = new Logger("Workflow");
 export default class Filter extends Base {
   static filter(
-    spClient: SpotifyWebApi,
+    _spClient: SpotifyWebApi,
     sources: any[],
     params: { filterKey: string; filterValue: string },
   ) {
     log.info("Filtering...");
     log.debug("Filter Sources:", sources);
 
-    const tracks = this.getTracks(sources);
+    const tracks = Filter.getTracks(sources);
 
     if (Array.isArray(tracks)) {
       const res = tracks.filter((track: any) => {
@@ -31,10 +30,10 @@ export default class Filter extends Base {
           let type = "string";
           let filterValue: string | number | Date | boolean | object;
 
-          if (!isNaN(Number(value))) {
+          if (!Number.isNaN(Number(value))) {
             filterValue = Number(value);
             type = "number";
-          } else if (!isNaN(Date.parse(value))) {
+          } else if (!Number.isNaN(Date.parse(value))) {
             filterValue = new Date(value);
             type = "date";
           } else {
@@ -53,14 +52,15 @@ export default class Filter extends Base {
                 case "<=":
                   return trackValue <= filterValue;
                 case "==":
-                  return trackValue == filterValue;
+                  return trackValue === filterValue;
                 default:
                   throw new Error(`Invalid operator: ${operator}`);
               }
             case "string":
               return trackValue.includes(filterValue);
             case "boolean":
-              return trackValue == Boolean(filterValue);
+              return trackValue === Boolean(filterValue);
+            // biome-ignore lint/suspicious/noFallthroughSwitchClause: <explanation>
             case "object":
               if (filterValue instanceof Date) {
                 const trackDateValue = new Date(
@@ -76,7 +76,7 @@ export default class Filter extends Base {
                   case "<=":
                     return trackDateValue <= filterValue;
                   case "==":
-                    return trackDateValue.getTime() == filterValue.getTime();
+                    return trackDateValue.getTime() === filterValue.getTime();
                   default:
                     throw new Error(`Invalid operator: ${operator}`);
                 }
@@ -95,11 +95,11 @@ export default class Filter extends Base {
     }
   }
 
-  static dedupeTracks(spClient: SpotifyWebApi, sources: any[], params: {}) {
+  static dedupeTracks(_spClient: SpotifyWebApi, sources: any[], _params: {}) {
     log.info("Deduping tracks...");
     log.debug("DedupeTracks Sources:", sources);
 
-    const tracks = this.getTracks(sources);
+    const tracks = Filter.getTracks(sources);
 
     if (Array.isArray(tracks)) {
       return [...new Map(tracks.map((item) => [item.id, item])).values()];
@@ -107,10 +107,10 @@ export default class Filter extends Base {
     return [];
   }
 
-  static dedupeArtists(spClient: SpotifyWebApi, sources: any[], params: {}) {
+  static dedupeArtists(_spClient: SpotifyWebApi, sources: any[], _params: {}) {
     log.info("Deduping artists...");
     log.debug("DedupeArtists Sources:", sources);
-    const tracks = this.getTracks(sources);
+    const tracks = Filter.getTracks(sources);
 
     if (_.isArray(tracks)) {
       return _.unique(tracks, (track): string | number | symbol =>
@@ -121,14 +121,14 @@ export default class Filter extends Base {
   }
 
   static match(
-    spClient: SpotifyWebApi,
+    _spClient: SpotifyWebApi,
     sources: any[],
     params: { matchKey: string; matchValue: string },
   ) {
     log.info("Matching...");
     log.debug("Match Sources:", sources);
 
-    const tracks = this.getTracks(sources);
+    const tracks = Filter.getTracks(sources);
 
     if (Array.isArray(tracks)) {
       const res = tracks.filter((track: any) => {
@@ -143,10 +143,10 @@ export default class Filter extends Base {
           let type = "string";
           let matchValue: string | number | Date | boolean | object;
 
-          if (!isNaN(Number(value))) {
+          if (!Number.isNaN(Number(value))) {
             matchValue = Number(value);
             type = "number";
-          } else if (!isNaN(Date.parse(value))) {
+          } else if (!Number.isNaN(Date.parse(value))) {
             matchValue = new Date(value);
             type = "date";
           } else {
@@ -165,14 +165,15 @@ export default class Filter extends Base {
                 case "<=":
                   return trackValue <= matchValue;
                 case "==":
-                  return trackValue == matchValue;
+                  return trackValue === matchValue;
                 default:
                   throw new Error(`Invalid operator: ${operator}`);
               }
             case "string":
               return trackValue.includes(matchValue);
             case "boolean":
-              return trackValue == Boolean(matchValue);
+              return trackValue === Boolean(matchValue);
+            // biome-ignore lint/suspicious/noFallthroughSwitchClause: <explanation>
             case "object":
               if (matchValue instanceof Date) {
                 const trackDateValue = new Date(
@@ -188,7 +189,7 @@ export default class Filter extends Base {
                   case "<=":
                     return trackDateValue <= matchValue;
                   case "==":
-                    return trackDateValue.getTime() == matchValue.getTime();
+                    return trackDateValue.getTime() === matchValue.getTime();
                   default:
                     throw new Error(`Invalid operator: ${operator}`);
                 }
@@ -208,14 +209,14 @@ export default class Filter extends Base {
   }
 
   static limit(
-    spClient: SpotifyWebApi,
+    _spClient: SpotifyWebApi,
     sources: any[],
     params: { limit?: number },
   ) {
     log.info("Limiting...");
     log.debug("Limit Sources:", sources);
 
-    const tracks = this.getTracks(sources);
+    const tracks = Filter.getTracks(sources);
 
     if (Array.isArray(tracks)) {
       return tracks.slice(0, params.limit);

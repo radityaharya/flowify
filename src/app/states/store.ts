@@ -1,22 +1,19 @@
-import { create } from "zustand";
 import {
   type Connection,
   type Edge,
-  type EdgeChange,
   type Node,
-  type NodeChange,
-  addEdge,
-  type OnNodesChange,
-  type OnEdgesChange,
   type OnConnect,
-  applyNodeChanges,
+  type OnEdgesChange,
+  type OnNodesChange,
+  type ReactFlowInstance,
+  addEdge,
   applyEdgeChanges,
+  applyNodeChanges,
+  getConnectedEdges,
   getIncomers,
   getOutgoers,
-  getConnectedEdges,
-  type OnNodesDelete,
-  type ReactFlowInstance,
 } from "@xyflow/react";
+import { create } from "zustand";
 
 import { v4 as uuidv4 } from "uuid";
 
@@ -76,13 +73,13 @@ const useStore = create<RFState>((set, get) => ({
   nodes: [],
   edges: [],
   setNodes: (nodes) => {
-    console.log("setNodes", nodes);
+    console.info("setNodes", nodes);
     set({
       nodes: nodes,
     });
   },
   setEdges: (edges) => {
-    console.log("setEdges", edges);
+    console.info("setEdges", edges);
     edges.forEach((edge) => {
       edge.type = "smoothstep";
     });

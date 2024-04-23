@@ -44,14 +44,14 @@ export function CardWithHeader({
             "text-gray-500": status === "loading",
           })}
         />
-        <span className="text-sm font-medium">{type} :</span>
-        <span className="text-sm font-medium">{title}</span>
+        <span className="font-medium text-sm">{type} :</span>
+        <span className="font-medium text-sm">{title}</span>
       </div>
       {info && (
         <div className="flex flex-col gap-6 p-6 py-3">
           <div className="flex flex-row gap-2">
             <InfoIcon size={16} className="mt-[4px] min-w-4" />
-            <p className="text-sm font-medium opacity-80">{info}</p>
+            <p className="font-medium text-sm opacity-80">{info}</p>
           </div>
           <Separator />
         </div>

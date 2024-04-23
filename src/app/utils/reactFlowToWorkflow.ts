@@ -1,9 +1,9 @@
-/* eslint-disable @typescript-eslint/no-floating-promises */
-import useStore from "../states/store";
-import { type Node, type Edge } from "@xyflow/react";
-import { validateWorkflow } from "./validateWorkflow";
+import { type Edge, type Node } from "@xyflow/react";
 import { generate } from "random-words";
 import { toast } from "sonner";
+/* eslint-disable @typescript-eslint/no-floating-promises */
+import useStore from "../states/store";
+import { validateWorkflow } from "./validateWorkflow";
 
 type ReactFlowToWorkflowInput = {
   nodes: Node[];
@@ -17,18 +17,18 @@ function filterNodes(nodes) {
 function removeUnnecessaryData(nodes) {
   nodes.forEach((node) => {
     if (node.type === "Combiner.alternate") {
-      delete node.params.playlists;
-      delete node.params.playlistIds;
+      node.params.playlists = undefined;
+      node.params.playlistIds = undefined;
     }
   });
 }
 
 function addNodesToWorkflow(nodes, workflow) {
-  let hasSource = false;
+  let _hasSource = false;
 
   nodes.forEach((node) => {
     if (node.type!.startsWith("Source.")) {
-      hasSource = true;
+      _hasSource = true;
       workflow.sources.push({
         id: node.id,
         type: node.type!,
@@ -135,7 +135,7 @@ export default async function reactFlowToWorkflow({
     valid = false;
   }
 
-  console.log("workflow", workflowObject);
+  console.info("workflow", workflowObject);
 
   const workflowResponse: WorkflowResponse = {
     id: workflowObject.id,

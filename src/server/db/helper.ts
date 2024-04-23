@@ -1,7 +1,7 @@
-import { db } from ".";
-import { accounts } from "~/server/db/schema";
-import { env } from "~/env";
 import { eq } from "drizzle-orm";
+import { env } from "~/env";
+import { accounts } from "~/server/db/schema";
+import { db } from ".";
 
 async function getAccessToken(whereClause: any) {
   const user = await db.query.accounts.findFirst({ where: whereClause });

@@ -1,10 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import React from "react";
 import { Handle, Position } from "@xyflow/react";
-
-import { CardFooter } from "@/components/ui/card";
+import React from "react";
 
 import { Separator } from "~/components/ui/separator";
 
@@ -58,7 +56,7 @@ const saveAsNewComponent: React.FC<PlaylistProps> = React.memo(
         });
       }
       prevWatchRef.current = watch;
-    }, [watch]);
+    }, [id, watch, updateNodeData]);
 
     return (
       <CardWithHeader
@@ -74,7 +72,7 @@ const saveAsNewComponent: React.FC<PlaylistProps> = React.memo(
           style={{ background: "#555" }}
         />
         <Form {...form!}>
-          <form onSubmit={form!.handleSubmit((data) => console.log(data))}>
+          <form onSubmit={form!.handleSubmit((data) => console.info(data))}>
             <div className="flex flex-col gap-2">
               <InputPrimitive
                 control={form!.control}

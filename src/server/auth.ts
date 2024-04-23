@@ -1,16 +1,16 @@
+import { type TokenSet } from "@auth/core/types";
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
+import { and, eq } from "drizzle-orm";
 import {
-  getServerSession,
   type DefaultSession,
   type NextAuthOptions,
+  getServerSession,
 } from "next-auth";
 import SpotifyProvider from "next-auth/providers/spotify";
-import { type TokenSet } from "@auth/core/types";
 import { env } from "~/env";
 import { db } from "~/server/db";
 import { accounts } from "~/server/db/schema";
-import { eq, and } from "drizzle-orm";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -72,7 +72,7 @@ export const authOptions: NextAuthOptions = {
       // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
       if (spotify?.expires_at! * 1000 < Date.now()) {
         // If the access token has expired, try to refresh it
-        console.log("Refreshing access token for user", user.id);
+        console.info("Refreshing access token for user", user.id);
         try {
           const response = await fetch(
             "https://accounts.spotify.com/api/token",

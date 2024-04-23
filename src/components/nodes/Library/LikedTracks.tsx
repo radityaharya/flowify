@@ -53,7 +53,7 @@ const PlaylistComponent: React.FC<PlaylistProps> = React.memo(
           offset: data.offset,
         });
       }
-    }, [data]);
+    }, [data, form]);
 
     const watch = form!.watch();
     const session = useStore((state) => state.session);
@@ -72,7 +72,7 @@ const PlaylistComponent: React.FC<PlaylistProps> = React.memo(
         total: watch.limit ?? 50,
         owner: session.user.name,
       });
-    }, [watch.limit]);
+    }, [watch.limit, id, updateNodeData, session.user.name]);
 
     return (
       <CardWithHeader
@@ -93,7 +93,7 @@ const PlaylistComponent: React.FC<PlaylistProps> = React.memo(
           style={{ background: "#555" }}
         />
         <Form {...form!}>
-          <form onSubmit={form!.handleSubmit((data) => console.log(data))}>
+          <form onSubmit={form!.handleSubmit((data) => console.info(data))}>
             <div className="flex flex-col gap-4">
               <Accordion type="single" collapsible className="border-none">
                 <AccordionItem value="item-1">

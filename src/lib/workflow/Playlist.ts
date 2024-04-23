@@ -1,7 +1,6 @@
-import { Base } from "./Base";
-import type { AccessToken } from "./Base";
 import type SpotifyWebApi from "spotify-web-api-node";
 import { Logger } from "../log";
+import { Base } from "./Base";
 
 const log = new Logger("Playlist");
 type getTracksRecomendationParams = {
@@ -40,10 +39,6 @@ type getTracksRecomendationParams = {
 };
 
 export default class Playlist extends Base {
-  constructor(accessToken: AccessToken, spClient?: SpotifyWebApi) {
-    super(accessToken, spClient);
-  }
-
   /**
    * The function `getPlaylistTracks` retrieves the tracks of a playlist using the Spotify Web API.
    * @param {SpotifyWebApi} spClient - The `spClient` parameter is an instance of the `SpotifyWebApi`
@@ -85,7 +80,7 @@ export default class Playlist extends Base {
       throw new Error(`Limit cannot be greater than ${MAX_LIMIT}`);
     }
 
-    const tracks = this.getTracks(sources);
+    const tracks = Playlist.getTracks(sources);
 
     const options = { ...params } as getTracksRecomendationParams;
 
@@ -109,7 +104,7 @@ export default class Playlist extends Base {
 
   static async albumTracks(
     spClient: SpotifyWebApi,
-    sources: any[],
+    _sources: any[],
     params: {
       albumId: string;
     },

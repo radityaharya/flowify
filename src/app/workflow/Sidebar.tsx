@@ -1,37 +1,18 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
-
-import { Input } from "src/components/ui/input";
 import reactFlowToWorkflow from "@/app/utils/reactFlowToWorkflow";
 
+import useStore from "@/app/states/store";
+import { DragableNode } from "@/components/DragableNode";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import useStore from "@/app/states/store";
-import { useShallow } from "zustand/react/shallow";
-
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { DragableNode } from "@/components/DragableNode";
-import { Button } from "@/components/ui/button";
-import { InfoIcon, PlayIcon } from "lucide-react";
-
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { useEffect, useState } from "react";
 import React from "react";
+import { useShallow } from "zustand/react/shallow";
 function Sidebar() {
   const { session, nodes, edges, alert, setAlertStore } = useStore(
     useShallow((state) => ({
@@ -49,7 +30,7 @@ function Sidebar() {
     event.dataTransfer.dropEffect = "move";
   };
 
-  const onDrop = (event) => {
+  const onDrop = (_event) => {
     return;
   };
 
@@ -58,14 +39,14 @@ function Sidebar() {
     const blob = new Blob([JSON.stringify(workflow)], {
       type: "application/json",
     });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
+    const _url = URL.createObjectURL(blob);
+    const _link = document.createElement("a");
     // link.download = "workflow.json";
     // link.href = url;
     // link.click();
   }
 
-  const [openAlert, setOpenAlert] = useState(false);
+  const [_openAlert, setOpenAlert] = useState(false);
 
   useEffect(() => {
     if (alert) {
@@ -92,7 +73,7 @@ function Sidebar() {
         </div>
         <div className="flex flex-col gap-1 px-6">
           <h2 className="font-bold tracking-wider">Workflow Builder</h2>
-          <p className="flex flex-row gap-1 text-xs font-normal opacity-80">
+          <p className="flex flex-row gap-1 font-normal text-xs opacity-80">
             Drag and drop nodes to the canvas to create a workflow
           </p>
         </div>

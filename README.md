@@ -2,7 +2,7 @@
 
 ## Overview
 
-Flowify is a powerful workflow builder designed to simplify complex Spotify playlist generation. By Using [React Flow](https://reactflow.dev/) as the workflow builder, [bull-mq](https://github.com/taskforcesh/bullmq) for queuing, [shadcn/ui](https://ui.shadcn.com/) for components, [Drizzle](https://orm.drizzle.team/) as ORM, and [Planetscale](https://planetscale.com/) for the database.
+Flowify is a drag-and-drop environment for creating Spotify playlist generation workflows. With Flowify, you can create custom workflows to generate playlists based on your Spotify library, liked tracks, and recommendations. Flowify is built with [React Flow](https://reactflow.dev/) as the workflow builder, [bull-mq](https://github.com/taskforcesh/bullmq) for queuing, [shadcn/ui](https://ui.shadcn.com/) for components, [Drizzle](https://orm.drizzle.team/) as ORM
 
 Flowify is heavily inspired by [SmarterPlaylists](https://github.com/plamere/SmarterPlaylists) and [Goofy](https://github.com/Chimildic/goofy). Flowify aims to provide a modern and intuitive alternative to SmarterPlaylists, while also providing a more flexible and powerful alternative to Goofy.
 
@@ -84,7 +84,7 @@ To get started with Flowify, follow these steps:
    Start a Redis server. You can download and install Redis from the [official website](https://redis.io/). Alternatively, you can use a cloud service such as [Railway](https://docs.railway.app/guides/redis) or [Upstash](https://upstash.com/). Redis is used for queueing and caching.
 
 3. **Set Up Database:**
-   Create a database on [Planetscale](https://planetscale.com/) and create a connection string. You can find instructions on how to do this [here](https://planetscale.com/docs/tutorials/connect-nextjs-app#generate-a-connection-string).
+    Create a Postgres database and set the `DATABASE_URL` environment variable. You can use a local Postgres instance or a cloud service such as [Neon](https://neon.tech/). Flowify uses [Drizzle](https://orm.drizzle.team/) as the ORM.
 
 4. **Set Up Spotify API:**
    Create a Spotify developer account and create a new application. You can find instructions on how to do this [here](https://developer.spotify.com/documentation/web-api/concepts/apps). Keep the client ID and client secret handy.
@@ -92,17 +92,15 @@ To get started with Flowify, follow these steps:
 5. **Set Up Environment Variables:**
    Create a `.env` file in the root directory and add the following variables:
 
-   | Variable              | Description                      |
-   | --------------------- | -------------------------------- |
-   | DATABASE_URL          | Planetscale DB connection string |
-   | NEXTAUTH_SECRET       | NextAuth secret key              |
-   | NEXTAUTH_URL          | NextAuth application URL         |
-   | SPOTIFY_CLIENT_ID     | Spotify API client ID            |
-   | SPOTIFY_CLIENT_SECRET | Spotify API client secret        |
-   | REDIS_URL             | Redis connection URL             |
-   | IMGPROXY_KEY          | Imgproxy encryption key          |
-   | IMGPROXY_SALT         | Imgproxy encryption salt         |
-   | IMGPROXY_URL          | Imgproxy URL                     |
+   | Variable              | Description                        |
+   | --------------------- | -----------------------------------|
+   | DATABASE_URL          | Postgres connection string         |
+   | NEXTAUTH_SECRET       | NextAuth secret key                |
+   | NEXTAUTH_URL          | NextAuth application URL           |
+   | SPOTIFY_CLIENT_ID     | Spotify API client ID              |
+   | SPOTIFY_CLIENT_SECRET | Spotify API client secret          |
+   | REDIS_URL             | Redis connection URL               |
+   | NO_WORKER             | Disables built-in workflow runner  |
 
 6. **Push the schema to your database:**
 

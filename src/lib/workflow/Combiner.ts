@@ -1,15 +1,13 @@
+import type SpotifyWebApi from "spotify-web-api-node";
+import { Logger } from "../log";
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/ban-types */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Base } from "./Base";
-import _ from "radash";
-import type { AccessToken } from "./Base";
-import { Logger } from "../log";
-import type SpotifyWebApi from "spotify-web-api-node";
 
 const log = new Logger("Combiner");
 export default class Combiner extends Base {
-  static push(spClient: SpotifyWebApi, sources: any[], params: {}) {
+  static push(_spClient: SpotifyWebApi, sources: any[], _params: {}) {
     log.debug("Push Sources:", sources);
     log.info("Pushing...");
     const result = [] as SpotifyApi.PlaylistTrackObject[];
@@ -31,7 +29,7 @@ export default class Combiner extends Base {
     return obj?.hasOwnProperty("track");
   }
 
-  static alternate(spClient: SpotifyWebApi, sources: any[], params: {}) {
+  static alternate(_spClient: SpotifyWebApi, sources: any[], _params: {}) {
     log.debug("Alternate Sources:", sources);
     log.info("Alternating...");
     const result = [] as SpotifyApi.PlaylistTrackObject[];

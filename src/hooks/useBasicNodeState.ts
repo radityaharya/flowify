@@ -1,6 +1,6 @@
+import { useHandleConnections } from "@xyflow/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import useStore from "~/app/states/store";
-import { useHandleConnections } from "@xyflow/react";
 
 type Playlist = {
   playlistId?: string;
@@ -98,7 +98,7 @@ const usePlaylistLogic = (id: string, formSchema?: ZodObject<any>) => {
       const hasPlaylistId = Boolean(playlistId);
       const hasPlaylistIds = Boolean(playlistIds && playlistIds.length > 0);
 
-      if (!hasPlaylistId && !hasPlaylistIds) {
+      if (!(hasPlaylistId || hasPlaylistIds)) {
         invalidNodesCount++;
       }
 
@@ -135,6 +135,7 @@ const usePlaylistLogic = (id: string, formSchema?: ZodObject<any>) => {
     });
   }, [targetConnections, getNodeData, total]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
     const currentNodeData = getNodeData(id);
     if (
@@ -147,11 +148,15 @@ const usePlaylistLogic = (id: string, formSchema?: ZodObject<any>) => {
       });
     }
   }, [
+    id,
     targetConnections,
     getNodeData,
+    updateNodeData,
     total,
     targetConnections,
     sourceConnections,
+    state.playlistIds,
+    state.playlists,
   ]);
 
   return {

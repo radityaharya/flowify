@@ -1,18 +1,12 @@
+import type SpotifyWebApi from "spotify-web-api-node";
+import { Logger } from "../log";
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/ban-types */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Base } from "./Base";
-import _ from "radash";
-import type { AccessToken } from "./Base";
-import { Logger } from "../log";
-import type SpotifyWebApi from "spotify-web-api-node";
 
 const log = new Logger("Order");
 export default class Library extends Base {
-  constructor(accessToken: AccessToken, spClient?: SpotifyWebApi) {
-    super(accessToken, spClient);
-  }
-
   static isTrackObjectFull(obj: any): obj is SpotifyApi.TrackObjectFull {
     return obj?.hasOwnProperty("track");
   }
@@ -20,7 +14,7 @@ export default class Library extends Base {
   static isTrackObjectFullArray(obj: any): obj is SpotifyApi.TrackObjectFull[] {
     return (
       Array.isArray(obj) &&
-      obj.every((item: any) => this.isTrackObjectFull(item))
+      obj.every((item: any) => Library.isTrackObjectFull(item))
     );
   }
 
@@ -84,7 +78,7 @@ export default class Library extends Base {
 
     const id = params.id;
 
-    const tracks = this.getTracks(sources);
+    const tracks = Library.getTracks(sources);
 
     const trackUris = tracks.map((track: any) => `spotify:track:${track.id}`);
 
@@ -108,7 +102,7 @@ export default class Library extends Base {
 
     const playlistName = params.name;
 
-    const tracks = this.getTracks(sources);
+    const tracks = Library.getTracks(sources);
 
     const trackUris = tracks.map((track: any) => `spotify:track:${track.id}`);
 
@@ -144,13 +138,13 @@ export default class Library extends Base {
 
     const id = params.id;
 
-    const tracks = this.getTracks(sources);
+    const tracks = Library.getTracks(sources);
 
-    // console.log("trackSaveAsReplace", tracks[0]);
+    // console.info("trackSaveAsReplace", tracks[0]);
 
     const trackUris = tracks.map((track: any) => `spotify:track:${track.id}`);
 
-    console.log("trackUris", trackUris);
+    console.info("trackUris", trackUris);
 
     // await spClient.replaceTracksInPlaylist(id, trackUris);
     await Library.replaceTracksBatch(spClient, id, trackUris);
@@ -181,7 +175,6 @@ export default class Library extends Base {
         if (error.statusCode === 429) {
           retryAfter = error.headers["retry-after"];
           log.warn(`Rate limited. Retrying after ${retryAfter} seconds.`);
-          continue;
         } else {
           throw error;
         }

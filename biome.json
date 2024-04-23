@@ -1,0 +1,66 @@
+{
+  "$schema": "https://biomejs.dev/schemas/1.6.1/schema.json",
+  "vcs": { "clientKind": "git", "enabled": true },
+  "files": {
+    "ignore": [
+      "next.config.js",
+      "node_modules/**/*",
+      "dist/**/*",
+      ".next/**/*",
+      "*.json"
+    ]
+  },
+  "formatter": {
+    "enabled": true,
+    "formatWithErrors": false,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineEnding": "lf",
+    "lineWidth": 80,
+    "attributePosition": "auto"
+  },
+  "organizeImports": { "enabled": true },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "all": true,
+      "a11y": { "noSvgWithoutTitle": "off" },
+      "complexity": {
+        "noForEach": "off",
+        "noBannedTypes": "warn",
+        "noStaticOnlyClass": "off"
+      },
+      "nursery": {
+        "noNodejsModules": "off",
+        "noUndeclaredDependencies": "off",
+        "useImportRestrictions": "off",
+        "useSortedClasses": "off"
+      },
+      "style": { "all": false },
+      "suspicious": {
+        "noExplicitAny": "off",
+        "noShadowRestrictedNames": "off",
+        "noPrototypeBuiltins": "off",
+        "noImplicitAnyLet": "off",
+        "noArrayIndexKey": "warn",
+        "noAssignInExpressions": "off"
+      }, "correctness": {
+        "noUndeclaredVariables": "off"
+      }
+    }
+  },
+  "javascript": {
+    "formatter": {
+      "jsxQuoteStyle": "double",
+      "quoteProperties": "asNeeded",
+      "trailingComma": "all",
+      "semicolons": "always",
+      "arrowParentheses": "always",
+      "bracketSpacing": true,
+      "bracketSameLine": false,
+      "quoteStyle": "double",
+      "attributePosition": "auto"
+    }
+  },
+  "json": { "parser": { "allowComments": true } }
+}

@@ -2,10 +2,10 @@
 
 import { type Edge, type Node } from "@xyflow/react";
 
+import Flow from "@/components/Flow";
 // import styles from "./page.module.css";
 import { useSession } from "next-auth/react";
 import { useEffect } from "react";
-import Flow from "@/components/Flow";
 
 import useStore from "@/app/states/store";
 import Sidebar from "./Sidebar";
@@ -17,11 +17,8 @@ import {
 } from "@/components/ui/resizable";
 import { toast } from "sonner";
 
-import useSWR from "swr";
-
 import { useRouter } from "next/navigation";
 import { useWorkflowData } from "~/hooks/useWorkflowData";
-import { fetcher } from "@/app/utils/fetcher";
 
 function Builder({
   params,
@@ -66,6 +63,7 @@ function Builder({
     isLoading: workflowIsLoading,
   } = useWorkflowData(flowId);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
     if (workflowData === undefined && workflowError !== undefined) {
       toast.error(workflowError.info);
@@ -127,7 +125,15 @@ function Builder({
         );
       }
     }
-  }, [workflowData, workflowError]);
+  }, [
+    workflowData,
+    workflowError,
+    flowId,
+    reactFlowInstance,
+    setEdges,
+    setFlowState,
+    setNodes,
+  ]);
 
   useEffect(() => {
     if (!session?.user?.providerAccountId) {
@@ -136,13 +142,13 @@ function Builder({
     fetch(`/api/user/${session?.user?.providerAccountId}/playlists`)
       .then((response) => response.json())
       .then((data) => {
-        console.log(data);
+        console.info(data);
         setUserPlaylists(data as any[]);
       })
       .catch((err) => {
         console.error(err);
       });
-  }, [session?.user?.providerAccountId]);
+  }, [session?.user?.providerAccountId, setUserPlaylists]);
 
   return (
     <div className="flex h-screen flex-col">

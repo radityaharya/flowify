@@ -3,8 +3,8 @@ import {
   type NextRequest,
   NextResponse,
 } from "next/server";
-import { Logger } from "~/lib/log";
 import { env } from "~/env";
+import { Logger } from "~/lib/log";
 
 const logger = new Logger("middleware:userApi");
 

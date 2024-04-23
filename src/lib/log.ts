@@ -43,15 +43,15 @@ class Logger {
 
     const logMessage = `${color}[${logLevelName}] ${timestamp} ${this.name}: ${message}\x1b[0m`;
 
-    console.log(logMessage);
+    console.info(logMessage);
     if (data) {
       try {
         if (data instanceof Error) {
           data = { message: data.message, stack: data.stack };
         }
-        console.log(JSON.stringify(data, null, 2));
-      } catch (error) {
-        console.log(data);
+        console.info(JSON.stringify(data, null, 2));
+      } catch (_error) {
+        console.info(data);
       }
     }
     this.lastLogTimestamp = currentTimestamp;

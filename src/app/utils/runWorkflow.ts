@@ -61,7 +61,7 @@ export async function runWorkflow(workflow: WorkflowResponse) {
       return "Workflow completed successfully";
     },
     error: (data) => {
-      console.log("data on err", data);
+      console.info("data on err", data);
       return "Failed running workflow: " + data;
     },
   });

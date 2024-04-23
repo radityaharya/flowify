@@ -76,8 +76,8 @@ const PlaylistItem = ({
         unoptimized
       />
       <div className="flex flex-col">
-        <span className="text-sm font-medium">{playlist.name}</span>
-        <span className="text-xs text-gray-400">
+        <span className="font-medium text-sm">{playlist.name}</span>
+        <span className="text-gray-400 text-xs">
           {playlist.owner} - {playlist.total} tracks
         </span>
       </div>
@@ -132,7 +132,7 @@ function SaveAsReplaceComponent({ id, data }: PlaylistProps) {
     }
     prevWatchRef.current = watch;
     prevSelectedPlaylistRef.current = selectedPlaylist;
-  }, [watch, selectedPlaylist]);
+  }, [id, watch, selectedPlaylist, updateNodeData]);
 
   React.useEffect(() => {
     const userPlaylists = async () => {
@@ -150,12 +150,12 @@ function SaveAsReplaceComponent({ id, data }: PlaylistProps) {
     // debounce({delay: 500}, setUserPlaylists)();
     userPlaylists()
       .then(() => {
-        console.log("user playlists updated");
+        console.info("user playlists updated");
       })
       .catch((err) => {
         console.error(err);
       });
-  }, [search]);
+  }, [session.user.providerAccountId]);
 
   function getNodeData(id: string) {
     const node = nodes.find((node) => node.id === id);
@@ -163,11 +163,11 @@ function SaveAsReplaceComponent({ id, data }: PlaylistProps) {
   }
 
   const handleSelect = (playlist) => {
-    console.log("handle select", playlist);
+    console.info("handle select", playlist);
     form.setValue("playlistId", playlist.playlistId, {
       shouldValidate: true,
     });
-    console.log("data after update", getNodeData(id));
+    console.info("data after update", getNodeData(id));
     setSelectedPlaylist(playlist as Playlist);
     setOpen(false);
   };
@@ -191,7 +191,7 @@ function SaveAsReplaceComponent({ id, data }: PlaylistProps) {
         style={{ background: "#555" }}
       />
       <Form {...form}>
-        <form onSubmit={form.handleSubmit((data) => console.log(data))}>
+        <form onSubmit={form.handleSubmit((data) => console.info(data))}>
           <div className="flex flex-col gap-4">
             <FormField
               control={form.control}
@@ -218,7 +218,7 @@ function SaveAsReplaceComponent({ id, data }: PlaylistProps) {
                               unoptimized
                             />
                             <div className="flex w-[160px] flex-col items-start">
-                              <div className="max-w-full overflow-hidden overflow-ellipsis whitespace-nowrap text-sm font-medium">
+                              <div className="max-w-full overflow-hidden overflow-ellipsis whitespace-nowrap font-medium text-sm">
                                 {selectedPlaylist.name}
                               </div>
                               <div className="text-xs opacity-80">
@@ -254,6 +254,7 @@ function SaveAsReplaceComponent({ id, data }: PlaylistProps) {
                                 ))
                               : Array.from({ length: 3 }).map((_, index) => (
                                   <CommandItem
+                                    // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
                                     key={`loading-${index}`}
                                     value="loading"
                                     onSelect={() => {
@@ -271,7 +272,7 @@ function SaveAsReplaceComponent({ id, data }: PlaylistProps) {
                                     <div className="flex items-center gap-2">
                                       <div className="h-8 w-8 animate-pulse rounded-md bg-gray-700"></div>
                                       <div className="flex animate-pulse flex-col">
-                                        <div className="animate-pulse text-sm font-medium">
+                                        <div className="animate-pulse font-medium text-sm">
                                           loading...
                                         </div>
                                         <div className="animate-pulse text-xs opacity-80">

@@ -1,8 +1,8 @@
-import { NextResponse, type NextRequest } from "next/server";
-import { getServerSession } from "next-auth";
 import { authOptions } from "@/server/auth";
 import { db } from "@/server/db";
 import { eq } from "drizzle-orm";
+import { getServerSession } from "next-auth";
+import { type NextRequest, NextResponse } from "next/server";
 import { workflowRuns } from "~/server/db/schema";
 export async function GET(
   request: NextRequest,
@@ -35,7 +35,11 @@ export async function GET(
   const fields = request.nextUrl.searchParams.get("fields");
 
   const columns = fields
-    ? fields.split(",").reduce((obj, key) => ({ ...obj, [key]: true }), {})
+    ? 
+      fields
+        .split(",")
+        // biome-ignore lint/performance/noAccumulatingSpread: <explanation>
+        .reduce((obj, key) => ({ ...obj, [key]: true }), {})
     : {
         id: true,
         workflow: true,

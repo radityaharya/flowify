@@ -1,7 +1,7 @@
-import { NextResponse, type NextRequest } from "next/server";
-import { getAccessTokenFromProviderAccountId } from "~/server/db/helper";
+import { type NextRequest, NextResponse } from "next/server";
 import SpotifyWebApi from "spotify-web-api-node";
 import { env } from "~/env";
+import { getAccessTokenFromProviderAccountId } from "~/server/db/helper";
 export async function GET(
   request: NextRequest,
   {

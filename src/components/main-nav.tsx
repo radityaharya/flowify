@@ -1,12 +1,9 @@
 "use client";
-
-import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { buttonVariants } from "~/components/ui/button";
 
 import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
 import { useSession } from "next-auth/react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 
@@ -22,7 +19,7 @@ export function MainNav() {
   return (
     <div className="mr-4 flex">
       <Link href="/" className="mr-6 flex items-center space-x-2">
-        <div className="flex items-center py-1 text-lg font-medium">
+        <div className="flex items-center py-1 font-medium text-lg">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
@@ -76,7 +73,7 @@ export function MainNav() {
         <Link
           href="https://github.com/radityaharya/flowify"
           className={cn(
-            "hidden text-foreground/60 transition-colors hover:text-foreground/80 lg:block",
+            "hidden text-foreground/60 transition-colors lg:block hover:text-foreground/80",
           )}
         >
           GitHub
@@ -106,7 +103,7 @@ export function SiteNav({ className }: { className?: string }) {
       <MainNav />
       {session ? (
         <div className="flex flex-row items-center gap-4">
-          <span className="text-sm font-medium text-foreground">
+          <span className="font-medium text-foreground text-sm">
             {`${session.user.name}`}
           </span>
           <Avatar className="h-8 w-8">
@@ -114,7 +111,8 @@ export function SiteNav({ className }: { className?: string }) {
               src={session?.user?.image ?? ""}
               alt={session?.user?.name ?? ""}
             />
-            <AvatarFallback className="text-sm font-medium">
+            <AvatarFallback className="font-medium text-sm">
+              {/* biome-ignore lint/correctness/useJsxKeyInIterable: <explanation> */}
               {session?.user?.name?.split(" ").map((n) => n[0])}
             </AvatarFallback>
           </Avatar>

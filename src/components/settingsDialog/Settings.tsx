@@ -1,12 +1,10 @@
-import { CalendarClockIcon, HistoryIcon, SettingsIcon } from "lucide-react";
-
 import {
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Separator } from "../ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "../ui/separator";
 
 import General from "./tabs/General";
 import History from "./tabs/History";
@@ -14,7 +12,7 @@ export function SettingsDialog() {
   return (
     <DialogContent className="h-[90svh] w-[90svw]">
       <DialogHeader className="gap-1">
-        <DialogTitle className="mb-4 text-xl font-bold">
+        <DialogTitle className="mb-4 font-bold text-xl">
           Workflow Settings
         </DialogTitle>
         <Separator />

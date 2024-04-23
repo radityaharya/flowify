@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import React from "react";
 import { Handle, Position } from "@xyflow/react";
+import React from "react";
 
 import { InfoIcon } from "lucide-react";
 
@@ -46,7 +46,7 @@ const LimitComponent: React.FC<PlaylistProps> = React.memo(({ id, data }) => {
         limit: data.limit,
       });
     }
-  }, [data]);
+  }, [data, form]);
 
   const watch = form!.watch();
   const prevWatchRef = React.useRef(watch);
@@ -58,7 +58,7 @@ const LimitComponent: React.FC<PlaylistProps> = React.memo(({ id, data }) => {
       });
     }
     prevWatchRef.current = watch;
-  }, [watch]);
+  }, [id, updateNodeData, watch]);
 
   const formValid = formState!.isValid;
 
@@ -85,7 +85,7 @@ const LimitComponent: React.FC<PlaylistProps> = React.memo(({ id, data }) => {
         style={{ background: "#555" }}
       />
       <Form {...form!}>
-        <form onSubmit={form!.handleSubmit((data) => console.log(data))}>
+        <form onSubmit={form!.handleSubmit((data) => console.info(data))}>
           <div className="flex flex-col gap-4">
             <InputPrimitive
               control={form!.control}

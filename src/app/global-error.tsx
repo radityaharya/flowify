@@ -10,7 +10,7 @@ export default function GlobalError({ error }) {
   }, [error]);
 
   return (
-    <html>
+    <html lang="en">
       <body>
         <Error statusCode={error.statusCode || 500} />
       </body>

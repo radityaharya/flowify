@@ -1,5 +1,3 @@
-import React from "react";
-import { Input } from "@/components/ui/input";
 import {
   FormControl,
   FormDescription,
@@ -8,6 +6,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 
 import {
   Tooltip,
@@ -24,8 +23,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import type { Control, UseFormRegister } from "react-hook-form";
 import { Info } from "lucide-react";
+import type { Control, UseFormRegister } from "react-hook-form";
 
 type InputPrimitiveProps = {
   control: Control;

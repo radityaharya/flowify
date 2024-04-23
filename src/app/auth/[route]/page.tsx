@@ -1,11 +1,9 @@
 import Link from "next/link";
-import { buttonVariants } from "~/components/ui/button";
-import { cn } from "~/lib/utils";
 
 import ProviderButtons from "../providerButtons";
 
-import GradientBackground from "~/components/animatedBackground/GradientsBackground";
 import { notFound } from "next/navigation";
+import GradientBackground from "~/components/animatedBackground/GradientsBackground";
 export default function Page({
   params,
   searchParams,
@@ -31,7 +29,7 @@ export default function Page({
         >
           {isLogin ? "Sign up" : "Login"}
         </Link> */}
-        <div className="relative hidden h-full flex-col p-10 dark:border-r lg:flex">
+        <div className="relative hidden h-full flex-col p-10 lg:flex dark:border-r">
           <GradientBackground />
           {/* <div className="relative z-20 flex items-center text-lg font-medium">
             <svg
@@ -57,17 +55,17 @@ export default function Page({
         <div className="lg:p-8">
           <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
             <div className="flex flex-col space-y-2 text-center">
-              <h1 className="text-2xl font-semibold tracking-tight">
+              <h1 className="font-semibold text-2xl tracking-tight">
                 {isLogin ? "Welcome back" : "Let's get started"}
               </h1>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-muted-foreground text-sm">
                 {isLogin
                   ? "Login with your Spotify account"
                   : "Create a new account"}
               </p>
             </div>
             <ProviderButtons />
-            <p className="px-8 text-center text-sm text-muted-foreground">
+            <p className="px-8 text-center text-muted-foreground text-sm">
               By {isLogin ? "logging in" : "signing up"} you agree to our{" "}
               <Link
                 href="/terms"
@@ -85,7 +83,7 @@ export default function Page({
               .
             </p>
             {error && (
-              <div className="rounded-md bg-red-400 p-2 text-center text-sm text-muted-foreground">
+              <div className="rounded-md bg-red-400 p-2 text-center text-muted-foreground text-sm">
                 {error}
               </div>
             )}

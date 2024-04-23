@@ -33,7 +33,7 @@ export async function validateWorkflow(workflow: WorkflowObject) {
     loading: "Validating workflow...",
     success: (validationResult: { valid: boolean; errors: any[] }) => {
       const { valid, errors } = validationResult;
-      console.log("validationResult", validationResult);
+      console.info("validationResult", validationResult);
       if (!valid) {
         toast.error(
           `Workflow is not valid because of the following errors: \n${errors
@@ -65,7 +65,7 @@ export async function validateWorkflow(workflow: WorkflowObject) {
     const result = await validatePromise;
     valid = result.valid;
     errors = result.errors;
-    console.log("result", result);
+    console.info("result", result);
   } catch (err) {
     console.error("Error validating workflow", err);
     valid = false;

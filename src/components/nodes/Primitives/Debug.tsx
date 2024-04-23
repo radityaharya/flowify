@@ -1,6 +1,6 @@
-import { ScrollArea } from "~/components/ui/scroll-area";
-import useStore from "~/app/states/store";
 import React from "react";
+import useStore from "~/app/states/store";
+import { ScrollArea } from "~/components/ui/scroll-area";
 import { env } from "~/env";
 
 const DebugInfo = ({
@@ -21,7 +21,7 @@ const DebugInfo = ({
   if (env.NEXT_PUBLIC_ENV !== "development") return null;
   return (
     <div className="whitespace-pre-wrap rounded-md bg-red-500 p-2 py-2">
-      <pre className="whitespace-pre-wrap text-sm font-bold">Debug info</pre>
+      <pre className="whitespace-pre-wrap font-bold text-sm">Debug info</pre>
       <pre>
         <pre className="text-xs">id: {id}</pre>
         <pre className="text-xs">isValid: {isValid?.toString()}</pre>

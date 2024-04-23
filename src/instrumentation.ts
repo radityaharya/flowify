@@ -1,7 +1,7 @@
+import { v4 as uuid } from "uuid";
 import { env } from "~/env";
 import { Runner } from "~/lib/workflow/Workflow";
 import { getAccessTokenFromUserId } from "~/server/db/helper";
-import { v4 as uuid } from "uuid";
 
 export const register = async () => {
   //This if statement is important, read here: https://nextjs.org/docs/app/building-your-application/optimizing/instrumentation
@@ -11,8 +11,8 @@ export const register = async () => {
       hostname +
       "-" +
       `${process.env.WORKER_ID ?? `instrumentation-${uuid()}`}`;
-    console.log("Registering worker");
-    console.log("Worker ID", WORKER_ID);
+    console.info("Registering worker");
+    console.info("Worker ID", WORKER_ID);
     const { Worker } = await import("bullmq");
     const Redis = (await import("ioredis")).default;
     const updateWorkflowRun = (await import("~/app/api/workflow/workflowQueue"))
@@ -57,5 +57,5 @@ export const register = async () => {
     );
     return;
   }
-  console.log("Not registering worker");
+  console.info("Not registering worker");
 };

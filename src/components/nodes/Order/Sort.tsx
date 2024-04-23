@@ -6,8 +6,6 @@ import React from "react";
 
 import { InfoIcon } from "lucide-react";
 
-import { CardFooter } from "@/components/ui/card";
-
 import { Separator } from "~/components/ui/separator";
 
 import { CardWithHeader } from "../Primitives/Card";
@@ -62,7 +60,7 @@ const RemoveMatch: React.FC<PlaylistProps> = React.memo(({ id, data }) => {
       form!.reset(parsedData);
       form?.setValue("sortOrder", parsedData.sortOrder);
     }
-  }, [data]);
+  }, [data, form]);
 
   const watch = form!.watch();
   const prevWatchRef = React.useRef(watch);
@@ -74,7 +72,7 @@ const RemoveMatch: React.FC<PlaylistProps> = React.memo(({ id, data }) => {
       });
     }
     prevWatchRef.current = watch;
-  }, [watch]);
+  }, [watch, id, updateNodeData]);
 
   return (
     <CardWithHeader
@@ -95,7 +93,7 @@ const RemoveMatch: React.FC<PlaylistProps> = React.memo(({ id, data }) => {
         style={{ background: "#555" }}
       />
       <Form {...form!}>
-        <form onSubmit={form!.handleSubmit((data) => console.log(data))}>
+        <form onSubmit={form!.handleSubmit((data) => console.info(data))}>
           <div className="flex flex-col gap-4">
             <InputPrimitive
               control={form!.control}

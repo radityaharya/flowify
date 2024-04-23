@@ -1,16 +1,14 @@
 import { randomUUID } from "crypto";
 import { relations, sql } from "drizzle-orm";
 import {
-  pgTableCreator,
   index,
   integer as int,
+  integer,
+  pgTable,
   primaryKey,
   text,
   timestamp,
   varchar,
-  json,
-  integer,
-  pgTable,
 } from "drizzle-orm/pg-core";
 import { type AdapterAccount } from "next-auth/adapters";
 
