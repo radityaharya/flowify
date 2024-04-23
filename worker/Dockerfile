@@ -1,42 +1,22 @@
-# syntax = docker/dockerfile:1
-
-# Adjust BUN_VERSION as desired
 FROM oven/bun:1 as base
-
-# Next.js app lives here
 WORKDIR /app
-
-# Set production environment
 ENV NODE_ENV="production"
 
+FROM base as deps
+RUN bun add postgres radash bullmq drizzle-orm ioredis spotify-web-api-node @t3-oss/env-nextjs
 
-# Throw-away build stage to reduce size of final image
 FROM base as build
-
-# Install packages needed to build node modules
-RUN apt-get update -qq && \
-  apt-get install --no-install-recommends -y build-essential node-gyp pkg-config python-is-python3
-
-# Install node modules
-COPY --link bun.lockb package.json ./
-RUN bun install
-
-# Copy application code
-COPY worker/ ./
-COPY src/ ./src/
+COPY --from=deps /app/node_modules ./node_modules
+COPY worker/ ./worker
+COPY src/lib ./src/lib
+COPY src/server ./src/server
+COPY src/env.js ./src/env.js
 COPY drizzle.config.ts ./
 COPY tsconfig.json ./
+RUN bun build --target bun --compile --minify --sourcemap --outfile flowify-worker ./worker/worker.ts
 
-# Build application
-# Remove development dependencies
-# RUN rm -rf node_modules && \
-#   bun install --ci
-
-
-# Final stage for app image
-FROM base
-
-# Copy built application
-COPY --from=build /app /app
-
-CMD [ "bun", "./worker/worker.ts"]
+FROM oven/bun:1-alpine as release
+COPY --from=build /app/flowify-worker ./
+ENV WORKER_ID="bun"
+EXPOSE 3020
+CMD [ "./flowify-worker" ]

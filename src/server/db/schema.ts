@@ -177,8 +177,8 @@ export const workflowRunsRelations = relations(workflowRuns, ({ one }) => ({
 //     }),
 //   }),
 // );
-export const workerPoll = pgTable(
-  "workerPoll",
+export const workerPool = pgTable(
+  "workerPool",
   {
     deviceHash: varchar("deviceHash", { length: 255 }).notNull().primaryKey(),
     joinedAt: timestamp("joinedAt", { mode: "date" }).default(
@@ -188,7 +188,7 @@ export const workerPoll = pgTable(
     threads: int("threads"),
     status: varchar("status", { length: 10 }),
   },
-  (workerPoll) => ({
-    workerIdIdx: index("workerId_idx").on(workerPoll.deviceHash),
+  (workerPool) => ({
+    workerIdIdx: index("workerId_idx").on(workerPool.deviceHash),
   }),
 );

@@ -29,7 +29,8 @@
     "paths": {
       "~/*": ["./src/*"],
       "@/*": ["./src/*"],
-      "drizzle-orm": ["node_modules/drizzle-orm"]
+      "drizzle-orm": ["node_modules/drizzle-orm"],
+      "@lib/*": ["./src/lib/*"],
     }
   },
   "include": [

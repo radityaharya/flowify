@@ -5,7 +5,7 @@ import { db } from "@/server/db";
 import { getAccessTokenFromUserId } from "@/server/db/helper";
 import { getServerSession } from "next-auth";
 import { type NextRequest, NextResponse } from "next/server";
-import { createWorkflowQueue } from "../../workflowQueue";
+import { createWorkflowQueue } from "~/lib/workflow/utils/workflowQueue";
 
 const log = new Logger("/api/workflow/[id]/run");
 export async function POST(

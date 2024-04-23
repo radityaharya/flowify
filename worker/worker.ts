@@ -1,19 +1,33 @@
-import { env } from "../src/env";
-import { Runner } from "../src/lib/workflow/Workflow";
-import { getAccessTokenFromUserId } from "../src/server/db/helper";
+import { env } from "~/env";
+import { Runner } from "@lib/workflow/Workflow";
+import { getAccessTokenFromUserId } from "~/server/db/helper";
 import { Worker } from "bullmq";
-import { updateWorkflowRun } from "../src/app/api/workflow/workflowQueue";
+import { updateWorkflowRun } from "@lib/workflow/utils/workflowQueue";
 import Redis from "ioredis";
 import os from "os";
-import { Logger } from "@/lib/log";
+import { Logger } from "@lib/log";
 import { db } from "@/server/db";
-import { workerPoll } from "~/server/db/schema";
+import { workerPool } from "~/server/db/schema";
 import { eq } from "drizzle-orm";
 
 const log = new Logger("worker");
 
 const CONCURRENCY = 5;
 let WORKER_ID = `${os.hostname()}-${process.env.WORKER_ID ?? `worker`}`;
+
+// simple server to wake up the worker
+const server = Bun.serve({
+  fetch() {
+    return new Response(JSON.stringify({ status: "ok", workerId: WORKER_ID }), {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+  },
+  port: 3020
+});
+log.info("Listening on 0.0.0.0:3020");
+
 
 const connection = new Redis(env.REDIS_URL, {
   maxRetriesPerRequest: null,
@@ -69,27 +83,27 @@ const worker = new Worker(
 async function reportInit() {
   log.info("Worker started");
   let i = 0;
-  let worker = await db.query.workerPoll.findFirst({
-    where: (workerPoll, { eq }) => eq(workerPoll.deviceHash, WORKER_ID),
+  let worker = await db.query.workerPool.findFirst({
+    where: (workerPool, { eq }) => eq(workerPool.deviceHash, WORKER_ID),
   });
 
   while (worker) {
     i++;
     WORKER_ID = `${os.hostname()}-${process.env.WORKER_ID ?? `worker`}-${i}`;
-    worker = await db.query.workerPoll.findFirst({
-      where: (workerPoll, { eq }) => eq(workerPoll.deviceHash, WORKER_ID),
+    worker = await db.query.workerPool.findFirst({
+      where: (workerPool, { eq }) => eq(workerPool.deviceHash, WORKER_ID),
     });
   }
 
-  await db.insert(workerPoll).values({
+  await db.insert(workerPool).values({
     deviceHash: WORKER_ID,
     concurrency: CONCURRENCY,
     threads: os.cpus().length,
     status: "idle",
   });
 
-  const updatedWorker = await db.query.workerPoll.findFirst({
-    where: (workerPoll, { eq }) => eq(workerPoll.deviceHash, WORKER_ID),
+  const updatedWorker = await db.query.workerPool.findFirst({
+    where: (workerPool, { eq }) => eq(workerPool.deviceHash, WORKER_ID),
   });
   if (updatedWorker) {
     log.info("Worker status updated");
@@ -98,36 +112,37 @@ async function reportInit() {
 
 async function reportExit() {
   log.info("Worker exiting...");
-  await db.delete(workerPoll).where(eq(workerPoll.deviceHash, WORKER_ID));
+  await db.delete(workerPool).where(eq(workerPool.deviceHash, WORKER_ID));
   log.info("Worker deleted");
 }
 
 async function reportWorking() {
   await db
-    .update(workerPoll)
+    .update(workerPool)
     .set({
       status: "working",
     })
-    .where(eq(workerPoll.deviceHash, WORKER_ID));
+    .where(eq(workerPool.deviceHash, WORKER_ID));
 }
 
 async function reportIdle() {
   await db
-    .update(workerPoll)
+    .update(workerPool)
     .set({
       status: "idle",
     })
-    .where(eq(workerPoll.deviceHash, WORKER_ID));
+    .where(eq(workerPool.deviceHash, WORKER_ID));
 }
 
 async function allWorkers() {
-  return await db.query.workerPoll.findMany();
+  return await db.query.workerPool.findMany();
 }
 
 async function onExit() {
   log.info("Worker exiting...");
   await reportExit();
   worker.close();
+  server.stop();
   process.exit(0);
 }
 
