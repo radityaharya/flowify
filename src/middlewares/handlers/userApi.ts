@@ -4,12 +4,15 @@ import {
   NextResponse,
 } from "next/server";
 import { Logger } from "~/lib/log";
+import jwt from "next-auth/jwt";
 
 const logger = new Logger("middleware:userApi");
 
 const matchPaths = ["/api/user", "/api/workflow"];
 
-async function getSession(req: NextRequest) {
+const secret = process.env.NEXTAUTH_SECRET;
+
+async function fetchSession(req: NextRequest) {
   const response = await fetch(process.env.NEXTAUTH_URL + "/api/auth/session", {
     headers: {
       "Content-Type": "application/json",
@@ -17,68 +20,108 @@ async function getSession(req: NextRequest) {
     },
     method: "GET",
   });
+
   if (!response.ok) {
     return null;
   }
+
   const session = await response.json();
-  return session;
+  return session.user;
 }
+
+async function getUser(req: NextRequest) {
+  const token = await jwt.getToken({ req, secret });
+  if (token) {
+    return token.user;
+  }
+
+  return fetchSession(req);
+}
+
+const rewriteToken = (request: NextRequest, sessionToken: string) => {
+  const url = request.nextUrl;
+  const cookies = `next-auth.session-token=${sessionToken}`;
+  logger.debug("rewrite token");
+  return NextResponse.rewrite(url, {
+    headers: {
+      "Content-Type": "application/json",
+      Cookie: cookies,
+    },
+  });
+};
+
+const errorResponse = (message: string, status: number) => {
+  logger.error(message);
+  return NextResponse.json(
+    {
+      error: message,
+    },
+    { status },
+  );
+};
+
+const handleUserPath = (request: NextRequest, user: any) => {
+  const { pathname, search } = request.nextUrl;
+  const userParam = pathname.split("/")[3];
+  if (typeof userParam !== "string" || userParam.length > 100) {
+    return errorResponse("Invalid userParam", 400);
+  }
+  logger.debug(`userParam: ${userParam}`);
+
+  if (userParam === "@me") {
+    const userId = user.providerAccountId as string;
+    const url = new URL(
+      pathname.replace("@me", encodeURIComponent(userId)) + search,
+      process.env.NEXTAUTH_URL,
+    );
+    logger.debug(`REWRITE: ${url.href}`);
+    const sessionToken = request.headers
+      .get("Authorization")
+      ?.replace("Bearer ", "");
+    const sessionCookie = request.cookies.get("next-auth.session-token");
+    if (!sessionCookie && sessionToken) {
+      return rewriteToken(request, sessionToken);
+    }
+  } else if (
+    user.providerAccountId &&
+    userParam &&
+    user.providerAccountId !== userParam
+  ) {
+    return errorResponse("Unauthorized request to user namespace", 401);
+  }
+};
+
+const handleWorkflowPath = (request: NextRequest) => {
+  const sessionToken = request.headers
+    .get("Authorization")
+    ?.replace("Bearer ", "");
+  const sessionCookie = request.cookies.get("next-auth.session-token");
+  if (!sessionCookie && sessionToken) {
+    return rewriteToken(request, sessionToken);
+  }
+};
 
 export const withUserApi = (
   nextHandler: (arg0: NextRequest, arg1: NextFetchEvent) => any,
 ) => {
   return async (request: NextRequest, _next: NextFetchEvent) => {
-    const { pathname, search } = request.nextUrl;
+    const { pathname } = request.nextUrl;
     if (matchPaths.some((path) => pathname.startsWith(path))) {
       logger.debug("Match!");
 
-      const session = await getSession(request);
+      const user = await getUser(request);
 
-      if (!session?.user) {
-        logger.error("Not authenticated");
-        return NextResponse.json(
-          {
-            error: "Not authenticated",
-          },
-          { status: 401 },
-        );
+      if (!user) {
+        return errorResponse("Not authenticated", 401);
       }
 
       // user namespace check
       if (pathname.startsWith("/api/user/")) {
-        const userParam = pathname.split("/")[3];
-        if (typeof userParam !== "string" || userParam.length > 100) {
-          logger.error("Invalid userParam");
-          return NextResponse.json(
-            {
-              error: "Invalid request",
-            },
-            { status: 400 },
-          );
-        }
-        logger.debug(`userParam: ${userParam}`);
-
-        if (userParam === "@me") {
-          const userId = session.user.providerAccountId as string;
-          const url = new URL(
-            pathname.replace("@me", encodeURIComponent(userId)) + search,
-            process.env.NEXTAUTH_URL,
-          );
-          logger.debug(`REWRITE: ${url.href}`);
-          return NextResponse.rewrite(url);
-        } else if (
-          session.user.providerAccountId &&
-          userParam &&
-          session.user.providerAccountId !== userParam
-        ) {
-          logger.error("Unauthorized request to user namespace");
-          return NextResponse.json(
-            {
-              error: "Unauthorized",
-            },
-            { status: 401 },
-          );
-        }
+        const response = handleUserPath(request, user);
+        if (response) return response;
+      } else if (pathname.startsWith("/api/workflow/")) {
+        const response = handleWorkflowPath(request);
+        if (response) return response;
       }
 
       return nextHandler(request, _next);

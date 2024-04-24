@@ -1,5 +1,5 @@
-import { type TokenSet } from "@auth/core/types";
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
+import { type TokenSet } from "@auth/core/types";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { and, eq } from "drizzle-orm";
 import {
@@ -7,17 +7,14 @@ import {
   type NextAuthOptions,
   getServerSession,
 } from "next-auth";
+import { DefaultJWT } from "next-auth/jwt";
 import SpotifyProvider from "next-auth/providers/spotify";
 import { env } from "~/env";
 import { db } from "~/server/db";
 import { accounts } from "~/server/db/schema";
+import { Logger } from "@lib/log";
 
-/**
- * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
- * object and keep type safety.
- *
- * @see https://next-auth.js.org/getting-started/typescript#module-augmentation
- */
+const logger = new Logger("auth");
 
 const spotifyScopes = [
   "ugc-image-upload",
@@ -51,72 +48,92 @@ declare module "next-auth" {
       // role: UserRole;
     } & DefaultSession["user"];
   }
-
-  // interface User {
-  //   // ...other properties
-  //   // role: UserRole;
-  // }
 }
 
-/**
- * Options for NextAuth.js used to configure adapters, providers, callbacks, etc.
- *
- * @see https://next-auth.js.org/configuration/options
- */
+declare module "next-auth/jwt" {
+  interface JWT extends DefaultJWT {
+    error?: string;
+    user: {
+      id: string;
+      providerAccountId: string;
+      spotify_access_token: string;
+      // role: UserRole;
+    } & DefaultJWT["user"];
+  }
+}
+
+async function refreshAccessToken(userId, spotify) {
+  if (spotify?.expires_at! * 1000 < Date.now()) {
+    logger.info("Refreshing access token for user", userId);
+    try {
+      const response = await fetch(
+        "https://accounts.spotify.com/api/token",
+        {
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams({
+            client_id: env.SPOTIFY_CLIENT_ID,
+            client_secret: env.SPOTIFY_CLIENT_SECRET,
+            grant_type: "refresh_token",
+            refresh_token: spotify!.refresh_token ?? "",
+          }),
+          method: "POST",
+        },
+      );
+
+      const tokens: TokenSet = await response.json();
+
+      if (!response.ok) throw tokens;
+
+      await db
+        .update(accounts)
+        .set({
+          access_token: tokens.access_token,
+          expires_at: Math.floor(Date.now() / 1000 + tokens?.expires_in!),
+          refresh_token: tokens.refresh_token ?? spotify!.refresh_token,
+        })
+        .where(
+          and(
+            eq(accounts.provider, "spotify"),
+            eq(accounts.providerAccountId, spotify!.providerAccountId),
+          ),
+        );
+    } catch (error) {
+      logger.error("Error refreshing access token", error);
+      return "RefreshAccessTokenError";
+    }
+  }
+}
+
 export const authOptions: NextAuthOptions = {
   callbacks: {
-    async session({ session, user }) {
+    async session({ session, user, token }) {
+      const userId = user?.id || session?.user?.id || token?.user?.id;
       const spotify = await db.query.accounts.findFirst({
-        where: (accounts, { eq }) => eq(accounts.userId, user.id),
+        where: (accounts, { eq }) => eq(accounts.userId, userId),
       });
-      // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
-      if (spotify?.expires_at! * 1000 < Date.now()) {
-        // If the access token has expired, try to refresh it
-        console.info("Refreshing access token for user", user.id);
-        try {
-          const response = await fetch(
-            "https://accounts.spotify.com/api/token",
-            {
-              headers: { "Content-Type": "application/x-www-form-urlencoded" },
-              body: new URLSearchParams({
-                client_id: env.SPOTIFY_CLIENT_ID,
-                client_secret: env.SPOTIFY_CLIENT_SECRET,
-                grant_type: "refresh_token",
-                refresh_token: spotify!.refresh_token ?? "",
-              }),
-              method: "POST",
-            },
-          );
 
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-          const tokens: TokenSet = await response.json();
-
-          if (!response.ok) throw tokens;
-
-          await db
-            .update(accounts)
-            .set({
-              access_token: tokens.access_token,
-              expires_at: Math.floor(Date.now() / 1000 + tokens?.expires_in!),
-              refresh_token: tokens.refresh_token ?? spotify!.refresh_token,
-            })
-            .where(
-              and(
-                eq(accounts.provider, "spotify"),
-                eq(accounts.providerAccountId, spotify!.providerAccountId),
-              ),
-            );
-        } catch (error) {
-          console.error("Error refreshing access token", error);
-          // The error property will be used client-side to handle the refresh token error
-          session.error = "RefreshAccessTokenError";
-        }
+      const error = await refreshAccessToken(userId, spotify);
+      if (error) {
+        session.error = error;
       }
 
       session.user.providerAccountId = spotify?.providerAccountId!;
-      session.user.id = user.id;
+      session.user.id = userId;
       return session;
     },
+    jwt({ token, user, account, profile }) {
+      if (user?.id) {
+        if (account) {
+          token.user = {
+            ...user,
+            providerAccountId: account.providerAccountId,
+            spotify_access_token: account.access_token!,
+          };
+        }
+      }
+    
+      return token;
+    }
   },
   // @ts-expect-error, the DrizzleAdapter type is not compatible with the NextAuthOptions type
   adapter: DrizzleAdapter(db),
@@ -136,13 +153,15 @@ export const authOptions: NextAuthOptions = {
      * @see https://next-auth.js.org/providers/github
      */
   ],
-  // session: { strategy: "jwt" },
+  session: { 
+    strategy: "jwt",
+    maxAge:
+      process.env.NODE_ENV === "development" ? 30 * 24 * 60 * 60 : 3 * 60 * 60, // 30 days in development, 3 hours otherwise
+  },
   pages: {
     signIn: "/auth/login",
   },
   secret: env.NEXTAUTH_SECRET,
-  maxAge:
-    process.env.NODE_ENV === "development" ? 30 * 24 * 60 * 60 : 3 * 60 * 60, // 30 days in development, 3 hours otherwise
 };
 
 /**
