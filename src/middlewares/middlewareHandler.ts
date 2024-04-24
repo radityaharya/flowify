@@ -1,4 +1,4 @@
-import { type NextMiddleware, NextRequest, NextResponse } from "next/server";
+import { type NextMiddleware, NextResponse } from "next/server";
 export type MiddlewareFactory = (middleware: NextMiddleware) => NextMiddleware;
 
 export function middlewareHandler(

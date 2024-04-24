@@ -1,20 +1,9 @@
-import { type NextFetchEvent, NextRequest, NextResponse } from "next/server";
+import { type NextFetchEvent, NextRequest } from "next/server";
 import { Logger } from "~/lib/log";
-import jwt from "next-auth/jwt";
 
 const logger = new Logger("middleware:prettyPath");
 
 const matchPaths = ["/workflow", "/api/workflow"];
-
-const errorResponse = (message: string, status: number) => {
-  logger.error(message);
-  return NextResponse.json(
-    {
-      error: message,
-    },
-    { status },
-  );
-};
 
 const handlePath = (
   request: NextRequest,
@@ -22,10 +11,11 @@ const handlePath = (
   includeSearch: boolean = false,
 ) => {
   const { pathname, search } = request.nextUrl;
-  logger.debug('pathname:', pathname);
-  const uuidPattern = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/;
+  logger.debug("pathname:", pathname);
+  const uuidPattern =
+    /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/;
   const uuidMatch = pathname.match(uuidPattern);
-  logger.debug('uuidMatch:', uuidMatch);
+  logger.debug("uuidMatch:", uuidMatch);
   let newPathname = pathname;
 
   if (uuidMatch) {
@@ -34,20 +24,31 @@ const handlePath = (
     newPathname = `/${path}/${uuid}${postUuidPath}`;
   }
 
-  logger.debug('newPathname:', newPathname);
+  logger.debug("newPathname:", newPathname);
 
   const url = new URL(
     `${request.nextUrl.origin}${newPathname}${includeSearch ? search : ""}`,
   );
 
-  const newRequest = new NextRequest(new URL(url.href, request.nextUrl.origin), {
-    headers: {
-      ...request.headers,
-      "Content-Type": "application/json",
+  const newRequest = new NextRequest(
+    new URL(url.href, request.nextUrl.origin),
+    {
+      headers: {
+        ...request.headers,
+        "Content-Type": "application/json",
+      },
     },
-  });
+  );
 
   return newRequest;
+};
+
+// is workflow namespace
+const isWorkflowNamespace = (pathname: string) => {
+  const uuidPattern =
+    /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/;
+  const uuidMatch = pathname.match(uuidPattern);
+  return uuidMatch;
 };
 
 const handleWorkflowPath = (request: NextRequest) =>
@@ -70,7 +71,10 @@ export const prettyPath = (
         } else if (newRequest) {
           return newRequest;
         }
-      } else if (pathname.startsWith("/api/workflow/")) {
+      } else if (
+        pathname.startsWith("/api/workflow/") &&
+        isWorkflowNamespace(pathname)
+      ) {
         const newRequest = handleWorkflowApiPath(request);
         if (newRequest instanceof NextRequest) {
           request = newRequest;

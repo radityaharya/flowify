@@ -1,10 +1,6 @@
-import {
-  type NextFetchEvent,
-  NextRequest,
-  NextResponse,
-} from "next/server";
+import { getToken } from "next-auth/jwt";
+import { type NextFetchEvent, NextRequest, NextResponse } from "next/server";
 import { Logger } from "~/lib/log";
-import jwt from "next-auth/jwt";
 
 const logger = new Logger("middleware:userApi");
 
@@ -30,20 +26,26 @@ async function fetchSession(req: NextRequest) {
 }
 
 async function getUser(req: NextRequest) {
-  const token = await jwt.getToken({ req, secret });
-  if (token) {
-    return token.user;
+  try {
+    const token = await getToken({ req, secret });
+    if (token) {
+      return token.user;
+    }
+  } catch (e: any) {
+    logger.error(e.message);
   }
 
-  return fetchSession(req);
+  return await fetchSession(req);
 }
 
-const rewriteToken = (request: NextRequest, sessionToken: string) => {
+const rewriteToken = (newurl, request: NextRequest, sessionToken: string) => {
   const url = request.nextUrl;
   const cookies = `next-auth.session-token=${sessionToken}`;
   logger.debug("rewrite token");
 
-  const newRequest = new NextRequest(new URL(url.href), {
+  logger.info(`REWRITE: ${newurl}`);
+
+  const newRequest = new NextRequest(new URL(newurl.href), {
     headers: {
       ...request.headers,
       "Content-Type": "application/json",
@@ -70,7 +72,7 @@ const handleUserPath = (request: NextRequest, user: any) => {
   if (typeof userParam !== "string" || userParam.length > 100) {
     return errorResponse("Invalid userParam", 400);
   }
-  logger.debug(`userParam: ${userParam}`);
+  logger.info(`userParam: ${userParam}`);
 
   if (userParam === "@me") {
     const userId = user.providerAccountId as string;
@@ -84,7 +86,11 @@ const handleUserPath = (request: NextRequest, user: any) => {
       ?.replace("Bearer ", "");
     const sessionCookie = request.cookies.get("next-auth.session-token");
     if (!sessionCookie && sessionToken) {
-      return rewriteToken(request, sessionToken);
+      return rewriteToken(url, request, sessionToken);
+    } else {
+      return new NextRequest(url, {
+        headers: request.headers,
+      });
     }
   } else if (
     user.providerAccountId &&
@@ -99,9 +105,10 @@ const handleWorkflowPath = (request: NextRequest) => {
   const sessionToken = request.headers
     .get("Authorization")
     ?.replace("Bearer ", "");
+  const url = request.nextUrl;
   const sessionCookie = request.cookies.get("next-auth.session-token");
   if (!sessionCookie && sessionToken) {
-    return rewriteToken(request, sessionToken);
+    return rewriteToken(url, request, sessionToken);
   }
 };
 
@@ -111,7 +118,7 @@ export const withUserApi = (
   return async (request: NextRequest, _next: NextFetchEvent) => {
     const { pathname } = request.nextUrl;
     if (matchPaths.some((path) => pathname.startsWith(path))) {
-      logger.debug("Match!");
+      logger.info("Match!");
 
       const user = await getUser(request);
 
