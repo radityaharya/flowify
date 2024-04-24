@@ -7,7 +7,7 @@ import { Logger } from "~/lib/log";
 
 const logger = new Logger("middleware:userApi");
 
-const matchPaths = ["/api/user"];
+const matchPaths = ["/api/user", "/api/workflow"];
 
 async function getSession(req: NextRequest) {
   const response = await fetch(process.env.NEXTAUTH_URL + "/api/auth/session", {
