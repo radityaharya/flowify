@@ -271,6 +271,12 @@ export class Runner extends Base {
     // Get the class from the operations object
     const operationClass = operations[className];
 
+    // add dryrun to save operations
+    if (workflow.dryrun) {
+      log.info("DRYRUN!")
+      operation.params.dryrun = true;
+    }
+
     const result = await operationClass[methodName](
       this.spClient,
       sources,

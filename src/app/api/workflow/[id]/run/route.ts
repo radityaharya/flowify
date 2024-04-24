@@ -44,6 +44,8 @@ export async function POST(
     );
   }
 
+  const dryrun = request.nextUrl.searchParams.get("dryrun") === "true";
+
   const runner = new Runner({
     slug: session.user.id,
     access_token: accessToken,
@@ -51,6 +53,8 @@ export async function POST(
   const workflowObj = JSON.parse(workflow.workflow) as WorkflowObject;
 
   workflowObj.operations = runner.sortOperations(workflowObj);
+  workflowObj.dryrun = dryrun;
+  if (dryrun) {log.info("Dryrun mode enabled");}
   runner.validateWorkflow(workflowObj);
 
   try {

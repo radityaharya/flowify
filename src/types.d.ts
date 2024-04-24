@@ -84,6 +84,7 @@ interface WorkflowObject {
   sources: Source[];
   operations: Operation[];
   connections: Connection[];
+  dryrun?: boolean;
 }
 
 interface WorkflowResponse {

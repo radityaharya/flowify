@@ -5,7 +5,7 @@ import { Logger } from "../log";
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Base } from "./Base";
 
-const log = new Logger("Order");
+const log = new Logger("Library");
 export default class Library extends Base {
   static isTrackObjectFull(obj: any): obj is SpotifyApi.TrackObjectFull {
     return obj?.hasOwnProperty("track");
@@ -71,7 +71,7 @@ export default class Library extends Base {
   static async saveAsAppend(
     spClient: SpotifyWebApi,
     sources: any[],
-    params: { id: string },
+    params: { id: string; dryrun?: boolean },
   ) {
     log.info("Saving as append playlist...");
     log.debug("SaveAsAppend Sources:", sources);
@@ -79,6 +79,15 @@ export default class Library extends Base {
     const id = params.id;
 
     const tracks = Library.getTracks(sources);
+
+    if (params.dryrun) {
+      log.info("Dry run enabled. Skipping track addition to spotify.");
+      const currentTracks = await Library._getPlaylistWithTracks(spClient, id);
+      return {
+        id,
+        tracks: [...currentTracks.tracks, ...tracks],
+      };
+    }
 
     const trackUris = tracks.map((track: any) => `spotify:track:${track.id}`);
 
@@ -95,6 +104,7 @@ export default class Library extends Base {
       isPublic?: boolean;
       collaborative?: boolean;
       description?: string;
+      dryrun?: boolean;
     },
   ) {
     log.info("Saving as new playlist...");
@@ -131,7 +141,7 @@ export default class Library extends Base {
   static async saveAsReplace(
     spClient: SpotifyWebApi,
     sources: any[],
-    params: { id: string },
+    params: { id: string; dryrun?: boolean },
   ) {
     log.info("Saving as replace playlist...");
     log.debug("SaveAsReplace Sources:", sources);
@@ -140,13 +150,18 @@ export default class Library extends Base {
 
     const tracks = Library.getTracks(sources);
 
-    // console.info("trackSaveAsReplace", tracks[0]);
+    if (params.dryrun) {
+      log.info("Dry run enabled. Skipping track replacement.");
+      return {
+        id,
+        tracks
+      };
+    }
 
     const trackUris = tracks.map((track: any) => `spotify:track:${track.id}`);
 
     console.info("trackUris", trackUris);
 
-    // await spClient.replaceTracksInPlaylist(id, trackUris);
     await Library.replaceTracksBatch(spClient, id, trackUris);
 
     return Library._getPlaylistWithTracks(spClient, id);

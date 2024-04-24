@@ -83,9 +83,9 @@ export class Base {
     }
   }
 
-  static async replaceTracksBatch(
+  static async removeTracksBatch(
     spClient: SpotifyWebApi,
-    id: string,
+    playlistId: string,
     trackUris: string[],
   ) {
     try {
@@ -105,11 +105,12 @@ export class Base {
       for (const trackChunk of trackChunks) {
         while (true) {
           try {
-            log.debug(`Replacing tracks in playlist ${id}`);
+            log.debug(`Removing tracks from playlist ${playlistId}`);
             await new Promise((resolve) =>
               setTimeout(resolve, retryAfter * 1000),
             );
-            await spClient.replaceTracksInPlaylist(id, trackChunk);
+            const trackObjects = trackChunk.map((uri) => ({ uri }));
+            await spClient.removeTracksFromPlaylist(playlistId, trackObjects);
             break;
           } catch (error: any) {
             if (error.statusCode === 429) {
@@ -121,6 +122,22 @@ export class Base {
           }
         }
       }
+    } catch (err) {
+      console.error("Error adding tracks to playlist", err);
+      throw new Error(
+        "Error adding tracks to playlist " + (err as Error).message,
+      );
+    }
+  }
+
+  static async replaceTracksBatch(
+    spClient: SpotifyWebApi,
+    id: string,
+    trackUris: string[],
+  ) {
+    try {
+      await Base.removeTracksBatch(spClient, id, trackUris);
+      await Base.addTracksBatch(spClient, id, trackUris);
     } catch (err) {
       console.error("Error replacing tracks in playlist", err);
       throw new Error(
