@@ -1,4 +1,4 @@
-import { type NextMiddleware, NextResponse } from "next/server";
+import { type NextMiddleware, NextRequest, NextResponse } from "next/server";
 export type MiddlewareFactory = (middleware: NextMiddleware) => NextMiddleware;
 
 export function middlewareHandler(
@@ -10,5 +10,15 @@ export function middlewareHandler(
     const next = middlewareHandler(functions, index + 1);
     return current(next);
   }
-  return () => NextResponse.next();
+  return (req) => {
+    const url = new URL(req.nextUrl.href);
+    return NextResponse.rewrite(
+      new URL(url.href + req.nextUrl.search, req.nextUrl.origin),
+      {
+        headers: {
+          ...req.headers,
+        },
+      },
+    );
+  };
 }

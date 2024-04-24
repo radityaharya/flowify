@@ -122,7 +122,7 @@ export function SiteNav({ className }: { className?: string }) {
           <Link
             href="/auth/login"
             className={cn(
-              "border",
+              "border h-8",
               buttonVariants({ variant: "ghost" }),
               pathname.startsWith("/auth/login") ?? "hidden",
             )}

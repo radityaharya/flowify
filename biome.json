@@ -1,6 +1,6 @@
 {
   "$schema": "https://biomejs.dev/schemas/1.6.1/schema.json",
-  "vcs": { "clientKind": "git", "enabled": true },
+  "vcs": { "clientKind": "git", "enabled": true, "defaultBranch": "main" },
   "files": {
     "ignore": [
       "next.config.js",
@@ -44,7 +44,8 @@
         "noImplicitAnyLet": "off",
         "noArrayIndexKey": "warn",
         "noAssignInExpressions": "off"
-      }, "correctness": {
+      },
+      "correctness": {
         "noUndeclaredVariables": "off"
       }
     }

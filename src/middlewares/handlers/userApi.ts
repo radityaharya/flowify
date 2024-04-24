@@ -1,6 +1,6 @@
 import {
   type NextFetchEvent,
-  type NextRequest,
+  NextRequest,
   NextResponse,
 } from "next/server";
 import { Logger } from "~/lib/log";
@@ -42,12 +42,16 @@ const rewriteToken = (request: NextRequest, sessionToken: string) => {
   const url = request.nextUrl;
   const cookies = `next-auth.session-token=${sessionToken}`;
   logger.debug("rewrite token");
-  return NextResponse.rewrite(url, {
+
+  const newRequest = new NextRequest(new URL(url.href), {
     headers: {
+      ...request.headers,
       "Content-Type": "application/json",
       Cookie: cookies,
     },
   });
+
+  return newRequest;
 };
 
 const errorResponse = (message: string, status: number) => {
@@ -117,11 +121,19 @@ export const withUserApi = (
 
       // user namespace check
       if (pathname.startsWith("/api/user/")) {
-        const response = handleUserPath(request, user);
-        if (response) return response;
+        const newRequest = handleUserPath(request, user);
+        if (newRequest instanceof NextRequest) {
+          request = newRequest;
+        } else if (newRequest) {
+          return newRequest;
+        }
       } else if (pathname.startsWith("/api/workflow/")) {
-        const response = handleWorkflowPath(request);
-        if (response) return response;
+        const newRequest = handleWorkflowPath(request);
+        if (newRequest instanceof NextRequest) {
+          request = newRequest;
+        } else if (newRequest) {
+          return newRequest;
+        }
       }
 
       return nextHandler(request, _next);

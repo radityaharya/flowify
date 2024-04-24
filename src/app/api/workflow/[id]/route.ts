@@ -17,7 +17,7 @@ export async function GET(
   const session = await getServerSession({ req: request, ...authOptions });
 
   if (!(params.id && isUUID(params.id))) {
-    log.error("No id provided");
+    log.error("No id provided", params.id)
     return NextResponse.json(
       {
         error: "No id provided",
