@@ -47,8 +47,8 @@ import reactFlowToWorkflow from "~/app/utils/reactFlowToWorkflow";
 import { saveWorkflow } from "~/app/utils/saveWorkflow";
 
 import { useRouter } from "next/navigation";
-import { runWorkflow } from "~/app/utils/runWorkflow";
 import { toast } from "sonner";
+import { runWorkflow } from "~/app/utils/runWorkflow";
 
 const nodeTypes = {
   "Combiner.alternate": Alternate,

@@ -154,7 +154,7 @@ export default class Library extends Base {
       log.info("Dry run enabled. Skipping track replacement.");
       return {
         id,
-        tracks
+        tracks,
       };
     }
 

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { Handle, Position, useHandleConnections } from "@xyflow/react";
+import { Position } from "@xyflow/react";
 import React from "react";
 import NodeHandle from "../Primitives/NodeHandle";
 
@@ -26,16 +26,13 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import Image from "next/image";
 import useStore from "~/app/states/store";
 
+import * as z from "zod";
 import { CardWithHeader } from "../Primitives/Card";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
-
 import { Form, FormField, FormItem, FormLabel } from "@/components/ui/form";
-import Debug from "../Primitives/Debug";
 import useBasicNodeState from "~/hooks/useBasicNodeState";
-import {PlaylistItem as PlaylistItemPrimitive} from "../Primitives/PlaylistItem"
+import Debug from "../Primitives/Debug";
+import { PlaylistItem as PlaylistItemPrimitive } from "../Primitives/PlaylistItem";
 
 type PlaylistProps = {
   id: string;
@@ -78,13 +75,11 @@ function SaveAsReplaceComponent({ id, data }: PlaylistProps) {
   const [selectedPlaylist, setSelectedPlaylist] = React.useState<Playlist>({});
   const [search, setSearch] = React.useState("");
 
-  const { session, userPlaylists, nodes } = useStore(
-    (state) => ({
-      session: state.session,
-      userPlaylists: state.userPlaylists,
-      nodes: state.nodes,
-    }),
-  );
+  const { session, userPlaylists, nodes } = useStore((state) => ({
+    session: state.session,
+    userPlaylists: state.userPlaylists,
+    nodes: state.nodes,
+  }));
 
   const {
     state,
@@ -120,7 +115,6 @@ function SaveAsReplaceComponent({ id, data }: PlaylistProps) {
         console.error(err);
       });
   }, [session]);
-
 
   const handleSelect = (playlist) => {
     console.info("handle select", playlist);

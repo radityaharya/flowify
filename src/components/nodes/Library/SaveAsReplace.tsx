@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { Handle, Position, useHandleConnections } from "@xyflow/react";
+import { Position, useHandleConnections } from "@xyflow/react";
 import React from "react";
 import NodeHandle from "../Primitives/NodeHandle";
 
@@ -34,7 +34,7 @@ import * as z from "zod";
 
 import { Form, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import Debug from "../Primitives/Debug";
-import {PlaylistItem as PlaylistItemPrimitive} from "../Primitives/PlaylistItem"
+import { PlaylistItem as PlaylistItemPrimitive } from "../Primitives/PlaylistItem";
 
 type PlaylistProps = {
   id: string;

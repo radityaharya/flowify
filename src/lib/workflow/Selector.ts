@@ -173,7 +173,7 @@ export default class Selector extends Base {
       (track) => track.artists[0]!.id,
     );
     if (Array.isArray(seedTracks)) {
-      const rec =  spClient.getRecommendations({
+      const rec = spClient.getRecommendations({
         seed_tracks: params.seedType === "tracks" ? seedTrackIds : undefined,
         seed_artists: params.seedType === "artists" ? seedArtists : undefined,
         limit: params.count,

@@ -211,7 +211,7 @@ function Sidebar() {
               <DragableNode
                 nodeType="Selector.recommend"
                 title="Recommend"
-                description="Get a list of recommended tracks based on the input." 
+                description="Get a list of recommended tracks based on the input."
                 type="Selector"
               />
             </AccordionContent>

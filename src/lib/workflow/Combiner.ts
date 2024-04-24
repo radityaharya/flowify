@@ -47,7 +47,7 @@ export default class Combiner extends Base {
       } else if (source.tracks && Array.isArray(source.tracks)) {
         tracks = source.tracks;
       } else {
-        console.log(source)
+        console.log(source);
         throw new Error("Invalid source type");
       }
       if (tracks.length > longestSourceLength) {

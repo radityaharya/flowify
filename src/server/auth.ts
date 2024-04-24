@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 import { type TokenSet } from "@auth/core/types";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
+import { Logger } from "@lib/log";
 import { and, eq } from "drizzle-orm";
 import {
   type DefaultSession,
@@ -12,7 +13,6 @@ import SpotifyProvider from "next-auth/providers/spotify";
 import { env } from "~/env";
 import { db } from "~/server/db";
 import { accounts } from "~/server/db/schema";
-import { Logger } from "@lib/log";
 
 const logger = new Logger("auth");
 
@@ -66,19 +66,16 @@ async function refreshAccessToken(userId, spotify) {
   if (spotify?.expires_at! * 1000 < Date.now()) {
     logger.info("Refreshing access token for user", userId);
     try {
-      const response = await fetch(
-        "https://accounts.spotify.com/api/token",
-        {
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: new URLSearchParams({
-            client_id: env.SPOTIFY_CLIENT_ID,
-            client_secret: env.SPOTIFY_CLIENT_SECRET,
-            grant_type: "refresh_token",
-            refresh_token: spotify!.refresh_token ?? "",
-          }),
-          method: "POST",
-        },
-      );
+      const response = await fetch("https://accounts.spotify.com/api/token", {
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          client_id: env.SPOTIFY_CLIENT_ID,
+          client_secret: env.SPOTIFY_CLIENT_SECRET,
+          grant_type: "refresh_token",
+          refresh_token: spotify!.refresh_token ?? "",
+        }),
+        method: "POST",
+      });
 
       const tokens: TokenSet = await response.json();
 
@@ -131,9 +128,9 @@ export const authOptions: NextAuthOptions = {
           };
         }
       }
-    
+
       return token;
-    }
+    },
   },
   // @ts-expect-error, the DrizzleAdapter type is not compatible with the NextAuthOptions type
   adapter: DrizzleAdapter(db),
@@ -153,7 +150,7 @@ export const authOptions: NextAuthOptions = {
      * @see https://next-auth.js.org/providers/github
      */
   ],
-  session: { 
+  session: {
     strategy: "jwt",
     maxAge:
       process.env.NODE_ENV === "development" ? 30 * 24 * 60 * 60 : 3 * 60 * 60, // 30 days in development, 3 hours otherwise

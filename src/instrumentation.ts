@@ -15,8 +15,9 @@ export const register = async () => {
     console.info("Worker ID", WORKER_ID);
     const { Worker } = await import("bullmq");
     const Redis = (await import("ioredis")).default;
-    const updateWorkflowRun = (await import("~/lib/workflow/utils/workflowQueue"))
-      .updateWorkflowRun;
+    const updateWorkflowRun = (
+      await import("~/lib/workflow/utils/workflowQueue")
+    ).updateWorkflowRun;
     const connection = new Redis(env.REDIS_URL, {
       maxRetriesPerRequest: null,
     });

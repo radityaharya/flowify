@@ -8,8 +8,8 @@ import Filter from "./Filter";
 import Library from "./Library";
 import Order from "./Order";
 import Playlist from "./Playlist";
-import Utility from "./Utility";
 import Selector from "./Selector";
+import Utility from "./Utility";
 
 import { Logger } from "../log";
 
@@ -80,10 +80,10 @@ export const operationParamsTypesMap = {
   },
   "Selector.allButFirst": {},
   "Selector.allButLast": {},
-  "Selector.recommend":{
-    seedType: { type: "string"},
-    count: { type: "number"},
-  }
+  "Selector.recommend": {
+    seedType: { type: "string" },
+    count: { type: "number" },
+  },
 } as Record<string, Record<string, { type: string; required?: boolean }>>;
 
 import type { Workflow } from "./types/base";
@@ -95,7 +95,7 @@ export const operations: Workflow.Operations = {
   Order,
   Playlist,
   Library,
-  Selector
+  Selector,
 };
 export class Runner extends Base {
   /**
@@ -273,7 +273,7 @@ export class Runner extends Base {
 
     // add dryrun to save operations
     if (workflow.dryrun) {
-      log.info("DRYRUN!")
+      log.info("DRYRUN!");
       operation.params.dryrun = true;
     }
 

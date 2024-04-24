@@ -54,7 +54,9 @@ export async function POST(
 
   workflowObj.operations = runner.sortOperations(workflowObj);
   workflowObj.dryrun = dryrun;
-  if (dryrun) {log.info("Dryrun mode enabled");}
+  if (dryrun) {
+    log.info("Dryrun mode enabled");
+  }
   runner.validateWorkflow(workflowObj);
 
   try {

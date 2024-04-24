@@ -246,7 +246,6 @@ const useStore = create<RFState>((set, get) => ({
       alert: alert,
     });
   },
-
 }));
 
 export default useStore;

@@ -35,8 +35,7 @@ export async function GET(
   const fields = request.nextUrl.searchParams.get("fields");
 
   const columns = fields
-    ? 
-      fields
+    ? fields
         .split(",")
         // biome-ignore lint/performance/noAccumulatingSpread: <explanation>
         .reduce((obj, key) => ({ ...obj, [key]: true }), {})

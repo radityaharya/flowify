@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { Handle, Position } from "@xyflow/react";
+import { Position } from "@xyflow/react";
 import NodeHandle from "../Primitives/NodeHandle";
 
 import React from "react";
@@ -43,7 +43,7 @@ import * as z from "zod";
 import { Form, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import useBasicNodeState from "~/hooks/useBasicNodeState";
 import Debug from "../Primitives/Debug";
-import {PlaylistItem as PlaylistItemPrimitive} from "../Primitives/PlaylistItem"
+import { PlaylistItem as PlaylistItemPrimitive } from "../Primitives/PlaylistItem";
 type PlaylistProps = {
   id: string;
   // TODO type on playlist
