@@ -40,7 +40,6 @@
     "**/*.ts",
     "**/*.tsx",
     "**/*.cjs",
-    "**/*.js",
     ".next/types/**/*.ts",
     "node_modules/@types/**/*.ts",
     "src/types.d.ts"

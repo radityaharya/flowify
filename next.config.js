@@ -3,14 +3,10 @@ await import("./src/env.js");
 
 import { withSentryConfig } from "@sentry/nextjs";
 
-/** @type {import("next").NextConfig} */
 const config = {
   experimental: {
     instrumentationHook: process.env.NO_WORKER ? false : true,
   },
-  // eslint: {
-  //   ignoreDuringBuilds: true,
-  // },
   output: process.env.STANDALONE_OUTPUT ? "standalone" : undefined,
   images: {
     remotePatterns: [
@@ -24,51 +20,48 @@ const config = {
       },
     ],
   },
-};
-
-let sentryConfig;
-let millionConfig;
-
-if (process.env.SENTRY) {
-  sentryConfig = withSentryConfig(
-    config,
-    {
-      silent: true,
-      org: "raditya-harya",
-      project: "flowify",
-    },
-    {
-      widenClientFileUpload: true,
-      transpileClientSDK: false,
-      tunnelRoute: "/monitoring",
-      hideSourceMaps: true,
-      disableLogger: true,
-      automaticVercelMonitors: true,
-    },
-  );
-}
-
-if (process.env.MILLION) {
-  millionConfig = million.next(
-    {
-      ...sentryConfig,
-      webpack: (config, options) => {
-        return config;
-      },
-    },
-    {
-      auto: { rsc: true },
-    },
-  );
-}
-
-const prodConfig = {
-  ...millionConfig,
-  ...sentryConfig,
-  ...config,
-  webpack: (config, options) => {
+  appDir: true,
+  webpack: (config) => {
     return config;
   },
 };
+
+const sentryConfig = withSentryConfig(
+  config,
+  {
+    silent: true,
+    org: "raditya-harya",
+    project: "flowify",
+  },
+  {
+    // For all available options, see:
+    // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
+
+    // Upload a larger set of source maps for prettier stack traces (increases build time)
+    widenClientFileUpload: true,
+
+    // Transpiles SDK to be compatible with IE11 (increases bundle size)
+    transpileClientSDK: false,
+
+    // Routes browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers (increases server load)
+    tunnelRoute: "/monitoring",
+
+    // Hides source maps from generated client bundles
+    hideSourceMaps: true,
+
+    // Automatically tree-shake Sentry logger statements to reduce bundle size
+    disableLogger: true,
+
+    // Enables automatic instrumentation of Vercel Cron Monitors.
+    // See the following for more information:
+    // https://docs.sentry.io/product/crons/
+    // https://vercel.com/docs/cron-jobs
+    automaticVercelMonitors: true,
+  },
+);
+
+const prodConfig = million.next(sentryConfig, {
+  auto: { rsc: true },
+});
 
 export default process.env.NODE_ENV === "development" ? config : prodConfig;

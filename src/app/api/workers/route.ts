@@ -9,17 +9,25 @@ const log = new Logger("/api/user/[uid]/playlists");
 export async function GET(request: NextRequest) {
   log.info("Getting all workers");
 
-  const redis = new Redis(env.REDIS_URL, {
-    maxRetriesPerRequest: null,
-  });
-
-  const cachedData = await redis.get("api:workers");
-  if (cachedData) {
-    return NextResponse.json(JSON.parse(cachedData), {
-      headers: {
-        "X-Cache": "HIT",
-      },
+  let redis: Redis | null = null;
+  try {
+    redis = new Redis(env.REDIS_URL, {
+      maxRetriesPerRequest: null,
     });
+  } catch (error) {
+    log.error("Failed to connect to Redis", error);
+  }
+
+  let cachedData;
+  if (redis) {
+    cachedData = await redis.get("api:workers");
+    if (cachedData) {
+      return NextResponse.json(JSON.parse(cachedData), {
+        headers: {
+          "X-Cache": "HIT",
+        },
+      });
+    }
   }
 
   const workers = await db.query.workerPool.findMany({});
@@ -27,12 +35,14 @@ export async function GET(request: NextRequest) {
     ({ deviceHash, ...worker }) => worker,
   );
 
-  await redis.set(
-    "api:workers",
-    JSON.stringify(workersWithoutDeviceHash),
-    "EX",
-    30,
-  );
+  if (redis) {
+    await redis.set(
+      "api:workers",
+      JSON.stringify(workersWithoutDeviceHash),
+      "EX",
+      30,
+    );
+  }
 
   return NextResponse.json(workersWithoutDeviceHash);
 }

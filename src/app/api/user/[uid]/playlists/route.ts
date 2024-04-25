@@ -5,8 +5,8 @@ import { getAccessTokenFromProviderAccountId } from "~/server/db/helper";
 import Redis from "ioredis";
 import { Logger } from "~/lib/log";
 
-
 const logger = new Logger("/api/user/[uid]/playlists");
+
 export async function GET(
   request: NextRequest,
   {
@@ -20,9 +20,14 @@ export async function GET(
     return NextResponse.json("No access token found", { status: 500 });
   }
 
-  const redis = new Redis(env.REDIS_URL, {
-    maxRetriesPerRequest: null,
-  });
+  let redis: Redis | null = null;
+  try {
+    redis = new Redis(env.REDIS_URL, {
+      maxRetriesPerRequest: null,
+    });
+  } catch (error) {
+    logger.error("Failed to connect to Redis", error);
+  }
 
   const spClient = new SpotifyWebApi({
     clientId: env.SPOTIFY_CLIENT_ID,
@@ -34,15 +39,16 @@ export async function GET(
   const q = request.nextUrl.searchParams.get("q");
 
   const cacheKey = q ? `search:${q}` : `user:${params.uid}`;
-  const cachedData = await redis.get(cacheKey);
+  let cachedData;
+  if (redis) {
+    cachedData = await redis.get(cacheKey);
+  }
 
   if (cachedData) {
-    const ttl = await redis.ttl(cacheKey);
     logger.info(`Cache hit for ${cacheKey}`);
     return NextResponse.json(JSON.parse(cachedData), {
       headers: {
         "X-Cache": "HIT",
-        "X-Cache-TTL": ttl.toString(),
       },
     });
   }
@@ -76,7 +82,9 @@ export async function GET(
     }));
   }
 
-  await redis.set(cacheKey, JSON.stringify(playlists), "EX", 10);
+  if (redis) {
+    await redis.set(cacheKey, JSON.stringify(playlists), "EX", 10);
+  }
 
   return NextResponse.json(playlists);
 }
