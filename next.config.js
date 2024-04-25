@@ -19,11 +19,7 @@ const config = {
         hostname: "**.spotifycdn.com",
       },
     ],
-  },
-  appDir: true,
-  webpack: (config) => {
-    return config;
-  },
+  }
 };
 
 const sentryConfig = withSentryConfig(
