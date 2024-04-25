@@ -6,12 +6,12 @@ import { env } from "~/env";
 
 const log = new Logger("/api/user/[uid]/playlists");
 
-const redis = new Redis(env.REDIS_URL, {
-  maxRetriesPerRequest: null,
-});
-
 export async function GET(request: NextRequest) {
   log.info("Getting all workers");
+
+  const redis = new Redis(env.REDIS_URL, {
+    maxRetriesPerRequest: null,
+  });
 
   const cachedData = await redis.get("api:workers");
   if (cachedData) {

@@ -7,10 +7,6 @@ import { Logger } from "~/lib/log";
 
 
 const logger = new Logger("/api/user/[uid]/playlists");
-
-const redis = new Redis(env.REDIS_URL, {
-  maxRetriesPerRequest: null,
-});
 export async function GET(
   request: NextRequest,
   {
@@ -23,6 +19,10 @@ export async function GET(
   if (!accessToken) {
     return NextResponse.json("No access token found", { status: 500 });
   }
+
+  const redis = new Redis(env.REDIS_URL, {
+    maxRetriesPerRequest: null,
+  });
 
   const spClient = new SpotifyWebApi({
     clientId: env.SPOTIFY_CLIENT_ID,
