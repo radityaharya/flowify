@@ -48,6 +48,7 @@ function Builder({
     sessionStore,
     setFlowState,
     reactFlowInstance,
+    resetReactFlow, 
   } = useStore((state) => ({
     setNodes: state.setNodes,
     setEdges: state.setEdges,
@@ -55,6 +56,7 @@ function Builder({
     sessionStore: state.session,
     setFlowState: state.setFlowState,
     setUserPlaylists: state.setUserPlaylists,
+    resetReactFlow: state.resetReactFlow,
     reactFlowInstance: state.reactFlowInstance,
   }));
 
@@ -71,9 +73,17 @@ function Builder({
       router.push("/workflow");
       return;
     }
-    if (workflowData?.workflow !== undefined) {
+    if (workflowData?.workflow) {
       const { name, sources, operations, connections, description } =
         workflowData.workflow;
+
+      const formatedName = name.replace(/ /g, "-").toLowerCase();
+      const curName = params.id.split("_")[0];
+
+      if (formatedName !== curName) {
+        router.push(`/workflow/${formatedName}_${workflowData.workflow.id}`);
+      }
+
       if (
         sources.length > 0 &&
         operations.length > 0 &&
@@ -125,6 +135,8 @@ function Builder({
           `Flow '${flowId}' loaded with no nodes or edges. Please add some nodes and edges to continue.`,
         );
       }
+    } else {
+      resetReactFlow();
     }
   }, [
     workflowData,
@@ -138,6 +150,19 @@ function Builder({
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(handleWorkflowData, [handleWorkflowData]);
+
+
+  useEffect(() => {
+    const handleUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+    };
+  
+    window.addEventListener("beforeunload", handleUnload);
+  
+    return () => {
+      window.removeEventListener("beforeunload", handleUnload);
+    };
+  }, []);
 
   const handleUserPlaylists = useCallback(() => {
     if (!session?.user?.providerAccountId) {

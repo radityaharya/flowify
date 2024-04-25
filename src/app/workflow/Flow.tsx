@@ -9,6 +9,8 @@ import {
   getOutgoers,
 } from "@xyflow/react";
 import { useCallback, useMemo, useRef } from "react";
+import useSWR from "swr";
+import { fetcher } from "@/app/utils/fetcher";
 
 import useStore from "~/app/states/store";
 
@@ -39,7 +41,13 @@ import First from "@nodes/Selectors/First";
 import Last from "@nodes/Selectors/Last";
 import Recommend from "@nodes/Selectors/Recommend";
 
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { PlayIcon, SaveIcon, Settings as SettingsIcon } from "lucide-react";
 import { SettingsDialog } from "./settingsDialog/Settings";
 
@@ -52,6 +60,7 @@ import { toast } from "sonner";
 import { runWorkflow } from "~/app/utils/runWorkflow";
 
 import { memo } from "react";
+import { cn } from "~/lib/utils";
 
 export const Nodes = {
   "Combiner.alternate": {
@@ -203,7 +212,7 @@ export function App() {
 
       const url = event.dataTransfer.getData("text/plain");
 
-      if (url?.includes("spotify.com")) {
+      if (url?.includes("spotify.com") && url.includes("/playlist/")) {
         const position = reactFlowInstance!.screenToFlowPosition({
           x: event.clientX,
           y: event.clientY,
@@ -211,7 +220,6 @@ export function App() {
 
         const playlistId = url.split("/playlist/")[1];
 
-        // Create a placeholder node
         const placeholderNode = {
           id: `placeholder-${playlistId}`,
           type: "Source.playlist",
@@ -314,6 +322,11 @@ export function App() {
     router.push(`/workflow/${saveResponse.id}`);
   }
 
+  const { data: workers, isLoading: workerLoading } = useSWR(
+    "/api/workers",
+    fetcher,
+  );
+
   return (
     <div className="dndflow h-full w-full">
       <div className="reactflow-wrapper h-full w-full" ref={reactFlowWrapper}>
@@ -343,11 +356,42 @@ export function App() {
           <Controls />
           <Panel position="top-right" className="pt-20">
             <div className="flex flex-row items-center gap-4">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div
+                      className={cn(
+                        buttonVariants({
+                          variant:
+                            workerLoading || workers?.length
+                              ? "ghost"
+                              : "destructive",
+                        }),
+                        "hover:unset",
+                      )}
+                    >
+                      Workers:{" "}
+                      {workerLoading
+                        ? "Loading..."
+                        : workers?.length
+                          ? workers.length
+                          : "No active workers!"}
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side={"bottom"}>
+                    <p>
+                      {workers?.length
+                        ? `${workers.length} worker(s) is current online`
+                        : "No workers are currently online, workflows can't be executed"}
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
               <Button className="flex-grow" onClick={handleSave}>
                 <SaveIcon size={16} />
                 <span>Save</span>
               </Button>
-              <Button className="flex-grow" onClick={handleRun}>
+              <Button className="flex-grow" onClick={handleRun} disabled={workerLoading || !workers?.length}>
                 <PlayIcon size={16} />
                 <span>Run</span>
               </Button>

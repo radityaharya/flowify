@@ -29,13 +29,13 @@ import {
 } from "@tanstack/react-table";
 import "@tanstack/react-table";
 import { formatDistanceToNow } from "date-fns";
-import { ArrowUpDown, ChevronsUpDown } from "lucide-react";
+import { ArrowUpDown, ChevronsUpDown, RefreshCcw } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import useSWR from "swr";
-import { Button } from "~/components/ui/button";
+import { Button, buttonVariants } from "~/components/ui/button";
 import {
   Card,
   CardContent,
@@ -183,11 +183,11 @@ function ColapsiblePlaylists({ sources }: { sources: any[] }) {
             setIsOpen={setIsOpen}
           />
         </CollapsibleTrigger>
+        <CollapsibleContent className="space-y-2 CollapsibleContent">
         {sources.map((source, _index) => (
-          <CollapsibleContent className="my-2" asChild key={source.id}>
-            <PlaylistCard source={source} />
-          </CollapsibleContent>
-        ))}
+            <PlaylistCard source={source} key={source.id}/>
+          ))}
+        </CollapsibleContent>
       </Collapsible>
     );
   }
@@ -385,10 +385,18 @@ export function WorkflowTable({ workflows }: WorkflowTableProps) {
     <Card className="flex flex-col gap-4">
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
-          <CardTitle>Workflows</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            Workflows
+            <Button variant="ghost" onClick={refreshData} onKeyPress={refreshData} size="sm">
+              <RefreshCcw className="h-3 w-3" />
+            </Button>
+          </CardTitle>
           <CardDescription>Manage your workflows here.</CardDescription>
         </div>
-        <Button onClick={refreshData}>Refresh</Button>
+        {/* <Button onClick={refreshData}>Refresh</Button> */}
+        <Link className={buttonVariants({variant: "default"})} href="/workflow">
+          Create Workflow
+        </Link>
       </CardHeader>
       <CardContent className="space-y-1">
         {error && <div>Error loading history</div>}

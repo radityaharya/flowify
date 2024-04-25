@@ -212,8 +212,8 @@ const useStore = create<RFState>((set, get) => ({
       edges: [],
       flowState: {
         id: undefined,
-        name: "",
-        description: "",
+        name: "Untitled Workflow",
+        description: "Make sure to save your workflow!",
         workflow: undefined,
       },
     });
