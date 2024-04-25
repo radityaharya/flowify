@@ -2,10 +2,10 @@
 
 import { type Edge, type Node } from "@xyflow/react";
 
-import Flow from "@/components/Flow";
+import Flow from "./Flow";
 // import styles from "./page.module.css";
 import { useSession } from "next-auth/react";
-import { useEffect } from "react";
+import { memo, useCallback, useEffect } from "react";
 
 import useStore from "@/app/states/store";
 import Sidebar from "./Sidebar";
@@ -64,7 +64,7 @@ function Builder({
   } = useWorkflowData(flowId);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
-  useEffect(() => {
+  const handleWorkflowData = useCallback(() => {
     if (workflowData === undefined && workflowError !== undefined) {
       toast.error(workflowError.info);
       router.push("/workflow");
@@ -135,7 +135,10 @@ function Builder({
     setNodes,
   ]);
 
-  useEffect(() => {
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+  useEffect(handleWorkflowData, [handleWorkflowData]);
+
+  const handleUserPlaylists = useCallback(() => {
     if (!session?.user?.providerAccountId) {
       return;
     }
@@ -150,6 +153,9 @@ function Builder({
       });
   }, [session?.user?.providerAccountId, setUserPlaylists]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+  useEffect(handleUserPlaylists, [handleUserPlaylists]);
+
   return (
     <div className="flex h-screen flex-col">
       <main className="grid h-screen">
@@ -160,10 +166,7 @@ function Builder({
           <ResizableHandle withHandle />
           <ResizablePanel defaultSize={80}>
             {workflowIsLoading || sessionStore === null ? (
-              <div className="flex h-full items-center justify-center">
-                <LoadingSVG />
-                <div className="ml-2">Loading...</div>
-              </div>
+              <Loading />
             ) : (
               <Flow />
             )}
@@ -173,6 +176,13 @@ function Builder({
     </div>
   );
 }
+
+const Loading = memo(() => (
+  <div className="flex h-full items-center justify-center">
+    <LoadingSVG />
+    <div className="ml-2">Loading...</div>
+  </div>
+));
 
 const LoadingSVG = () => (
   <svg

@@ -1,4 +1,3 @@
-import reactFlowToWorkflow from "@/app/utils/reactFlowToWorkflow";
 import { saveWorkflow } from "@/app/utils/saveWorkflow";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,7 +8,6 @@ import { Copy, Info } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
 import * as z from "zod";
 import useStore from "~/app/states/store";
 
@@ -44,19 +42,7 @@ const General = () => {
       name: data.name,
       description: data.description,
     });
-    const { workflowResponse, errors } = await reactFlowToWorkflow({
-      nodes,
-      edges,
-    });
-    const saveResponse = await saveWorkflow(workflowResponse);
-    setFlowState({
-      description: data.description,
-      name: data.name,
-      id: saveResponse.id,
-    });
-    if (saveResponse) {
-      toast.success(flowState.id ? "Workflow updated" : "Workflow created");
-    }
+    const saveResponse = await saveWorkflow();
     router.push(`/workflow/${saveResponse.id}`);
   };
 

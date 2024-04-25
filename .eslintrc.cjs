@@ -40,7 +40,9 @@ const config = {
     "@typescript-eslint/no-floating-promises": "off",
     "@typescript-eslint/no-inferrable-types": "off",
     "@typescript-eslint/no-redundant-type-constituents": "off",
-    "@typescript-eslint/no-unsafe-argument": "off"
+    "@typescript-eslint/no-unsafe-argument": "off",
+    "@typescript-eslint/consistent-indexed-object-style": "off",
+    "@typescript-eslint/prefer-nullish-coalescing": "off"
   },
 };
 

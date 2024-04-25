@@ -8,35 +8,36 @@ import {
   ReactFlow,
   getOutgoers,
 } from "@xyflow/react";
-import { useCallback, useRef } from "react";
+import { useCallback, useMemo, useRef } from "react";
 
 import useStore from "~/app/states/store";
 
 import "@xyflow/react/dist/style.css";
 import { useShallow } from "zustand/react/shallow";
 
-import Alternate from "./nodes/Combiner/Alternate";
-import Push from "./nodes/Combiner/Push";
+import Alternate from "@nodes/Combiner/Alternate";
+import Push from "@nodes/Combiner/Push";
 
-import LikedTracks from "./nodes/Library/LikedTracks";
-import Playlist from "./nodes/Library/Playlist";
-import SaveAsAppend from "./nodes/Library/SaveAsAppend";
-import SaveAsNew from "./nodes/Library/SaveAsNew";
-import SaveAsReplace from "./nodes/Library/SaveAsReplace";
+import LikedTracks from "@nodes/Library/LikedTracks";
+import Playlist from "@nodes/Library/Playlist";
+import SaveAsAppend from "@nodes/Library/SaveAsAppend";
+import SaveAsNew from "@nodes/Library/SaveAsNew";
+import SaveAsReplace from "@nodes/Library/SaveAsReplace";
 
-import DedupeArtists from "./nodes/Filter/DedupeArtists";
-import DedupeTracks from "./nodes/Filter/DedupeTracks";
-import Limit from "./nodes/Filter/Limit";
-import RemoveMatch from "./nodes/Filter/RemoveMatch";
+import DedupeArtists from "@nodes/Filter/DedupeArtists";
+import DedupeTracks from "@nodes/Filter/DedupeTracks";
+import Limit from "@nodes/Filter/Limit";
+import RemoveMatch from "@nodes/Filter/RemoveMatch";
 
-import Shuffle from "./nodes/Order/Shuffle";
-import Sort from "./nodes/Order/Sort";
+import Shuffle from "@nodes/Order/Shuffle";
+import Sort from "@nodes/Order/Sort";
+import SortPopularity from "@nodes/Order/SortPopularity";
 
-import AllButFirst from "./nodes/Selectors/AllButFirst";
-import AllButLast from "./nodes/Selectors/AllButLast";
-import First from "./nodes/Selectors/First";
-import Last from "./nodes/Selectors/Last";
-import Recommend from "./nodes/Selectors/Recommend";
+import AllButFirst from "@nodes/Selectors/AllButFirst";
+import AllButLast from "@nodes/Selectors/AllButLast";
+import First from "@nodes/Selectors/First";
+import Last from "@nodes/Selectors/Last";
+import Recommend from "@nodes/Selectors/Recommend";
 
 import { Button } from "@/components/ui/button";
 import { PlayIcon, SaveIcon, Settings as SettingsIcon } from "lucide-react";
@@ -50,30 +51,105 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { runWorkflow } from "~/app/utils/runWorkflow";
 
-const nodeTypes = {
-  "Combiner.alternate": Alternate,
-  "Combiner.push": Push,
-
-  "Filter.dedupeTracks": DedupeTracks,
-  "Filter.dedupeArtists": DedupeArtists,
-  "Filter.filter": RemoveMatch,
-  "Filter.limit": Limit,
-
-  "Source.playlist": Playlist,
-  "Library.likedTracks": LikedTracks,
-  "Library.saveAsNew": SaveAsNew,
-  "Library.saveAsAppend": SaveAsAppend,
-  "Library.saveAsReplace": SaveAsReplace,
-
-  "Order.shuffle": Shuffle,
-  "Order.sort": Sort,
-
-  "Selector.allButFirst": AllButFirst,
-  "Selector.allButLast": AllButLast,
-  "Selector.first": First,
-  "Selector.last": Last,
-  "Selector.recommend": Recommend,
+export const Nodes = {
+  "Combiner.alternate": {
+    title: "Alternate",
+    node: Alternate,
+    description: "Alternate between playlists",
+  },
+  "Combiner.push": {
+    title: "Push",
+    node: Push,
+    description: "Append tracks of sources sequentially",
+  },
+  "Filter.dedupeTracks": {
+    title: "Deduplicate Tracks",
+    node: DedupeTracks,
+    description: "Remove duplicate tracks",
+  },
+  "Filter.dedupeArtists": {
+    title: "Deduplicate Artists",
+    node: DedupeArtists,
+    description: "Remove duplicate artists",
+  },
+  "Filter.filter": {
+    title: "Filter",
+    node: RemoveMatch,
+    description: "Match and remove tracks",
+  },
+  "Filter.limit": {
+    title: "Limit",
+    node: Limit,
+    description: "Limit number of tracks",
+  },
+  "Source.playlist": {
+    title: "Playlist",
+    node: Playlist,
+    description: "Playlist source",
+  },
+  "Library.likedTracks": {
+    title: "Liked Tracks",
+    node: LikedTracks,
+    description: "Liked tracks",
+  },
+  "Library.saveAsNew": {
+    title: "Save as New",
+    node: SaveAsNew,
+    description: "Saves workflow output to a new playlist",
+  },
+  "Library.saveAsAppend": {
+    title: "Save as Append",
+    node: SaveAsAppend,
+    description: "Saves workflow output to an existing playlist by appending",
+  },
+  "Library.saveAsReplace": {
+    title: "Save as Replace",
+    node: SaveAsReplace,
+    description:
+      "Saves workflow output to an existing playlist by replacing all tracks",
+  },
+  "Order.shuffle": {
+    title: "Shuffle",
+    node: Shuffle,
+    description: "Randomly shuffle tracks",
+  },
+  "Order.sort": {
+    title: "Sort",
+    node: Sort,
+    description: "Sort tracks based on given key",
+  },
+  "Order.sort-popularity": {
+    title: "Sort Tracks by Popularity",
+    node: SortPopularity,
+    description: "Sort tracks based on popularity",
+  },
+  "Selector.allButFirst": {
+    title: "All But First",
+    node: AllButFirst,
+    description: "Selects all but the first item from the input",
+  },
+  "Selector.allButLast": {
+    title: "All But Last",
+    node: AllButLast,
+    description: "Selects all but the last item from the input",
+  },
+  "Selector.first": {
+    title: "First",
+    node: First,
+    description: "Selects the first item from the input",
+  },
+  "Selector.last": {
+    title: "Last",
+    node: Last,
+    description: "Selects the last item from the input",
+  },
+  "Selector.recommend": {
+    title: "Recommend",
+    node: Recommend,
+    description: "Get a list of recommended tracks based on the input.",
+  },
 };
+
 export default function App() {
   const reactFlowWrapper = useRef(null);
   const {
@@ -108,60 +184,32 @@ export default function App() {
 
   const router = useRouter();
 
-  const onDragOver = useCallback((event) => {
+  const nodeTypes = useMemo(() => Object.fromEntries(
+    Object.entries(Nodes).map(([key, value]) => [key, value.node])
+  ), []);
+
+  const onDragDrop = useCallback((event) => {
     event.preventDefault();
     event.dataTransfer.dropEffect = "move";
-  }, []);
-
-  const onDrop = useCallback(
-    (event) => {
-      event.preventDefault();
-
-      const type = event.dataTransfer.getData("application/reactflow");
-
-      // check if the dropped element is valid
-      if (typeof type === "undefined" || !type) {
-        return;
-      }
-
-      // reactFlowInstance.project was renamed to reactFlowInstance.screenToFlowPosition
-      // and you don't need to subtract the reactFlowBounds.left/top anymore
-      // details: https://reactflow.dev/whats-new/2023-11-10
-      const position = reactFlowInstance!.screenToFlowPosition({
-        x: event.clientX,
-        y: event.clientY,
-      });
-      const newNode = {
-        type,
-        position,
-        data: {},
-      };
-
-      addNode(newNode);
-
-      // check for dropped spotify links
-      // const text = event.dataTransfer.getData("text");
-      // if (text) {
-      //   const url = new URL(text);
-      //   if (url.hostname === "open.spotify.com") {
-      //     const path = url.pathname.split("/");
-      //     if (path[1] === "playlist") {
-      //       addNode({
-      //         nodeType: "Source.playlist",
-      //         position: reactFlowInstance!.screenToFlowPosition({
-      //           x: event.clientX,
-      //           y: event.clientY,
-      //         }),
-      //         data: {
-      //           playlistId: path[2],
-      //         },
-      //       });
-      //     }
-      //   }
-      // }
-    },
-    [reactFlowInstance, addNode],
-  );
+  
+    const type = event.dataTransfer.getData("application/reactflow");
+  
+    if (typeof type === "undefined" || !type) {
+      return;
+    }
+  
+    const position = reactFlowInstance!.screenToFlowPosition({
+      x: event.clientX,
+      y: event.clientY,
+    });
+    const newNode = {
+      type,
+      position,
+      data: {},
+    };
+  
+    addNode(newNode);
+  }, [reactFlowInstance, addNode]);
 
   const isValidConnection = useCallback(
     (connection) => {
@@ -199,11 +247,7 @@ export default function App() {
   }
 
   async function handleSave() {
-    const { workflowResponse, errors } = await reactFlowToWorkflow({
-      nodes,
-      edges,
-    });
-    const saveResponse = await saveWorkflow(workflowResponse);
+    const saveResponse = await saveWorkflow();
     router.push(`/workflow/${saveResponse.id}`);
   }
 
@@ -217,16 +261,14 @@ export default function App() {
           onEdgesChange={onEdgesChange}
           onConnect={addEdge}
           onInit={setReactFlowInstance}
-          onDrop={onDrop}
-          onDragOver={onDragOver}
+          onDrop={onDragDrop}
+          onDragOver={onDragDrop}
           onNodesDelete={onNodesDelete}
           isValidConnection={isValidConnection}
           fitView
           snapToGrid={true}
           nodeTypes={nodeTypes}
           snapGrid={[20, 20]}
-          // zoomOnPinch={false}
-          // zoomOnScroll={false}
           zoomOnDoubleClick={false}
           deleteKeyCode={["Backspace", "Delete"]}
           onPaneContextMenu={(e) => {
@@ -234,11 +276,6 @@ export default function App() {
           }}
           minZoom={0.001}
           maxZoom={1}
-          // // figma like
-          // panOnScroll
-          // selectionOnDrag
-          // panOnDrag={[1, 2]}
-          // selectionMode={SelectionMode.Partial}
         >
           <Controls />
           <Panel position="top-right" className="pt-20">

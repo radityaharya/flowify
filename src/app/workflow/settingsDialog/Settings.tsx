@@ -4,7 +4,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "../ui/separator";
+import { Separator } from "../../../components/ui/separator";
 
 import General from "./tabs/General";
 import History from "./tabs/History";

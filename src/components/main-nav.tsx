@@ -1,5 +1,6 @@
 "use client";
-import Link from "next/link";
+
+import Link, { LinkProps } from "next/link";
 import { usePathname } from "next/navigation";
 import { buttonVariants } from "~/components/ui/button";
 
@@ -8,10 +9,45 @@ import { useSession } from "next-auth/react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 
 import useStore from "@/app/states/store";
+import { useMemo } from "react";
+
+interface NavLinkProps extends LinkProps {
+  href: string;
+  activePath?: string | RegExp;
+  children: React.ReactNode;
+
+  className?: string;
+}
+
+const NavLink: React.FC<NavLinkProps> = ({
+  href,
+  activePath,
+  children,
+  className,
+  ...props
+}) => {
+  const path = usePathname();
+  const isActive =
+    activePath instanceof RegExp
+      ? activePath.test(path)
+      : path.startsWith(activePath || "");
+
+  return (
+    <Link
+      href={href}
+      {...props}
+      className={cn(
+        "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+        isActive ? "text-foreground" : "text-foreground/60",
+        className,
+      )}
+    >
+      {children}
+    </Link>
+  );
+};
 
 export function MainNav() {
-  const pathname = usePathname();
-
   const { resetReactFlow } = useStore((state) => ({
     resetReactFlow: state.resetReactFlow,
   }));
@@ -35,71 +71,55 @@ export function MainNav() {
           Flowify
         </div>
       </Link>
-      <nav className="flex items-center gap-6 text-sm">
-        <Link
+      <nav className="flex items-center gap-2 text-sm">
+        <NavLink
           href="/workflow"
           onClick={() => resetReactFlow()}
-          className={cn(
-            "transition-colors hover:text-foreground/80",
-            /\/workflow(?!s)/.test(pathname)
-              ? "text-foreground"
-              : "text-foreground/60",
-          )}
+          activePath={/\/workflow(?!s)/}
         >
           Builder
-        </Link>
-        <Link
-          href="/workflows"
-          className={cn(
-            "transition-colors hover:text-foreground/80",
-            pathname?.startsWith("/workflows")
-              ? "text-foreground"
-              : "text-foreground/60",
-          )}
-        >
+        </NavLink>
+        <NavLink href="/workflows" activePath="/workflows">
           Workflows
-        </Link>
-        <Link
-          href="/examples"
-          className={cn(
-            "transition-colors hover:text-foreground/80",
-            pathname?.startsWith("/examples")
-              ? "text-foreground"
-              : "text-foreground/60",
-          )}
-        >
+        </NavLink>
+        <NavLink href="/examples" activePath="/examples">
           Examples
-        </Link>
-        <Link
+        </NavLink>
+        <NavLink
           href="https://github.com/radityaharya/flowify"
           className={cn(
             "hidden text-foreground/60 transition-colors lg:block hover:text-foreground/80",
           )}
         >
           GitHub
-        </Link>
+        </NavLink>
       </nav>
     </div>
   );
 }
+interface SiteNavProps {
+  className?: string;
+}
 
-export function SiteNav({ className }: { className?: string }) {
+export function SiteNav({ className }: SiteNavProps) {
   const { data: session } = useSession();
   const pathname = usePathname();
+
+  const navClass = useMemo(() => {
+    let classes =
+      "sticky top-0 z-[3] flex w-full items-center justify-between bg-transparent px-6 py-4 backdrop-blur-md";
+    if (/\/workflow(?!s)/.test(pathname))
+      classes += " absolute border-b bg-background backdrop-blur-none";
+    if (pathname === "/") classes += " absolute";
+    if (pathname.startsWith("/auth"))
+      classes += " absolute bg-transparent backdrop-blur-none";
+    if (pathname.startsWith("/auth/p"))
+      classes += " hidden";
+    return classes;
+  }, [pathname]);
+
   return (
-    <div
-      className={cn(
-        "sticky top-0 z-[3] flex w-full items-center justify-between bg-transparent px-6 py-4 backdrop-blur-md",
-        className,
-        /\/workflow(?!s)/.test(pathname)
-          ? "absolute border-b bg-background backdrop-blur-none"
-          : "",
-        pathname === "/" ? "absolute" : "",
-        pathname.startsWith("/auth")
-          ? "absolute bg-transparent backdrop-blur-none"
-          : "",
-      )}
-    >
+    <div className={cn(navClass, className)}>
       <MainNav />
       {session ? (
         <div className="flex flex-row items-center gap-4">
@@ -118,11 +138,11 @@ export function SiteNav({ className }: { className?: string }) {
           </Avatar>
         </div>
       ) : (
-        <div>
+        <div className="h-8 flex items-center">
           <Link
             href="/auth/login"
             className={cn(
-              "border h-8",
+              "border",
               buttonVariants({ variant: "ghost" }),
               pathname.startsWith("/auth/login") ?? "hidden",
             )}

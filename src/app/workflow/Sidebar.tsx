@@ -1,8 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
-import reactFlowToWorkflow from "@/app/utils/reactFlowToWorkflow";
-
-import useStore from "@/app/states/store";
 import { DragableNode } from "@/components/DragableNode";
 import {
   Accordion,
@@ -10,54 +7,46 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { useEffect, useState } from "react";
+import { useCallback, useMemo } from "react";
 import React from "react";
-import { useShallow } from "zustand/react/shallow";
-function Sidebar() {
-  const { session, nodes, edges, alert, setAlertStore } = useStore(
-    useShallow((state) => ({
-      nodes: state.nodes,
-      edges: state.edges,
-      session: state.session,
-      setSessionStore: state.setSession,
-      alert: state.alert,
-      setAlertStore: state.setAlert,
-    })),
-  );
+import { Nodes } from "./Flow";
 
-  const onDragOver = (event) => {
+type NodeType = {
+  title: string;
+  description: string;
+  nodeType: string;
+};
+
+type NodesByType = {
+  [type: string]: NodeType[];
+};
+
+function Sidebar() {
+  const onDragOver = useCallback((event) => {
     event.preventDefault();
     event.dataTransfer.dropEffect = "move";
-  };
+  }, []);
 
-  const onDrop = (_event) => {
+  const onDrop = useCallback((_event) => {
     return;
-  };
+  }, []);
 
-  function handleRun() {
-    const workflow = reactFlowToWorkflow({ nodes, edges });
-    const blob = new Blob([JSON.stringify(workflow)], {
-      type: "application/json",
-    });
-    const _url = URL.createObjectURL(blob);
-    const _link = document.createElement("a");
-    // link.download = "workflow.json";
-    // link.href = url;
-    // link.click();
-  }
-
-  const [_openAlert, setOpenAlert] = useState(false);
-
-  useEffect(() => {
-    if (alert) {
-      setOpenAlert(true);
-    }
-  }, [alert]);
-
-  function handleOpenChange() {
-    setOpenAlert(false);
-    setAlertStore(null);
-  }
+  const nodesByType: NodesByType = useMemo(() => {
+    return Object.entries(Nodes).reduce((groups, [nodeType, nodeInfo]) => {
+      const type = nodeType.split(".")[0];
+      if (type) {
+        if (!groups[type]) {
+          groups[type] = [];
+        }
+        groups[type]?.push({
+          nodeType,
+          title: nodeInfo.title,
+          description: nodeInfo.description,
+        });
+      }
+      return groups;
+    }, {} as NodesByType);
+  }, []);
 
   return (
     <aside
@@ -83,142 +72,35 @@ function Sidebar() {
           className="px-6"
           defaultValue="item-1"
         >
-          <AccordionItem value="item-1">
-            <AccordionTrigger>Library</AccordionTrigger>
-            <AccordionContent className="flex flex-col gap-2">
-              <DragableNode
-                nodeType="Source.playlist"
-                title="Playlist"
-                description="Playlist source"
-                type="Source"
-              />
-              <DragableNode
-                nodeType="Library.likedTracks"
-                title="Liked Tracks"
-                description="Liked tracks"
-                type="Source"
-              />
-              <DragableNode
-                nodeType="Library.saveAsNew"
-                title="Save as new"
-                description="Saves workflow output to a new playlist"
-                type="Target"
-              />
-              <DragableNode
-                nodeType="Library.saveAsAppend"
-                title="Save as append"
-                description="Saves workflow output to an existing playlist by appending"
-                type="Target"
-              />
-              <DragableNode
-                nodeType="Library.saveAsReplace"
-                title="Save as replace"
-                description="Saves workflow output to an existing playlist by replacing all tracks"
-                type="Target"
-              />
-            </AccordionContent>
-          </AccordionItem>
-          <AccordionItem value="item-2">
-            <AccordionTrigger>Combiners</AccordionTrigger>
-            <AccordionContent className="flex flex-col gap-2">
-              <DragableNode
-                nodeType="Combiner.alternate"
-                title="Alternate"
-                description="Alternate between playlists"
-                type="Combiner"
-              />
-              <DragableNode
-                nodeType="Combiner.push"
-                title="Push"
-                description="Append tracks of sources sequentially"
-                type="Combiner"
-              />
-            </AccordionContent>
-          </AccordionItem>
-          <AccordionItem value="item-3">
-            <AccordionTrigger>Filters</AccordionTrigger>
-            <AccordionContent className="flex flex-col gap-2">
-              <DragableNode
-                nodeType="Filter.dedupeTracks"
-                title="Dedupe Tracks"
-                description="Remove duplicate tracks"
-                type="Filter"
-              />
-              <DragableNode
-                nodeType="Filter.dedupeArtists"
-                title="Dedupe Artists"
-                description="Remove duplicate artists"
-                type="Filter"
-              />
-              <DragableNode
-                nodeType="Filter.filter"
-                title="Remove Match"
-                description="Match and remove tracks"
-                type="Filter"
-              />
-              <DragableNode
-                nodeType="Filter.limit"
-                title="Limit"
-                description="Limit number of tracks"
-                type="Filter"
-              />
-            </AccordionContent>
-          </AccordionItem>
-          <AccordionItem value="item-4">
-            <AccordionTrigger>Order</AccordionTrigger>
-            <AccordionContent className="flex flex-col gap-2">
-              <DragableNode
-                nodeType="Order.sort"
-                title="Sort"
-                description="Sort tracks based on given key"
-                type="Order"
-              />
-              <DragableNode
-                nodeType="Order.shuffle"
-                title="Shuffle"
-                description="Randomly shuffle tracks"
-                type="Order"
-              />
-            </AccordionContent>
-          </AccordionItem>
-          <AccordionItem value="item-5">
-            <AccordionTrigger>Selectors</AccordionTrigger>
-            <AccordionContent className="flex flex-col gap-2">
-              <DragableNode
-                nodeType="Selector.first"
-                title="First"
-                description="Selects the first item from the input"
-                type="Selector"
-              />
-              <DragableNode
-                nodeType="Selector.last"
-                title="Last"
-                description="Selects the last item from the input"
-                type="Selector"
-              />
-              <DragableNode
-                nodeType="Selector.allButFirst"
-                title="All But First"
-                description="Selects all but the first item from the input"
-                type="Selector"
-              />
-              <DragableNode
-                nodeType="Selector.allButlast"
-                title="All But Last"
-                description="Selects all but the last item from the input"
-                type="Selector"
-              />
-              <DragableNode
-                nodeType="Selector.recommend"
-                title="Recommend"
-                description="Get a list of recommended tracks based on the input."
-                type="Selector"
-              />
-            </AccordionContent>
-          </AccordionItem>
+          <AccordionItems nodesByType={nodesByType} />
         </Accordion>
       </div>
     </aside>
+  );
+}
+
+function AccordionItems({ nodesByType }: { nodesByType: NodesByType }) {
+  return (
+    <>
+      {Object.entries(nodesByType).map(
+        ([type, nodes]: [string, NodeType[]], index) => (
+          <AccordionItem value={`item-${index + 1}`} key={type}>
+            <AccordionTrigger>{type}</AccordionTrigger>
+            <AccordionContent className="flex flex-col gap-2">
+              {nodes.map(({ title, description, nodeType }) => (
+                <DragableNode
+                  key={nodeType}
+                  nodeType={nodeType}
+                  title={title}
+                  description={description}
+                  type={type}
+                />
+              ))}
+            </AccordionContent>
+          </AccordionItem>
+        ),
+      )}
+    </>
   );
 }
 
