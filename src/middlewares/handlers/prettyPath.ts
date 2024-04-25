@@ -61,7 +61,10 @@ export const prettyPath = (
 ) => {
   return async (request: NextRequest, _next: NextFetchEvent) => {
     const { pathname } = request.nextUrl;
-    if (matchPaths.some((path) => pathname.startsWith(path))) {
+    if (
+      matchPaths.some((path) => pathname.startsWith(path)) &&
+      !pathname.includes("queue")
+    ) {
       logger.info("Match!");
 
       if (pathname.startsWith("/workflow")) {

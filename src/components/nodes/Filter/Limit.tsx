@@ -29,7 +29,7 @@ const formSchema = z.object({
   limit: z.number().int().positive().default(0),
 });
 
-const LimitComponent: React.FC<PlaylistProps> = React.memo(({ id, data }) => {
+const LimitComponent: React.FC<PlaylistProps> = ({ id, data }) => {
   const {
     state,
     isValid,
@@ -124,6 +124,6 @@ const LimitComponent: React.FC<PlaylistProps> = React.memo(({ id, data }) => {
       />
     </CardWithHeader>
   );
-});
+};
 
 export default LimitComponent;

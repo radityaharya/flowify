@@ -16,45 +16,39 @@ type PlaylistProps = {
   data: any;
 };
 
-const AllButLastComponent: React.FC<PlaylistProps> = React.memo(
-  ({ id, data }) => {
-    const { state, isValid, targetConnections, sourceConnections } =
-      useBasicNodeState(id);
+const AllButLastComponent: React.FC<PlaylistProps> = ({ id, data }) => {
+  const { state, isValid, targetConnections, sourceConnections } =
+    useBasicNodeState(id);
 
-    return (
-      <CardWithHeader
-        title={`All But Last`}
-        id={id}
-        type="Selector"
-        status={isValid === null ? "loading" : isValid ? "success" : "error"}
-        info="Selects the All elements from the given sources array except the last element"
-      >
-        <NodeHandle
-          type="source"
-          position={Position.Right}
-          style={{ background: "#555" }}
+  return (
+    <CardWithHeader
+      title={`All But Last`}
+      id={id}
+      type="Selector"
+      status={isValid === null ? "loading" : isValid ? "success" : "error"}
+      info="Selects the All elements from the given sources array except the last element"
+    >
+      <NodeHandle
+        type="source"
+        position={Position.Right}
+        style={{ background: "#555" }}
+      />
+      <NodeHandle
+        type="target"
+        position={Position.Left}
+        style={{ background: "#555" }}
+      />
+      <div className="flex flex-col gap-4">
+        <SourceList state={state} isValid={isValid} operationType="Selecting" />
+        <Debug
+          id={id}
+          isValid={isValid}
+          TargetConnections={targetConnections}
+          SourceConnections={sourceConnections}
         />
-        <NodeHandle
-          type="target"
-          position={Position.Left}
-          style={{ background: "#555" }}
-        />
-        <div className="flex flex-col gap-4">
-          <SourceList
-            state={state}
-            isValid={isValid}
-            operationType="Selecting"
-          />
-          <Debug
-            id={id}
-            isValid={isValid}
-            TargetConnections={targetConnections}
-            SourceConnections={sourceConnections}
-          />
-        </div>
-      </CardWithHeader>
-    );
-  },
-);
+      </div>
+    </CardWithHeader>
+  );
+};
 
 export default AllButLastComponent;

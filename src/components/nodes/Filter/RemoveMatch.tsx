@@ -55,7 +55,7 @@ const selectOptions = [
   { label: "Not equal to (!=)", value: "!=" },
 ];
 
-const RemoveMatch: React.FC<PlaylistProps> = React.memo(({ id, data }) => {
+const RemoveMatch: React.FC<PlaylistProps> = ({ id, data }) => {
   const {
     state,
     isValid,
@@ -196,6 +196,6 @@ const RemoveMatch: React.FC<PlaylistProps> = React.memo(({ id, data }) => {
       />
     </CardWithHeader>
   );
-});
+};
 
 export default RemoveMatch;

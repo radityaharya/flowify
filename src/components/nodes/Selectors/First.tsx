@@ -16,7 +16,7 @@ type PlaylistProps = {
   data: any;
 };
 
-const First: React.FC<PlaylistProps> = React.memo(({ id, data }) => {
+const First: React.FC<PlaylistProps> = ({ id, data }) => {
   const { state, isValid, targetConnections, sourceConnections } =
     useBasicNodeState(id);
 
@@ -49,6 +49,6 @@ const First: React.FC<PlaylistProps> = React.memo(({ id, data }) => {
       </div>
     </CardWithHeader>
   );
-});
+};
 
 export default First;

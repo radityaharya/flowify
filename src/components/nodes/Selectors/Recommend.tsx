@@ -34,7 +34,7 @@ const selectOptions = [
   { label: "Artists", value: "artists" },
 ];
 
-const Recommend: React.FC<PlaylistProps> = React.memo(({ id, data }) => {
+const Recommend: React.FC<PlaylistProps> = ({ id, data }) => {
   const {
     state,
     isValid,
@@ -145,6 +145,6 @@ const Recommend: React.FC<PlaylistProps> = React.memo(({ id, data }) => {
       />
     </CardWithHeader>
   );
-});
+};
 
 export default Recommend;

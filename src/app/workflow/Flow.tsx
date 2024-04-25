@@ -51,106 +51,108 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { runWorkflow } from "~/app/utils/runWorkflow";
 
+import { memo } from "react";
+
 export const Nodes = {
   "Combiner.alternate": {
     title: "Alternate",
-    node: Alternate,
+    node: memo(Alternate),
     description: "Alternate between playlists",
   },
   "Combiner.push": {
     title: "Push",
-    node: Push,
+    node: memo(Push),
     description: "Append tracks of sources sequentially",
   },
   "Filter.dedupeTracks": {
     title: "Deduplicate Tracks",
-    node: DedupeTracks,
+    node: memo(DedupeTracks),
     description: "Remove duplicate tracks",
   },
   "Filter.dedupeArtists": {
     title: "Deduplicate Artists",
-    node: DedupeArtists,
+    node: memo(DedupeArtists),
     description: "Remove duplicate artists",
   },
   "Filter.filter": {
     title: "Filter",
-    node: RemoveMatch,
+    node: memo(RemoveMatch),
     description: "Match and remove tracks",
   },
   "Filter.limit": {
     title: "Limit",
-    node: Limit,
+    node: memo(Limit),
     description: "Limit number of tracks",
   },
   "Source.playlist": {
     title: "Playlist",
-    node: Playlist,
+    node: memo(Playlist),
     description: "Playlist source",
   },
   "Library.likedTracks": {
     title: "Liked Tracks",
-    node: LikedTracks,
+    node: memo(LikedTracks),
     description: "Liked tracks",
   },
   "Library.saveAsNew": {
     title: "Save as New",
-    node: SaveAsNew,
+    node: memo(SaveAsNew),
     description: "Saves workflow output to a new playlist",
   },
   "Library.saveAsAppend": {
     title: "Save as Append",
-    node: SaveAsAppend,
+    node: memo(SaveAsAppend),
     description: "Saves workflow output to an existing playlist by appending",
   },
   "Library.saveAsReplace": {
     title: "Save as Replace",
-    node: SaveAsReplace,
+    node: memo(SaveAsReplace),
     description:
       "Saves workflow output to an existing playlist by replacing all tracks",
   },
   "Order.shuffle": {
     title: "Shuffle",
-    node: Shuffle,
+    node: memo(Shuffle),
     description: "Randomly shuffle tracks",
   },
   "Order.sort": {
     title: "Sort",
-    node: Sort,
+    node: memo(Sort),
     description: "Sort tracks based on given key",
   },
   "Order.sort-popularity": {
     title: "Sort Tracks by Popularity",
-    node: SortPopularity,
+    node: memo(SortPopularity),
     description: "Sort tracks based on popularity",
   },
   "Selector.allButFirst": {
     title: "All But First",
-    node: AllButFirst,
+    node: memo(AllButFirst),
     description: "Selects all but the first item from the input",
   },
   "Selector.allButLast": {
     title: "All But Last",
-    node: AllButLast,
+    node: memo(AllButLast),
     description: "Selects all but the last item from the input",
   },
   "Selector.first": {
     title: "First",
-    node: First,
+    node: memo(First),
     description: "Selects the first item from the input",
   },
   "Selector.last": {
     title: "Last",
-    node: Last,
+    node: memo(Last),
     description: "Selects the last item from the input",
   },
   "Selector.recommend": {
     title: "Recommend",
-    node: Recommend,
+    node: memo(Recommend),
     description: "Get a list of recommended tracks based on the input.",
   },
 };
 
-export default function App() {
+export function App() {
   const reactFlowWrapper = useRef(null);
   const {
     nodes,
@@ -161,6 +163,7 @@ export default function App() {
     addNode,
     getEdges,
     getNodes,
+    setNode,
     onNodesDelete,
     flowState,
     reactFlowInstance,
@@ -175,6 +178,7 @@ export default function App() {
       addNode: state.addNode,
       getEdges: state.getEdges,
       getNodes: state.getNodes,
+      setNode: state.setNode,
       onNodesDelete: state.onNodesDelete,
       flowState: state.flowState,
       reactFlowInstance: state.reactFlowInstance,
@@ -184,32 +188,91 @@ export default function App() {
 
   const router = useRouter();
 
-  const nodeTypes = useMemo(() => Object.fromEntries(
-    Object.entries(Nodes).map(([key, value]) => [key, value.node])
-  ), []);
+  const nodeTypes = useMemo(
+    () =>
+      Object.fromEntries(
+        Object.entries(Nodes).map(([key, value]) => [key, value.node]),
+      ),
+    [],
+  );
 
-  const onDragDrop = useCallback((event) => {
-    event.preventDefault();
-    event.dataTransfer.dropEffect = "move";
-  
-    const type = event.dataTransfer.getData("application/reactflow");
-  
-    if (typeof type === "undefined" || !type) {
-      return;
-    }
-  
-    const position = reactFlowInstance!.screenToFlowPosition({
-      x: event.clientX,
-      y: event.clientY,
-    });
-    const newNode = {
-      type,
-      position,
-      data: {},
-    };
-  
-    addNode(newNode);
-  }, [reactFlowInstance, addNode]);
+  const onDragDrop = useCallback(
+    (event) => {
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "move";
+
+      const url = event.dataTransfer.getData("text/plain");
+
+      if (url?.includes("spotify.com")) {
+        const position = reactFlowInstance!.screenToFlowPosition({
+          x: event.clientX,
+          y: event.clientY,
+        });
+
+        const playlistId = url.split("/playlist/")[1];
+
+        // Create a placeholder node
+        const placeholderNode = {
+          id: `placeholder-${playlistId}`,
+          type: "Source.playlist",
+          position,
+          data: {
+            id: `placeholder-${playlistId}`,
+            playlistId: `placeholder-${playlistId}`,
+            name: "Loading...",
+            description: "",
+            image: "",
+            total: 0,
+            owner: "",
+          },
+        };
+
+        const placeholder = addNode(placeholderNode);
+
+        fetch(`/api/user/@me/playlist/${playlistId}`)
+          .then((response) => response.json())
+          .then((data) => {
+            const newNode = {
+              ...placeholderNode,
+              id: data.id,
+              data: {
+                id: data.id,
+                playlistId: data.id,
+                name: data.name,
+                description: data.description,
+                image: data.image,
+                total: data.total,
+                owner: data.owner,
+              },
+            };
+
+            setNode(placeholder.id, newNode);
+          })
+          .catch((error) => {
+            console.error("Error fetching playlist details:", error);
+          });
+      } else {
+        const type = event.dataTransfer.getData("application/reactflow");
+
+        if (typeof type === "undefined" || !type) {
+          return;
+        }
+
+        const position = reactFlowInstance!.screenToFlowPosition({
+          x: event.clientX,
+          y: event.clientY,
+        });
+        const newNode = {
+          type,
+          position,
+          data: {},
+        };
+
+        addNode(newNode);
+      }
+    },
+    [reactFlowInstance, addNode, setNode],
+  );
 
   const isValidConnection = useCallback(
     (connection) => {
@@ -266,9 +329,9 @@ export default function App() {
           onNodesDelete={onNodesDelete}
           isValidConnection={isValidConnection}
           fitView
-          snapToGrid={true}
+          // snapToGrid={true}
           nodeTypes={nodeTypes}
-          snapGrid={[20, 20]}
+          // snapGrid={[20, 20]}
           zoomOnDoubleClick={false}
           deleteKeyCode={["Backspace", "Delete"]}
           onPaneContextMenu={(e) => {
@@ -320,3 +383,5 @@ export default function App() {
     </div>
   );
 }
+
+export default memo(App);

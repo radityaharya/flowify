@@ -34,6 +34,9 @@ type RFState = {
   onConnect: OnConnect;
   setNodes: (nodes: Node[]) => void;
   setEdges: (edges: Edge[]) => void;
+
+  setNode: (id: string, node: Node) => void;
+
   addNode: (data: any) => Node;
   addEdge: (data: any) => void;
   updateNodeData: (id: string, data: any) => void;
@@ -98,6 +101,11 @@ const useStore = create<RFState>((set, get) => ({
     set({
       edges: edges,
     });
+  },
+  setNode(id: string, node: Node) {
+    set((state) => ({
+      nodes: state.nodes.map((n) => (n.id === id ? node : n)),
+    }));
   },
   onNodesChange(changes) {
     set({

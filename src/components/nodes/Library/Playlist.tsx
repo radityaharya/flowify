@@ -83,7 +83,7 @@ const PlaylistItem = ({
   </CommandItem>
 );
 
-function PlaylistComponent({ id, data }: PlaylistProps) {
+const PlaylistComponent: React.FC<PlaylistProps> = ({ id, data }) => {
   const [open, setOpen] = React.useState(false);
   const [selectedPlaylist, setSelectedPlaylist] =
     React.useState<Playlist>(data);
@@ -112,8 +112,10 @@ function PlaylistComponent({ id, data }: PlaylistProps) {
   React.useEffect(() => {
     if (data) {
       form?.setValue("playlistId", data.playlistId);
+      updateNodeData(id, data);
+      form?.trigger("playlistId");
     }
-  }, [data, form]);
+  }, [data, form, id, updateNodeData]);
 
   const watch = form!.watch();
   const prevWatchRef = React.useRef(watch);
@@ -351,6 +353,6 @@ function PlaylistComponent({ id, data }: PlaylistProps) {
       />
     </CardWithHeader>
   );
-}
+};
 
 export default PlaylistComponent;

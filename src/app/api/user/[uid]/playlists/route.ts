@@ -2,6 +2,15 @@ import { type NextRequest, NextResponse } from "next/server";
 import SpotifyWebApi from "spotify-web-api-node";
 import { env } from "~/env";
 import { getAccessTokenFromProviderAccountId } from "~/server/db/helper";
+import Redis from "ioredis";
+import { Logger } from "~/lib/log";
+
+
+const logger = new Logger("/api/user/[uid]/playlists");
+
+const redis = new Redis(env.REDIS_URL, {
+  maxRetriesPerRequest: null,
+});
 export async function GET(
   request: NextRequest,
   {
@@ -15,11 +24,6 @@ export async function GET(
     return NextResponse.json("No access token found", { status: 500 });
   }
 
-  // const connection = new Redis(env.REDIS_URL, {
-  //   maxRetriesPerRequest: null,
-  // });
-
-  // get user playlists and format them like above
   const spClient = new SpotifyWebApi({
     clientId: env.SPOTIFY_CLIENT_ID,
     clientSecret: env.SPOTIFY_CLIENT_SECRET,
@@ -29,31 +33,50 @@ export async function GET(
 
   const q = request.nextUrl.searchParams.get("q");
 
-  if (q) {
-    const data = await spClient.searchPlaylists(q, {
-      limit: 50,
+  const cacheKey = q ? `search:${q}` : `user:${params.uid}`;
+  const cachedData = await redis.get(cacheKey);
+
+  if (cachedData) {
+    const ttl = await redis.ttl(cacheKey);
+    logger.info(`Cache hit for ${cacheKey}`);
+    return NextResponse.json(JSON.parse(cachedData), {
+      headers: {
+        "X-Cache": "HIT",
+        "X-Cache-TTL": ttl.toString(),
+      },
     });
-    const playlists = data.body.playlists?.items.map((playlist) => ({
-      playlistId: playlist.id,
-      name: playlist.name,
-      description: playlist.description,
-      image: playlist.images?.[0]?.url,
-      total: playlist.tracks.total,
-      owner: playlist.owner.display_name,
-    }));
-    return NextResponse.json(playlists);
-  } else {
-    const data = await spClient.getUserPlaylists(params.uid, {
-      limit: 50,
-    });
-    const playlists = data.body.items.map((playlist) => ({
-      playlistId: playlist.id,
-      name: playlist.name,
-      description: playlist.description,
-      image: playlist.images?.[0]?.url,
-      total: playlist.tracks.total,
-      owner: playlist.owner.display_name,
-    }));
-    return NextResponse.json(playlists);
   }
+
+  let data;
+  let playlists;
+
+  if (q) {
+    data = await spClient.searchPlaylists(q, {
+      limit: 50,
+    });
+    playlists = data.body.playlists?.items.map((playlist) => ({
+      playlistId: playlist.id,
+      name: playlist.name,
+      description: playlist.description,
+      image: playlist.images?.[0]?.url,
+      total: playlist.tracks.total,
+      owner: playlist.owner.display_name,
+    }));
+  } else {
+    data = await spClient.getUserPlaylists(params.uid, {
+      limit: 50,
+    });
+    playlists = data.body.items.map((playlist) => ({
+      playlistId: playlist.id,
+      name: playlist.name,
+      description: playlist.description,
+      image: playlist.images?.[0]?.url,
+      total: playlist.tracks.total,
+      owner: playlist.owner.display_name,
+    }));
+  }
+
+  await redis.set(cacheKey, JSON.stringify(playlists), "EX", 10);
+
+  return NextResponse.json(playlists);
 }

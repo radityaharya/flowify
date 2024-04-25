@@ -25,24 +25,15 @@ export async function GET(
 
   spClient.setAccessToken(accessToken as string);
 
-  const data = await spClient.getPlaylistTracks(params.playlistId);
-  const tracks = data.body.items;
-  const total = data.body.total;
-  const limit = data.body.limit;
-  let offset = limit;
-  while (offset < total) {
-    const data = await spClient.getPlaylistTracks(params.playlistId, {
-      offset,
-    });
-    tracks.push(...data.body.items);
-    offset += limit;
-  }
+  const response = await spClient.getPlaylist(params.playlistId);
 
   const playlist = {
-    id: params.playlistId,
-    tracks,
-    total,
-    actual: tracks.length,
+    id: response.body.id,
+    name: response.body.name,
+    description: response.body.description,
+    image: response.body.images?.[0]?.url,
+    total: response.body.tracks.total,
+    owner: response.body.owner.display_name,
   };
 
   return NextResponse.json(playlist);

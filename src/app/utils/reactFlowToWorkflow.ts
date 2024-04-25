@@ -39,9 +39,10 @@ function addNodesToWorkflow(nodes, workflow) {
         },
       });
     } else {
+      const typeWithoutPostfix = node.type!.split("-")[0];
       workflow.operations.push({
         id: node.id,
-        type: node.type!,
+        type: typeWithoutPostfix,
         params: node.data,
         position: node.position,
         sources: [],
@@ -117,7 +118,7 @@ export default async function reactFlowToWorkflow({
 
   let [valid, errors] = [true, {}];
   if (nodes.length > 0 && edges.length > 0) {
-    nodes = filterNodes(nodes);
+    // nodes = filterNodes(nodes);
     addNodesToWorkflow(nodes, workflowObject);
     addEdgesToWorkflow(edges, workflowObject);
     setNodesAsSources(workflowObject);

@@ -19,6 +19,7 @@ import { toast } from "sonner";
 
 import { useRouter } from "next/navigation";
 import { useWorkflowData } from "~/hooks/useWorkflowData";
+import React from "react";
 
 function Builder({
   params,
@@ -203,4 +204,4 @@ const LoadingSVG = () => (
   </svg>
 );
 
-export default Builder;
+export default React.memo(Builder);

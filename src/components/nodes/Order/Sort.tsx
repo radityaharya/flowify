@@ -42,7 +42,7 @@ const sortOptions = [
   { label: "Descending", value: "desc" },
 ];
 
-const RemoveMatch: React.FC<PlaylistProps> = React.memo(({ id, data }) => {
+const RemoveMatch: React.FC<PlaylistProps> = ({ id, data }) => {
   const {
     isValid,
     targetConnections,
@@ -151,6 +151,6 @@ const RemoveMatch: React.FC<PlaylistProps> = React.memo(({ id, data }) => {
       />
     </CardWithHeader>
   );
-});
+};
 
 export default RemoveMatch;

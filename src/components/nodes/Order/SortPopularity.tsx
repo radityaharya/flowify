@@ -19,6 +19,9 @@ const sortOptions = [
 ];
 
 const SortPopularity: React.FC = ({ id, data }: any) => {
+  data.sortKey = "popularity";
+  data.sortOrder = "desc";
+  
   return (
     <NodeBuilder
       id={id}
