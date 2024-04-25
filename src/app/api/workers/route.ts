@@ -3,12 +3,22 @@ import { type NextRequest, NextResponse } from "next/server";
 import Redis from "ioredis";
 import { Logger } from "~/lib/log";
 import { env } from "~/env";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/server/auth";
 
-const log = new Logger("/api/user/[uid]/playlists");
+
+const log = new Logger("/api/");
 
 export async function GET(request: NextRequest) {
-  log.info("Getting all workers");
-
+  const session = await getServerSession({ req: request, ...authOptions });
+  if (!session) {
+    return NextResponse.json(
+      {
+        error: "Not authenticated",
+      },
+      { status: 401 },
+    );
+  }
   let redis: Redis | null = null;
   try {
     redis = new Redis(env.REDIS_URL, {
