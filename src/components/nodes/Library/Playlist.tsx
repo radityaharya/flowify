@@ -15,6 +15,7 @@ import {
   CommandGroup,
   CommandInput,
   CommandItem,
+  CommandList,
 } from "@/components/ui/command";
 import {
   Popover,
@@ -76,7 +77,7 @@ const PlaylistItem = ({
 }) => (
   <CommandItem
     key={playlist.playlistId}
-    value={playlist.playlistId}
+    value={`${playlist.name} - ${playlist.playlistId}`}
     onSelect={onSelect}
   >
     <PlaylistItemPrimitive playlist={playlist} />
@@ -145,14 +146,24 @@ const PlaylistComponent: React.FC<PlaylistProps> = ({ id, data }) => {
             `/api/user/${session.user.providerAccountId}/playlists?q=${search}`,
           );
           const data = await response.json();
-          setUserPlaylistsStore(data as any[]);
+          const newPlaylists = userPlaylists.concat(data);
+          let dedupedPlaylists = newPlaylists.reduce((acc, current) => {
+            const x = acc.find(item => item.playlistId === current.playlistId);
+            if (!x) {
+              return acc.concat([current]);
+            } else {
+              return acc;
+            }
+          }, []);
+          
+          setUserPlaylistsStore(dedupedPlaylists);
         } catch (err) {
           console.error(err);
         }
       }
     };
 
-    const userPlaylists = async () => {
+    const userPlaylistsFetch = async () => {
       try {
         const response = await fetch(
           `/api/user/${session.user.providerAccountId}/playlists`,
@@ -170,7 +181,7 @@ const PlaylistComponent: React.FC<PlaylistProps> = ({ id, data }) => {
           console.error(err);
         });
       } else {
-        userPlaylists().catch((err) => {
+        userPlaylistsFetch().catch((err) => {
           console.error(err);
         });
       }
@@ -261,46 +272,48 @@ const PlaylistComponent: React.FC<PlaylistProps> = ({ id, data }) => {
                         />
                         <CommandEmpty>No playlist found.</CommandEmpty>
                         <CommandGroup>
-                          <ScrollArea className="h-[200px] w-full rounded-md">
-                            {userPlaylists.length > 0
-                              ? userPlaylists.map((playlist) => (
-                                  <PlaylistItem
-                                    key={playlist.playlistId}
-                                    playlist={playlist}
-                                    onSelect={() => handleSelect(playlist)}
-                                  />
-                                ))
-                              : Array.from({ length: 3 }).map((_, index) => (
-                                  <CommandItem
-                                    // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-                                    key={`loading-${index}`}
-                                    value="loading"
-                                    onSelect={() => {
-                                      setSelectedPlaylist({
-                                        playlistId: "loading",
-                                        name: "loading",
-                                        description: "loading",
-                                        image: "",
-                                        owner: "loading",
-                                        total: 0,
-                                      });
-                                      setOpen(false);
-                                    }}
-                                  >
-                                    <div className="flex items-center gap-2">
-                                      <div className="h-8 w-8 animate-pulse rounded-md bg-gray-700"></div>
-                                      <div className="flex animate-pulse flex-col">
-                                        <div className="animate-pulse font-medium text-sm">
-                                          loading...
-                                        </div>
-                                        <div className="animate-pulse text-xs opacity-80">
-                                          loading...
+                          <CommandList>
+                            <ScrollArea className="h-[200px] w-full rounded-md">
+                              {userPlaylists.length > 0
+                                ? userPlaylists.map((playlist) => (
+                                    <PlaylistItem
+                                      key={playlist.playlistId}
+                                      playlist={playlist}
+                                      onSelect={() => handleSelect(playlist)}
+                                    />
+                                  ))
+                                : Array.from({ length: 3 }).map((_, index) => (
+                                    <CommandItem
+                                      // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+                                      key={`loading-${index}`}
+                                      value="loading"
+                                      onSelect={() => {
+                                        setSelectedPlaylist({
+                                          playlistId: "loading",
+                                          name: "loading",
+                                          description: "loading",
+                                          image: "",
+                                          owner: "loading",
+                                          total: 0,
+                                        });
+                                        setOpen(false);
+                                      }}
+                                    >
+                                      <div className="flex items-center gap-2">
+                                        <div className="h-8 w-8 animate-pulse rounded-md bg-gray-700"></div>
+                                        <div className="flex animate-pulse flex-col">
+                                          <div className="animate-pulse font-medium text-sm">
+                                            loading...
+                                          </div>
+                                          <div className="animate-pulse text-xs opacity-80">
+                                            loading...
+                                          </div>
                                         </div>
                                       </div>
-                                    </div>
-                                  </CommandItem>
-                                ))}
-                          </ScrollArea>
+                                    </CommandItem>
+                                  ))}
+                            </ScrollArea>
+                          </CommandList>
                         </CommandGroup>
                       </Command>
                     </PopoverContent>

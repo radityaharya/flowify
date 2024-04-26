@@ -190,7 +190,7 @@ function Builder({
             <Sidebar />
           </ResizablePanel>
           <ResizableHandle withHandle />
-          <ResizablePanel defaultSize={90}>
+          <ResizablePanel defaultSize={83}>
             {workflowIsLoading || sessionStore === null ? (
               <Loading />
             ) : (
