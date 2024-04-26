@@ -58,22 +58,18 @@ export const DragableNode = ({
   return (
     <TooltipProvider>
       <Tooltip>
-        <div className="group h-min-content w-full">
+        <div className="group h-min-content w-full my-2">
           <div
-            className="flex w-full flex-row items-center justify-between gap-2 rounded-md p-2 dark:bg-accent"
+            className="flex w-full flex-row text-start items-start justify-between gap-2 rounded-md p-2 dark:bg-accent"
             onDragStart={onDragStart}
             onClick={onClick}
             onKeyDown={onClick}
             draggable
           >
             <div className="flex flex-row gap-2">
-              {/* <span className="text-sm font-medium">{type} :</span> */}
-              <span className="flex flex-row gap-2 font-medium text-sm">
-                <TooltipTrigger className="hidden w-0 group-hover:block group-hover:w-min">
-                  <InfoIcon size={12} />
-                </TooltipTrigger>
+              <TooltipTrigger className="flex flex-row gap-2 font-medium text-sm text-start">
                 {title}
-              </span>
+              </TooltipTrigger>
             </div>
             <GripVertical size={16} className="cursor-grab" />
           </div>

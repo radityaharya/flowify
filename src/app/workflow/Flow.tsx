@@ -74,12 +74,12 @@ export const Nodes = {
     description: "Append tracks of sources sequentially",
   },
   "Filter.dedupeTracks": {
-    title: "Deduplicate Tracks",
+    title: "Dedup Tracks",
     node: memo(DedupeTracks),
     description: "Remove duplicate tracks",
   },
   "Filter.dedupeArtists": {
-    title: "Deduplicate Artists",
+    title: "Dedup Artists",
     node: memo(DedupeArtists),
     description: "Remove duplicate artists",
   },
@@ -130,7 +130,7 @@ export const Nodes = {
     description: "Sort tracks based on given key",
   },
   "Order.sort-popularity": {
-    title: "Sort Tracks by Popularity",
+    title: "By Popularity",
     node: memo(SortPopularity),
     description: "Sort tracks based on popularity",
   },

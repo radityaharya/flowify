@@ -186,11 +186,11 @@ function Builder({
     <div className="flex h-screen flex-col">
       <main className="grid h-screen">
         <ResizablePanelGroup direction="horizontal">
-          <ResizablePanel defaultSize={20} maxSize={50} minSize={20}>
+          <ResizablePanel defaultSize={17} maxSize={17} minSize={17}>
             <Sidebar />
           </ResizablePanel>
           <ResizableHandle withHandle />
-          <ResizablePanel defaultSize={80}>
+          <ResizablePanel defaultSize={90}>
             {workflowIsLoading || sessionStore === null ? (
               <Loading />
             ) : (

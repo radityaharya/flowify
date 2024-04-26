@@ -11,6 +11,27 @@ import { useCallback, useMemo } from "react";
 import React from "react";
 import { Nodes } from "./Flow";
 
+import {
+  Calculator,
+  Calendar,
+  CreditCard,
+  Settings,
+  Smile,
+  User,
+} from "lucide-react"
+ 
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+  CommandShortcut,
+} from "@/components/ui/command"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Separator } from "@/components/ui/separator"
 type NodeType = {
   title: string;
   description: string;
@@ -54,7 +75,7 @@ function Sidebar() {
       onDragOver={onDragOver}
       onDrop={onDrop}
     >
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-6 h-full">
         <div className="flex-none px-6 pt-[4rem]">
           <div className="flex flex-col justify-between gap-6">
             <div className="flex flex-row justify-between"></div>
@@ -66,38 +87,36 @@ function Sidebar() {
             Drag and drop nodes to the canvas to create a workflow
           </p>
         </div>
-        <Accordion
-          type="single"
-          collapsible
-          className="px-6"
-          defaultValue="item-1"
-        >
-          <AccordionItems nodesByType={nodesByType} />
-        </Accordion>
+        <Command className="pl-6 pr-3">
+          <CommandInput placeholder="Search..." className="pr-3"/>
+          <ScrollArea className="w-full h-full">
+            <CommandList className="pr-3">
+              <CommandItems nodesByType={nodesByType} />
+            </CommandList>
+          </ScrollArea>
+        </Command>
       </div>
     </aside>
   );
 }
 
-function AccordionItems({ nodesByType }: { nodesByType: NodesByType }) {
+function CommandItems({ nodesByType }: { nodesByType: NodesByType }) {
   return (
     <>
       {Object.entries(nodesByType).map(
         ([type, nodes]: [string, NodeType[]], index) => (
-          <AccordionItem value={`item-${index + 1}`} key={type}>
-            <AccordionTrigger>{type}</AccordionTrigger>
-            <AccordionContent className="flex flex-col gap-2">
-              {nodes.map(({ title, description, nodeType }) => (
+          <CommandGroup heading={type} key={type}>
+            {nodes.map(({ title, description, nodeType }) => (
+              <CommandItem key={nodeType} asChild value={`${title} - ${type} - ${description}`}>
                 <DragableNode
-                  key={nodeType}
                   nodeType={nodeType}
                   title={title}
                   description={description}
                   type={type}
                 />
-              ))}
-            </AccordionContent>
-          </AccordionItem>
+              </CommandItem>
+            ))}
+          </CommandGroup>
         ),
       )}
     </>
