@@ -187,6 +187,7 @@ export const workerPool = pgTable(
     concurrency: int("concurrency"),
     threads: int("threads"),
     status: varchar("status", { length: 10 }),
+    endpoint: varchar("endpoint", { length: 255 }),
   },
   (workerPool) => ({
     workerIdIdx: index("workerId_idx").on(workerPool.deviceHash),

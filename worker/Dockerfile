@@ -17,6 +17,6 @@ RUN bun build --target bun --compile --minify --sourcemap --outfile flowify-work
 
 FROM oven/bun:1-alpine as release
 COPY --from=build /app/flowify-worker ./
-ENV WORKER_ID="bun"
+ENV SKIP_ENV_VALIDATION true
 EXPOSE 3020
 CMD [ "./flowify-worker" ]

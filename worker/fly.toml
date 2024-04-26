@@ -1,0 +1,24 @@
+# fly.toml app configuration file generated for flowify-wandering-hill-4038 on 2024-01-20T15:40:36+07:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = "flowify-worker"
+primary_region = "sin"
+kill_timeout = 120
+
+[build]
+  dockerfile = "Dockerfile"
+
+[http_service]
+  internal_port = 3020
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 1024

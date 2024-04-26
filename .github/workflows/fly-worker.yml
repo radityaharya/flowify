@@ -1,0 +1,16 @@
+name: Fly Deploy Worker
+on:
+  push:
+    branches:
+      - main
+jobs:
+  deploy:
+    name: Deploy Worker to Fly
+    runs-on: ubuntu-latest
+    concurrency: deploy-group
+    steps:
+      - uses: actions/checkout@v3
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - run: flyctl deploy -c worker/fly.toml --remote-only
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

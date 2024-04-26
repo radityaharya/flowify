@@ -25,6 +25,12 @@ export const workflowQueue = new Queue("workflowQueue", {
   },
 });
 
+/**
+ * Stores a workflow job in the database.
+ * @param userId - The ID of the user associated with the job.
+ * @param job - The job object to store.
+ * @returns A Promise that resolves to the stored job.
+ */
 export async function storeWorkflowJob(userId: string, job: any) {
   log.info("Storing workflow job", job.id);
   await db.insert(workflowJobs).values({
@@ -39,6 +45,12 @@ export async function storeWorkflowJob(userId: string, job: any) {
   return res;
 }
 
+/**
+ * Updates a workflow job in the database.
+ * @param _userId - The user ID (not used in the function).
+ * @param job - The job object containing the updated workflow job information.
+ * @returns A Promise that resolves to the updated workflow job.
+ */
 export async function updateWorkflowJob(_userId: string, job: any) {
   log.info("Updating workflow job", job.id);
   await db
@@ -54,6 +66,11 @@ export async function updateWorkflowJob(_userId: string, job: any) {
   return res;
 }
 
+/**
+ * Checks if a workflow with the specified ID exists.
+ * @param id - The ID of the workflow to check.
+ * @returns A boolean indicating whether the workflow exists or not.
+ */
 export async function workflowExists(id: string) {
   const workflow = await db.query.workflowJobs.findFirst({
     where: (workflowJobs, { eq }) => eq(workflowJobs.id, id),
@@ -61,6 +78,13 @@ export async function workflowExists(id: string) {
   return !!workflow;
 }
 
+/**
+ * Stores a workflow queue run in the database.
+ *
+ * @param workflowId - The ID of the workflow.
+ * @param job - The job object containing information about the workflow run.
+ * @returns A Promise that resolves to the stored workflow run.
+ */
 export async function storeWorkflowQueueRun(workflowId: string, job: any) {
   log.info("Storing workflow run", workflowId);
   await db.insert(workflowRuns).values({
@@ -73,6 +97,55 @@ export async function storeWorkflowQueueRun(workflowId: string, job: any) {
   });
   return res;
 }
+
+/**
+ * Checks the availability of workers and wakes them up if necessary.
+ * Returns the first available worker or null if no workers are available.
+ * @returns {Promise<WorkerPool | null>} The first available worker or null.
+ */
+async function checkOrWakeWorkers() {
+  log.info("Waking workers");
+
+  const available = await db.query.workerPool.findMany({
+    where: (workerPool, { eq }) =>
+      eq(workerPool.status, "idle") || eq(workerPool.status, "working"),
+    orderBy: (workerPool, { asc }) => asc(workerPool.joinedAt),
+  });
+
+  if (available.length > 0) {
+    log.info("Worker available");
+    return available[0];
+  }
+
+  const workers = await db.query.workerPool.findMany({
+    where: (workerPool, { eq, isNotNull }) =>
+      eq(workerPool.status, "sleep") && isNotNull(workerPool.endpoint),
+    orderBy: (workerPool, { asc }) => asc(workerPool.joinedAt),
+  });
+
+  for (const worker of workers) {
+    try {
+      log.info("Waking worker", worker.deviceHash);
+      const response = await fetch(worker.endpoint!);
+      if (response.ok) {
+        log.info("Worker woken up", worker.deviceHash);
+        return worker;
+      }
+    } catch (err) {
+      log.error("Error fetching worker status, trying next worker", err);
+    }
+  }
+  return null;
+}
+
+/**
+ * Creates a workflow queue and adds a job to it.
+ * @param workflow - The workflow object.
+ * @param userId - The user ID.
+ * @param workflowId - The workflow ID.
+ * @returns A promise that resolves to the added job.
+ * @throws If there is an error adding the job to the queue.
+ */
 export async function createWorkflowQueue(
   workflow: WorkflowObject,
   userId: string,
@@ -94,6 +167,7 @@ export async function createWorkflowQueue(
       },
     );
     await storeWorkflowQueueRun(workflowId, job);
+    await checkOrWakeWorkers();
     return job;
   } catch (err) {
     log.error("Error adding job to queue", err);
@@ -101,11 +175,26 @@ export async function createWorkflowQueue(
   }
 }
 
+/**
+ * Retrieves a workflow job by its ID.
+ * @param id - The ID of the workflow job.
+ * @returns A Promise that resolves to the workflow job.
+ */
 export async function getWorkflowJob(id: string) {
   const job = await workflowQueue.getJob(id);
   return job;
 }
 
+/**
+ * Updates the workflow run with the specified jobId.
+ * @param jobId - The ID of the job to update.
+ * @param status - The status of the job (optional).
+ * @param workerId - The ID of the worker (optional).
+ * @param returnValues - The return values of the job (optional).
+ * @param prevState - The previous state of the job (optional).
+ * @returns A promise that resolves to "updated" if the update is successful.
+ * @throws If there is an error updating the run.
+ */
 export async function updateWorkflowRun(
   jobId: string,
   status?: string,
@@ -163,6 +252,11 @@ export async function updateWorkflowRun(
   }
 }
 
+/**
+ * Compresses the return values by removing unnecessary properties.
+ * @param returnValues - The array of return values to be compressed.
+ * @returns The compressed array of return values.
+ */
 function compressReturnValues(returnValues: any) {
   returnValues.forEach((obj: any) => {
     obj.track.audio_features = undefined;

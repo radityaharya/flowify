@@ -15,6 +15,12 @@ const log = new Logger("worker");
 const CONCURRENCY = 5;
 let WORKER_ID = `${os.hostname()}-${process.env.WORKER_ID ?? `worker`}`;
 
+let WORKER_ENDPOINT =
+  process.env.WORKER_ENDPOINT ||
+  (process.env.RAILWAY_PUBLIC_DOMAIN
+    ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`
+    : undefined);
+
 // simple server to wake up the worker
 const server = Bun.serve({
   fetch() {
@@ -24,10 +30,9 @@ const server = Bun.serve({
       },
     });
   },
-  port: 3020
+  port: 3020,
 });
 log.info("Listening on 0.0.0.0:3020");
-
 
 const connection = new Redis(env.REDIS_URL, {
   maxRetriesPerRequest: null,
@@ -83,24 +88,26 @@ const worker = new Worker(
 async function reportInit() {
   log.info("Worker started");
   let i = 0;
-  let worker = await db.query.workerPool.findFirst({
-    where: (workerPool, { eq }) => eq(workerPool.deviceHash, WORKER_ID),
-  });
 
-  while (worker) {
-    i++;
-    WORKER_ID = `${os.hostname()}-${process.env.WORKER_ID ?? `worker`}-${i}`;
-    worker = await db.query.workerPool.findFirst({
-      where: (workerPool, { eq }) => eq(workerPool.deviceHash, WORKER_ID),
+  await db
+    .insert(workerPool)
+    .values({
+      deviceHash: WORKER_ID,
+      concurrency: CONCURRENCY,
+      threads: os.cpus().length,
+      status: "idle",
+      endpoint: WORKER_ENDPOINT,
+    })
+    .onConflictDoUpdate({
+      target: workerPool.deviceHash,
+      set: {
+        deviceHash: WORKER_ID,
+        concurrency: CONCURRENCY,
+        threads: os.cpus().length,
+        status: "idle",
+        endpoint: WORKER_ENDPOINT,
+      },
     });
-  }
-
-  await db.insert(workerPool).values({
-    deviceHash: WORKER_ID,
-    concurrency: CONCURRENCY,
-    threads: os.cpus().length,
-    status: "idle",
-  });
 
   const updatedWorker = await db.query.workerPool.findFirst({
     where: (workerPool, { eq }) => eq(workerPool.deviceHash, WORKER_ID),
@@ -111,9 +118,13 @@ async function reportInit() {
 }
 
 async function reportExit() {
-  log.info("Worker exiting...");
-  await db.delete(workerPool).where(eq(workerPool.deviceHash, WORKER_ID));
-  log.info("Worker deleted");
+  await db
+    .update(workerPool)
+    .set({
+      status: "sleeping",
+      endpoint: WORKER_ENDPOINT,
+    })
+    .where(eq(workerPool.deviceHash, WORKER_ID));
 }
 
 async function reportWorking() {
@@ -121,6 +132,7 @@ async function reportWorking() {
     .update(workerPool)
     .set({
       status: "working",
+      endpoint: WORKER_ENDPOINT,
     })
     .where(eq(workerPool.deviceHash, WORKER_ID));
 }
@@ -130,6 +142,7 @@ async function reportIdle() {
     .update(workerPool)
     .set({
       status: "idle",
+      endpoint: WORKER_ENDPOINT,
     })
     .where(eq(workerPool.deviceHash, WORKER_ID));
 }
