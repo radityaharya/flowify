@@ -19,7 +19,7 @@ export default function Page({
 
   return (
     <div className="h-[100svh]">
-      <div className="container relative hidden h-full flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
+      <div className="container relative grid h-full flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
         {/* <Link
           href={`/auth/${isLogin ? "signup" : "login"}`}
           className={cn(

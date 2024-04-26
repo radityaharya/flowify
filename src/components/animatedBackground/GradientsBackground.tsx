@@ -21,8 +21,16 @@ export const GradientBackground: React.FC<Props> = (props) => {
   }, [showGradient]);
 
   useEffect(() => {
+    const canvas = canvasRef.current;
+    if (canvas) {
+      canvas.style.opacity = "0";
+      setTimeout(() => {
+        canvas.style.transition = "opacity 2s";
+        canvas.style.opacity = "1";
+      }, 0);
+    }
+
     return () => {
-      const canvas = canvasRef.current;
       if (canvas) {
         const context = canvas.getContext("2d");
         if (context) {
@@ -40,5 +48,6 @@ export const GradientBackground: React.FC<Props> = (props) => {
     />
   );
 };
+
 
 export default GradientBackground;
