@@ -1,5 +1,7 @@
 # Flowify✨
 
+Flowify is currently under development. Do not use it with your Primary Spotify account as it may cause data loss.
+
 ## Overview
 
 Flowify is a drag-and-drop environment for creating Spotify playlist generation workflows. With Flowify, you can create custom workflows to generate playlists based on your Spotify library, liked tracks, and recommendations. Flowify is built with [React Flow](https://reactflow.dev/) as the workflow builder, [bull-mq](https://github.com/taskforcesh/bullmq) for queuing, [shadcn/ui](https://ui.shadcn.com/) for components, [Drizzle](https://orm.drizzle.team/) as ORM
@@ -11,8 +13,9 @@ Flowify is heavily inspired by [SmarterPlaylists](https://github.com/plamere/Sma
 ## Features
 
 - **Intuitive Workflow Design:** Create complex playlist generation workflows effortlessly with ReactFlow's drag-and-drop visual interface.
-- **Versatile Workflow Modules:** Choose from a variety of workflow modules to fine-tune your playlist creation process.
-- **Schedule Workflows:** Schedule workflows to run at a specific time or on a recurring basis. (WIP)
+- **Versatile Workflow Modules:** Choose from a variety of modules such as filters, combiners, orders, and library actions to build custom workflows.
+- **Scheduled Workflows:** Schedule workflows to run at a specific time or on a recurring basis. (WIP)
+- **Share Workflows:** Share workflows with other users. (WIP)
 
 ## Workflow Modules
 
@@ -44,8 +47,20 @@ Flowify is heavily inspired by [SmarterPlaylists](https://github.com/plamere/Sma
 </details>
 
 <details>
-<summary>Library</summary>
+<summary>Selector</summary>
 
+- First N Tracks
+- Last N Tracks
+- Random N Tracks
+- All but First N Tracks
+- All but Last N Tracks
+- Recommended Tracks (Using Spotify Recommendations API)
+
+</details>
+
+<details>
+<summary>Library</summary>
+- Get Liked Tracks
 - Save Playlist as New
 - Save Playlist by Appending
 - Save Playlist by Replacing
@@ -54,9 +69,8 @@ Flowify is heavily inspired by [SmarterPlaylists](https://github.com/plamere/Sma
 
 <details>
 <summary>Playlist</summary>
+- Search and use existing playlists
 
-- Get Tracks Recommendations
-- Get Liked Tracks
 
 </details>
 
@@ -114,8 +128,9 @@ To get started with Flowify, follow these steps:
    npm run dev
    ```
 
-8. **Access Flowify:**
+8. **Open Flowify:**
    Open your browser and go to [http://localhost:3000](http://localhost:3000).
+
 
 <details>
 <summary><strong>Disclaimer</strong></summary>
