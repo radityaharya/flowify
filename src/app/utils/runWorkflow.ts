@@ -1,4 +1,5 @@
 import { toast } from "sonner";
+import useStore from "../states/store";
 
 export async function runWorkflow(workflow: WorkflowResponse) {
   if (!workflow.id) {
@@ -28,13 +29,15 @@ export async function runWorkflow(workflow: WorkflowResponse) {
 
   const jobId = job.id as string;
 
+  const dryrun = useStore.getState().flowState.dryrun;
+
   const pollRequest = (id: string) => {
     return new Promise((resolve, reject) => {
       let isRequesting = false;
       const interval = setInterval(() => {
         if (isRequesting) return;
         isRequesting = true;
-        fetch(`/api/workflow/queue/${id}`)
+        fetch(`/api/workflow/queue/${id}${dryrun ? "?dryrun=true" : ""}`)
           .then((res) => res.json())
           .then((data: QueueResponse) => {
             isRequesting = false;

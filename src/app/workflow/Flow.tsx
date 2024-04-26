@@ -48,6 +48,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Checkbox } from "@/components/ui/checkbox";
 import { PlayIcon, SaveIcon, Settings as SettingsIcon } from "lucide-react";
 import { SettingsDialog } from "./settingsDialog/Settings";
 
@@ -332,6 +333,14 @@ export function App() {
     animated: true,
   };
 
+  const setDryRun = useCallback(
+    (dryrun: boolean) => {
+      useStore.setState({ flowState: { ...flowState, dryrun } });
+      console.info("Dryrun set to", flowState.dryrun);
+    },
+    [flowState],
+  );
+
   return (
     <div className="dndflow h-full w-full">
       <div className="reactflow-wrapper h-full w-full" ref={reactFlowWrapper}>
@@ -347,9 +356,7 @@ export function App() {
           onNodesDelete={onNodesDelete}
           isValidConnection={isValidConnection}
           fitView
-          // snapToGrid={true}
           nodeTypes={nodeTypes}
-          // snapGrid={[20, 20]}
           zoomOnDoubleClick={false}
           deleteKeyCode={["Backspace", "Delete"]}
           onPaneContextMenu={(e) => {
@@ -362,22 +369,60 @@ export function App() {
           <Controls />
           <Panel position="top-right" className="pt-20">
             <div className="flex flex-row items-center gap-4">
-              <Button className="flex-grow" onClick={handleSave}>
+              <Button className="flex-grow space-x-2" onClick={handleSave}>
                 <SaveIcon size={16} />
                 <span>Save</span>
               </Button>
-              <Button
-                className="flex-grow"
-                onClick={handleRun}
-                disabled={
-                  workerLoading ||
-                  (typeof systemInfo?.systemStatus === "object" &&
-                    systemInfo.systemStatus?.status === "error")
-                }
-              >
-                <PlayIcon size={16} />
-                <span>Run</span>
-              </Button>
+              <div className="flex flex-row gap-4 pr-4 items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none bg-card text-foreground outline outline-1 outline-slate-700">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Button
+                        className="flex-grow space-x-2"
+                        onClick={handleRun}
+                        disabled={
+                          workerLoading ||
+                          (typeof systemInfo?.systemStatus === "object" &&
+                            systemInfo.systemStatus?.status === "error") ||
+                          flowState.id === undefined
+                        }
+                      >
+                        <PlayIcon size={16} />
+                        <span>Run</span>
+                      </Button>
+                    </TooltipTrigger>
+                    {(workerLoading ||
+                      (typeof systemInfo?.systemStatus === "object" &&
+                        systemInfo.systemStatus?.status === "error") ||
+                      flowState.id === undefined) && (
+                      <TooltipContent
+                        side={"bottom"}
+                        className="flex flex-col gap-2"
+                      >
+                        {flowState.id === undefined
+                          ? "Create your workflow first before running"
+                          : typeof systemInfo?.systemStatus === "object" &&
+                              systemInfo.systemStatus?.status === "error"
+                            ? "System is unable to run workflows"
+                            : "Save your workflow before running it."}
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
+                </TooltipProvider>
+                <div
+                  className="flex items-center space-x-2"
+                  onClick={() => setDryRun(!flowState.dryrun)}
+                  onKeyDown={() => setDryRun(!flowState.dryrun)}
+                >
+                  <Checkbox checked={flowState.dryrun} id="dryrun" />
+                  <label
+                    htmlFor="dryrun"
+                    className="text-sm font-base leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    Save to Spotify
+                  </label>
+                </div>
+              </div>
               <Dialog>
                 <DialogTrigger asChild>
                   <Button className="flex flex-row gap-2 bg-card text-foreground outline outline-1 outline-slate-700 hover:bg-opacity-100 hover:text-background">
