@@ -41,6 +41,7 @@ export function SystemInfo() {
               <Link
                 href="https://status.radityaharya.com/status/flowify"
                 className={cn(buttonVariants({ variant: "outline" }), "text-white font-normal text-sm")}
+                target="_blank"
               >
                 <span
                   className={cn(
