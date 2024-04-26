@@ -633,19 +633,22 @@ export class Runner extends Base {
           string,
           any
         >;
-
+        const final: any[] = []
         let result: any;
         for (const operation of sortedOperations) {
           if (timeoutOccurred) {
             reject(new Error("Operation timed out after 10 seconds"));
           }
-          result = await this.runOperation(
+          const res = await this.runOperation(
             operation.id,
             sourceValues,
             workflow,
           );
+          final.push(res)
+          result = res;
         }
-        resolve(result);
+
+        resolve(final.filter((f) => f.id));
       } catch (error) {
         reject(error);
       }
