@@ -45,3 +45,5 @@ yarn-error.log*
 
 # Sentry Config File
 .sentryclirc
+
+local_tests

@@ -1,5 +1,5 @@
 // workflow response
-interface Position {
+interface Positionn {
   x: number;
   y: number;
 }
@@ -23,11 +23,11 @@ interface Computed {
 }
 
 interface RFState {
-  position: Position;
-  data: Data;
-  computed: Computed;
-  selected: boolean;
-  dragging: boolean;
+  position: Positionn;
+  data?: Data;
+  computed?: Computed;
+  selected?: boolean;
+  dragging?: boolean;
 }
 
 // TODO: add more param types
@@ -68,9 +68,9 @@ interface Operation {
     | "Utility.summary"
     | "Order.sort"
     | "Order.shuffle"
-    | "Playlist.saveAsNew"
-    | "Playlist.saveAsAppend"
-    | "Playlist.saveAsReplace";
+    | "Library.saveAsNew"
+    | "Library.saveAsAppend"
+    | "Library.saveAsReplace";
   params: Record<string, any>;
   sources: string[];
   tracks?: SpotifyApi.PlaylistTrackObject[];

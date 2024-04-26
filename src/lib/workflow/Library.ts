@@ -18,13 +18,17 @@ export default class Library extends Base {
     );
   }
 
-  static async _getPlaylistWithTracks(spClient: SpotifyWebApi, id: string) {
+  static async _getPlaylistWithTracks(
+    spClient: SpotifyWebApi,
+    id: string,
+    limit: number | null = null,
+  ) {
     let tracks: SpotifyApi.TrackObjectFull[] = [];
     let offset = 0;
     let result;
     let retryAfter = 0;
 
-    while (true) {
+    while (limit === null || tracks.length < limit) {
       try {
         await new Promise((resolve) => setTimeout(resolve, retryAfter * 1000));
         log.debug("Getting playlist tracks...", { id, offset });
@@ -169,6 +173,7 @@ export default class Library extends Base {
 
   static async likedTracks(
     spClient: SpotifyWebApi,
+    _sources: any[],
     { limit = 50, offset = 0 }: { limit?: number; offset?: number },
   ) {
     const tracks: SpotifyApi.TrackObjectFull[] = [];
@@ -197,5 +202,19 @@ export default class Library extends Base {
     }
 
     return tracks;
+  }
+
+  static async playlistTracks(
+    spClient: SpotifyWebApi,
+    _sources: any[],
+    params: {
+      id: string;
+      limit?: number;
+      offset?: number;
+    },
+  ) {
+    const tracks: SpotifyApi.TrackObjectFull[] = [];
+
+    return await Library._getPlaylistWithTracks(spClient, params.id);
   }
 }
