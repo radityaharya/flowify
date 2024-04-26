@@ -108,3 +108,21 @@ interface QueueResponse {
   returnValues?: any;
   workflow?: WorkflowObject;
 }
+
+
+interface SystemInfo {
+  workers: {
+    status: string | null;
+    joinedAt: Date | null;
+    concurrency: number | null;
+    threads: number | null;
+  }[];
+  systemStatus:
+    | string
+    | {
+        message: string | null;
+        status: string | null;
+        id: string;
+        createdAt: Date | null;
+      };
+};

@@ -192,3 +192,19 @@ export const workerPool = pgTable(
     workerIdIdx: index("workerId_idx").on(workerPool.deviceHash),
   }),
 );
+export const systemStatus = pgTable(
+  "systemStatus",
+  {
+    id: text("id")
+    .primaryKey()
+    .$defaultFn(() => randomUUID()),
+    status: varchar("status", { length: 255 }),
+    createdAt: timestamp("createdAt", { mode: "date" }).default(
+      sql`CURRENT_TIMESTAMP`,
+    ),
+    message: text("message"),
+  },
+  (systemStatus) => ({
+    statusIdx: index("status_idx").on(systemStatus.status),
+  }),
+);

@@ -322,10 +322,15 @@ export function App() {
     router.push(`/workflow/${saveResponse.id}`);
   }
 
-  const { data: workers, isLoading: workerLoading } = useSWR(
-    "/api/workers",
+  const { data: systemInfo, isLoading: workerLoading } = useSWR<SystemInfo>(
+    "/api/systeminfo",
     fetcher,
+    { refreshInterval: 10000 },
   );
+
+  const edgeOptions = {
+    animated: true,
+  };
 
   return (
     <div className="dndflow h-full w-full">
@@ -352,52 +357,30 @@ export function App() {
           }}
           minZoom={0.001}
           maxZoom={1}
+          defaultEdgeOptions={edgeOptions}
         >
           <Controls />
           <Panel position="top-right" className="pt-20">
             <div className="flex flex-row items-center gap-4">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div
-                      className={cn(
-                        buttonVariants({
-                          variant:
-                            workerLoading || workers?.length
-                              ? "ghost"
-                              : "destructive",
-                        }),
-                        "hover:unset",
-                      )}
-                    >
-                      Workers:{" "}
-                      {workerLoading
-                        ? "Loading..."
-                        : workers?.length
-                          ? workers.length
-                          : "No active workers!"}
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent side={"bottom"}>
-                    <p>
-                      {workers?.length
-                        ? `${workers.length} worker(s) is current online`
-                        : "No workers are currently online, workflows can't be executed"}
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
               <Button className="flex-grow" onClick={handleSave}>
                 <SaveIcon size={16} />
                 <span>Save</span>
               </Button>
-              <Button className="flex-grow" onClick={handleRun} disabled={workerLoading || !workers?.length}>
+              <Button
+                className="flex-grow"
+                onClick={handleRun}
+                disabled={
+                  workerLoading ||
+                  (typeof systemInfo?.systemStatus === "object" &&
+                    systemInfo.systemStatus?.status === "error")
+                }
+              >
                 <PlayIcon size={16} />
                 <span>Run</span>
               </Button>
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button className="flex flex-row gap-2 bg-card bg-opacity-80 text-foreground outline outline-1 outline-slate-700 hover:bg-opacity-100 hover:text-background">
+                  <Button className="flex flex-row gap-2 bg-card text-foreground outline outline-1 outline-slate-700 hover:bg-opacity-100 hover:text-background">
                     <SettingsIcon size={16} className="opacity-80" />
                     Settings
                   </Button>
@@ -427,5 +410,4 @@ export function App() {
     </div>
   );
 }
-
 export default memo(App);

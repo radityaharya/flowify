@@ -27,6 +27,7 @@ type RFState = {
     description: string;
     workflow?: WorkflowObject;
     cron?: string;
+    dryrun?: boolean;
   };
 
   onNodesChange: OnNodesChange;
@@ -72,6 +73,7 @@ type RFState = {
     description: string;
     workflow?: WorkflowObject;
     cron?: string;
+    dryrun?: boolean;
   }) => void;
   setReactFlowInstance: (instance: ReactFlowInstance) => void;
   resetReactFlow: () => void;
@@ -85,6 +87,7 @@ const useStore = create<RFState>((set, get) => ({
     name: "",
     description: "",
     workflow: undefined,
+    dryrun: true,
   },
   reactFlowInstance: undefined,
   setNodes: (nodes) => {
@@ -215,6 +218,7 @@ const useStore = create<RFState>((set, get) => ({
         name: "Untitled Workflow",
         description: "Make sure to save your workflow!",
         workflow: undefined,
+        dryrun: true,
       },
     });
 

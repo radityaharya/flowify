@@ -6,19 +6,10 @@ import { env } from "~/env";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/server/auth";
 
-
 const log = new Logger("/api/");
 
 export async function GET(request: NextRequest) {
   const session = await getServerSession({ req: request, ...authOptions });
-  if (!session) {
-    return NextResponse.json(
-      {
-        error: "Not authenticated",
-      },
-      { status: 401 },
-    );
-  }
   let redis: Redis | null = null;
   try {
     redis = new Redis(env.REDIS_URL, {
@@ -41,18 +32,31 @@ export async function GET(request: NextRequest) {
   }
 
   const workers = await db.query.workerPool.findMany({});
+  const systemStatus = await db.query.systemStatus.findFirst({
+    orderBy: (systemStatus, { desc }) => [desc(systemStatus.createdAt)],
+  });
+
   const workersWithoutDeviceHash = workers.map(
     ({ deviceHash, ...worker }) => worker,
   );
 
+  const systemInfo = {
+    workers: workersWithoutDeviceHash,
+    systemStatus: systemStatus || "No data available"
+  };
+
   if (redis) {
     await redis.set(
       "api:workers",
-      JSON.stringify(workersWithoutDeviceHash),
+      JSON.stringify(systemInfo),
       "EX",
       30,
     );
   }
 
-  return NextResponse.json(workersWithoutDeviceHash);
+  return NextResponse.json(systemInfo, {
+    headers: {
+      "X-Cache": "MISS",
+    },
+  });
 }

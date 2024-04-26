@@ -3,6 +3,7 @@
 import Link, { LinkProps } from "next/link";
 import { usePathname } from "next/navigation";
 import { buttonVariants } from "~/components/ui/button";
+import { SystemInfo } from "@/components/SystemInfo";
 
 import { cn } from "@/lib/utils";
 import { useSession } from "next-auth/react";
@@ -113,44 +114,46 @@ export function SiteNav({ className }: SiteNavProps) {
     if (pathname === "/") classes += " absolute";
     if (pathname.startsWith("/auth"))
       classes += " absolute bg-transparent backdrop-blur-none";
-    if (pathname.startsWith("/auth/p"))
-      classes += " hidden";
+    if (pathname.startsWith("/auth/p")) classes += " hidden";
     return classes;
   }, [pathname]);
 
   return (
     <div className={cn(navClass, className)}>
       <MainNav />
-      {session ? (
-        <div className="flex flex-row items-center gap-4">
-          <span className="font-medium text-foreground text-sm">
-            {`${session.user.name}`}
-          </span>
-          <Avatar className="h-8 w-8">
-            <AvatarImage
-              src={session?.user?.image ?? ""}
-              alt={session?.user?.name ?? ""}
-            />
-            <AvatarFallback className="font-medium text-sm">
-              {/* biome-ignore lint/correctness/useJsxKeyInIterable: <explanation> */}
-              {session?.user?.name?.split(" ").map((n) => n[0])}
-            </AvatarFallback>
-          </Avatar>
-        </div>
-      ) : (
-        <div className="h-8 flex items-center">
-          <Link
-            href="/auth/login"
-            className={cn(
-              "border",
-              buttonVariants({ variant: "ghost" }),
-              pathname.startsWith("/auth/login") ?? "hidden",
-            )}
-          >
-            Login
-          </Link>
-        </div>
-      )}
+      <div className="flex flex-row gap-6 items-center">
+        <SystemInfo />
+        {session ? (
+          <div className="flex flex-row items-center gap-4">
+            <span className="font-medium text-foreground text-sm">
+              {`${session.user.name}`}
+            </span>
+            <Avatar className="h-8 w-8">
+              <AvatarImage
+                src={session?.user?.image ?? ""}
+                alt={session?.user?.name ?? ""}
+              />
+              <AvatarFallback className="font-medium text-sm">
+                {/* biome-ignore lint/correctness/useJsxKeyInIterable: <explanation> */}
+                {session?.user?.name?.split(" ").map((n) => n[0])}
+              </AvatarFallback>
+            </Avatar>
+          </div>
+        ) : (
+          <div className="h-8 flex items-center">
+            <Link
+              href="/auth/login"
+              className={cn(
+                "border",
+                buttonVariants({ variant: "ghost" }),
+                pathname.startsWith("/auth/login") ?? "hidden",
+              )}
+            >
+              Login
+            </Link>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
