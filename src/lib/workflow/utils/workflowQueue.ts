@@ -45,7 +45,7 @@ export async function updateWorkflowJob(_userId: string, job: any) {
     .update(workflowJobs)
     .set({
       workflow: JSON.stringify(job.data.workflow),
-      // cron:
+      modifiedAt: new Date(job.timestamp as number),
     })
     .where(eq(workflowJobs.id, job.id as string));
   const res = await db.query.workflowJobs.findFirst({

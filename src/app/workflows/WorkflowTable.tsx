@@ -212,7 +212,7 @@ const columns: ColumnDef<WorkflowsTableColumn>[] = [
       const id = (row.original as any).id;
       return (
         <div className="font-medium">
-          <Link href={`/workflow/${name}_${id}`}>{name}</Link>
+          <Link href={`/workflow/${name.toLowerCase().replace(" ","-")}_${id}`}>{name}</Link>
         </div>
       );
     },

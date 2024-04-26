@@ -60,7 +60,14 @@ export async function POST(request: NextRequest) {
 
   const operations = runner.sortOperations(workflow);
   workflow.operations = operations;
-  runner.validateWorkflow(workflow);
+  const [valid, errors] = await runner.validateWorkflow(workflow);
+
+  if (!valid) {
+    return NextResponse.json(
+      { error: "Invalid workflow", errors },
+      { status: 400 },
+    );
+  }
 
   const job = {
     id: workflow.id ?? uuidv4(),

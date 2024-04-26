@@ -81,7 +81,7 @@ function Builder({
       const curName = params.id.split("_")[0];
 
       if (formatedName !== curName) {
-        router.push(`/workflow/${formatedName}_${workflowData.workflow.id}`);
+        router.push(`/workflow/${formatedName}_${workflowData.id}`);
       }
 
       if (
