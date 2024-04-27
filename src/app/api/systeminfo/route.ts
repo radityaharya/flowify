@@ -1,10 +1,10 @@
-import { db } from "@/server/db";
-import { type NextRequest, NextResponse } from "next/server";
-import Redis from "ioredis";
-import { Logger } from "~/lib/log";
-import { env } from "~/env";
-import { getServerSession } from "next-auth";
 import { authOptions } from "@/server/auth";
+import { db } from "@/server/db";
+import Redis from "ioredis";
+import { getServerSession } from "next-auth";
+import { type NextRequest, NextResponse } from "next/server";
+import { env } from "~/env";
+import { Logger } from "~/lib/log";
 
 const log = new Logger("/api/");
 
@@ -42,16 +42,11 @@ export async function GET(request: NextRequest) {
 
   const systemInfo = {
     workers: workersWithoutDeviceHash,
-    systemStatus: systemStatus || "No data available"
+    systemStatus: systemStatus || "No data available",
   };
 
   if (redis) {
-    await redis.set(
-      "api:workers",
-      JSON.stringify(systemInfo),
-      "EX",
-      30,
-    );
+    await redis.set("api:workers", JSON.stringify(systemInfo), "EX", 30);
   }
 
   return NextResponse.json(systemInfo, {

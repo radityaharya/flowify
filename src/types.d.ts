@@ -109,7 +109,6 @@ interface QueueResponse {
   workflow?: WorkflowObject;
 }
 
-
 interface SystemInfo {
   workers: {
     status: string | null;
@@ -125,4 +124,4 @@ interface SystemInfo {
         id: string;
         createdAt: Date | null;
       };
-};
+}

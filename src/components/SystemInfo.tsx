@@ -1,13 +1,13 @@
-import { Button, buttonVariants } from "@/components/ui/button";
-import Link from "next/link";
+import { fetcher } from "@/app/utils/fetcher";
+import { buttonVariants } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { fetcher } from "@/app/utils/fetcher";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 import useSWR from "swr";
 
 export function SystemInfo() {
@@ -40,7 +40,10 @@ export function SystemInfo() {
             <TooltipTrigger asChild>
               <Link
                 href="https://status.radityaharya.com/status/flowify"
-                className={cn(buttonVariants({ variant: "outline" }), "text-white font-normal text-sm")}
+                className={cn(
+                  buttonVariants({ variant: "outline" }),
+                  "text-white font-normal text-sm",
+                )}
                 target="_blank"
               >
                 <span
@@ -49,8 +52,8 @@ export function SystemInfo() {
                     status === "ok"
                       ? "bg-green-500"
                       : status === "degraded"
-                      ? "bg-yellow-500"
-                      : "bg-red-500",
+                        ? "bg-yellow-500"
+                        : "bg-red-500",
                   )}
                 ></span>
                 {status === "ok" ? (

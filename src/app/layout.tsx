@@ -11,7 +11,8 @@ const inter = Inter({
 
 export const metadata = {
   title: "Flowify",
-  description: "Flowify is a Spotify playlist generator with a drag-and-drop interface.",
+  description:
+    "Flowify is a Spotify playlist generator with a drag-and-drop interface.",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 

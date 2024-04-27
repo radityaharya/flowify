@@ -1,7 +1,7 @@
 import React from "react";
-import NodeBuilder from "../Primitives/NodeBuilder";
 import * as z from "zod";
 import InputPrimitive from "../Primitives/Input";
+import NodeBuilder from "../Primitives/NodeBuilder";
 
 const formSchema = z.object({
   sortOrder: z
@@ -21,7 +21,7 @@ const sortOptions = [
 const SortPopularity: React.FC = ({ id, data }: any) => {
   data.sortKey = "popularity";
   data.sortOrder = "desc";
-  
+
   return (
     <NodeBuilder
       id={id}

@@ -1,9 +1,9 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useHandleConnections } from "@xyflow/react";
 import { useCallback, useEffect, useState } from "react";
-import useStore from "~/app/states/store";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { type ZodObject } from "zod";
+import useStore from "~/app/states/store";
 
 type Playlist = {
   playlistId?: string;

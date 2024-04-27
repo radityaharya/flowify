@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 "use client";
 
+import { fetcher } from "@/app/utils/fetcher";
 import {
   Background,
   Controls,
@@ -10,7 +11,6 @@ import {
 } from "@xyflow/react";
 import { useCallback, useMemo, useRef } from "react";
 import useSWR from "swr";
-import { fetcher } from "@/app/utils/fetcher";
 
 import useStore from "~/app/states/store";
 
@@ -41,14 +41,14 @@ import First from "@nodes/Selectors/First";
 import Last from "@nodes/Selectors/Last";
 import Recommend from "@nodes/Selectors/Recommend";
 
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Checkbox } from "@/components/ui/checkbox";
 import { PlayIcon, SaveIcon, Settings as SettingsIcon } from "lucide-react";
 import { SettingsDialog } from "./settingsDialog/Settings";
 
@@ -61,7 +61,6 @@ import { toast } from "sonner";
 import { runWorkflow } from "~/app/utils/runWorkflow";
 
 import { memo } from "react";
-import { cn } from "~/lib/utils";
 
 export const Nodes = {
   "Combiner.alternate": {

@@ -1,9 +1,9 @@
 "use client";
 
+import { SystemInfo } from "@/components/SystemInfo";
 import Link, { LinkProps } from "next/link";
 import { usePathname } from "next/navigation";
 import { buttonVariants } from "~/components/ui/button";
-import { SystemInfo } from "@/components/SystemInfo";
 
 import { cn } from "@/lib/utils";
 import { useSession } from "next-auth/react";

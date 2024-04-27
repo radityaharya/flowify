@@ -1,37 +1,18 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 import { DragableNode } from "@/components/DragableNode";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 import { useCallback, useMemo } from "react";
 import React from "react";
 import { Nodes } from "./Flow";
 
 import {
-  Calculator,
-  Calendar,
-  CreditCard,
-  Settings,
-  Smile,
-  User,
-} from "lucide-react"
- 
-import {
   Command,
-  CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
   CommandList,
-  CommandSeparator,
-  CommandShortcut,
-} from "@/components/ui/command"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Separator } from "@/components/ui/separator"
+} from "@/components/ui/command";
+import { ScrollArea } from "@/components/ui/scroll-area";
 type NodeType = {
   title: string;
   description: string;
@@ -88,7 +69,7 @@ function Sidebar() {
           </p>
         </div>
         <Command className="pl-6 pr-3">
-          <CommandInput placeholder="Search..." className="pr-3"/>
+          <CommandInput placeholder="Search..." className="pr-3" />
           <ScrollArea className="w-full h-full">
             <CommandList className="pr-3">
               <CommandItems nodesByType={nodesByType} />
@@ -107,7 +88,11 @@ function CommandItems({ nodesByType }: { nodesByType: NodesByType }) {
         ([type, nodes]: [string, NodeType[]], index) => (
           <CommandGroup heading={type} key={type}>
             {nodes.map(({ title, description, nodeType }) => (
-              <CommandItem key={nodeType} asChild value={`${title} - ${type} - ${description}`}>
+              <CommandItem
+                key={nodeType}
+                asChild
+                value={`${title} - ${type} - ${description}`}
+              >
                 <DragableNode
                   nodeType={nodeType}
                   title={title}

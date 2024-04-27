@@ -148,14 +148,16 @@ const PlaylistComponent: React.FC<PlaylistProps> = ({ id, data }) => {
           const data = await response.json();
           const newPlaylists = userPlaylists.concat(data);
           const dedupedPlaylists = newPlaylists.reduce((acc, current) => {
-            const x = acc.find(item => item.playlistId === current.playlistId);
+            const x = acc.find(
+              (item) => item.playlistId === current.playlistId,
+            );
             if (!x) {
               return acc.concat([current]);
             } else {
               return acc;
             }
           }, []);
-          
+
           setUserPlaylistsStore(dedupedPlaylists);
         } catch (err) {
           console.error(err);

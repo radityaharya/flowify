@@ -1,9 +1,9 @@
+import Redis from "ioredis";
 import { type NextRequest, NextResponse } from "next/server";
 import SpotifyWebApi from "spotify-web-api-node";
 import { env } from "~/env";
-import { getAccessTokenFromProviderAccountId } from "~/server/db/helper";
-import Redis from "ioredis";
 import { Logger } from "~/lib/log";
+import { getAccessTokenFromProviderAccountId } from "~/server/db/helper";
 
 const logger = new Logger("/api/user/[uid]/playlists");
 

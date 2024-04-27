@@ -1,11 +1,11 @@
-import React from "react";
+import { Form } from "@/components/ui/form";
 import { Position } from "@xyflow/react";
-import NodeHandle from "../Primitives/NodeHandle";
+import React from "react";
+import { ZodObject } from "zod";
+import useBasicNodeState from "~/hooks/useBasicNodeState";
 import { CardWithHeader } from "../Primitives/Card";
 import Debug from "../Primitives/Debug";
-import { Form } from "@/components/ui/form";
-import useBasicNodeState from "~/hooks/useBasicNodeState";
-import { ZodTypeAny, ZodObject } from "zod";
+import NodeHandle from "../Primitives/NodeHandle";
 interface NodeBuilderProps {
   id: string;
   data: any;

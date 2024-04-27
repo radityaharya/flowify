@@ -633,7 +633,7 @@ export class Runner extends Base {
           string,
           any
         >;
-        const final: any[] = []
+        const final: any[] = [];
         let result: any;
         for (const operation of sortedOperations) {
           if (timeoutOccurred) {
@@ -644,7 +644,7 @@ export class Runner extends Base {
             sourceValues,
             workflow,
           );
-          final.push(res)
+          final.push(res);
           result = res;
         }
 

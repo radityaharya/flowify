@@ -49,5 +49,4 @@ export const GradientBackground: React.FC<Props> = (props) => {
   );
 };
 
-
 export default GradientBackground;

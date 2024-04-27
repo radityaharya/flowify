@@ -37,7 +37,10 @@ export async function POST(
 
   if (workers.length === 0) {
     log.error("No workers available");
-    return NextResponse.json({ error: "No workers available" }, { status: 500 });
+    return NextResponse.json(
+      { error: "No workers available" },
+      { status: 500 },
+    );
   }
 
   const workflow = await db.query.workflowJobs.findFirst({

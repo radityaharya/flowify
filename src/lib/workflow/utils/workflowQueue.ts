@@ -279,14 +279,15 @@ function compressReturnValues(returnValues: any[]) {
 
           if (compressedItem.track?.album) {
             compressedItem.track.album.release_date_precision = undefined;
-            compressedItem.track.album.artists = compressedItem.track.album.artists.map(
-              (artist: SpotifyApi.ArtistObjectSimplified) => ({
-                ...artist,
-                external_urls: undefined,
-                href: undefined,
-                uri: undefined,
-              })
-            );
+            compressedItem.track.album.artists =
+              compressedItem.track.album.artists.map(
+                (artist: SpotifyApi.ArtistObjectSimplified) => ({
+                  ...artist,
+                  external_urls: undefined,
+                  href: undefined,
+                  uri: undefined,
+                }),
+              );
           }
 
           if (compressedItem.track) {
@@ -296,7 +297,7 @@ function compressReturnValues(returnValues: any[]) {
                 external_urls: undefined,
                 href: undefined,
                 uri: undefined,
-              })
+              }),
             );
           }
 

@@ -5,7 +5,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { GripVertical, InfoIcon } from "lucide-react";
+import { GripVertical } from "lucide-react";
 import { useShallow } from "zustand/react/shallow";
 
 type DragableNodeProps = {

@@ -184,8 +184,8 @@ function ColapsiblePlaylists({ sources }: { sources: any[] }) {
           />
         </CollapsibleTrigger>
         <CollapsibleContent className="space-y-2 CollapsibleContent">
-        {sources.map((source, _index) => (
-            <PlaylistCard source={source} key={source.id}/>
+          {sources.map((source, _index) => (
+            <PlaylistCard source={source} key={source.id} />
           ))}
         </CollapsibleContent>
       </Collapsible>
@@ -212,7 +212,11 @@ const columns: ColumnDef<WorkflowsTableColumn>[] = [
       const id = (row.original as any).id;
       return (
         <div className="font-medium">
-          <Link href={`/workflow/${name.toLowerCase().replace(" ","-")}_${id}`}>{name}</Link>
+          <Link
+            href={`/workflow/${name.toLowerCase().replace(" ", "-")}_${id}`}
+          >
+            {name}
+          </Link>
         </div>
       );
     },
@@ -387,14 +391,22 @@ export function WorkflowTable({ workflows }: WorkflowTableProps) {
         <div>
           <CardTitle className="flex items-center gap-2">
             Workflows
-            <Button variant="ghost" onClick={refreshData} onKeyPress={refreshData} size="sm">
+            <Button
+              variant="ghost"
+              onClick={refreshData}
+              onKeyPress={refreshData}
+              size="sm"
+            >
               <RefreshCcw className="h-3 w-3" />
             </Button>
           </CardTitle>
           <CardDescription>Manage your workflows here.</CardDescription>
         </div>
         {/* <Button onClick={refreshData}>Refresh</Button> */}
-        <Link className={buttonVariants({variant: "default"})} href="/workflow">
+        <Link
+          className={buttonVariants({ variant: "default" })}
+          href="/workflow"
+        >
           Create Workflow
         </Link>
       </CardHeader>
