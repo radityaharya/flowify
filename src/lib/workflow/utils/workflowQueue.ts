@@ -232,8 +232,6 @@ export async function updateWorkflowRun(
       returnValues = compressReturnValues(returnValues);
     }
 
-    log.info("Updating workflow job", jobId);
-
     await db
       .update(workflowRuns)
       .set({

@@ -40,7 +40,7 @@ const connection = new Redis(env.REDIS_URL, {
 
 const worker = new Worker(
   "workflowQueue",
-  async (job) => {
+  async (job, done) => {
     const data = job?.data;
     await reportWorking();
     await updateWorkflowRun(job.id!, "active", WORKER_ID);
@@ -71,10 +71,7 @@ const worker = new Worker(
     log.info("Workflow executed successfully");
     await updateWorkflowRun(job.id!, "completed", WORKER_ID, res);
     await reportIdle();
-    if (res.tracks) {
-      res = res.tracks;
-    }
-    return res.map((obj: any) => obj.track.id);
+    return res
   },
   {
     connection,

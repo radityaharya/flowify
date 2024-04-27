@@ -63,9 +63,10 @@ export const prettyPath = (
     const { pathname } = request.nextUrl;
     if (
       matchPaths.some((path) => pathname.startsWith(path)) &&
-      !pathname.includes("queue")
+      !pathname.includes("queue") &&
+      !pathname.endsWith("run")
     ) {
-      logger.info("Match!");
+      logger.info("Match! Prettying path:", pathname);
 
       if (pathname.startsWith("/workflow")) {
         const newRequest = handleWorkflowPath(request);
