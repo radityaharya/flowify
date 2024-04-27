@@ -2,23 +2,12 @@
 "use client";
 
 import useStore from "@/app/states/store";
-import reactFlowToWorkflow from "@/app/utils/reactFlowToWorkflow";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { ClockIcon, PlayIcon } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Console, Hook, Unhook } from "console-feed";
+import { Message } from "console-feed/lib/definitions/Component";
 import { useEffect, useState } from "react";
-import { Input } from "src/components/ui/input";
 import { useShallow } from "zustand/react/shallow";
+
 function RightBar() {
   const { session, nodes, edges, alert, setAlertStore } = useStore(
     useShallow((state) => ({
@@ -31,6 +20,8 @@ function RightBar() {
     })),
   );
 
+  const [logs, setLogs] = useState<Message[]>([]);
+
   const onDragOver = (event) => {
     event.preventDefault();
     event.dataTransfer.dropEffect = "move";
@@ -40,100 +31,33 @@ function RightBar() {
     return;
   };
 
-  function handleRun() {
-    const workflow = reactFlowToWorkflow({ nodes, edges });
-    const blob = new Blob([JSON.stringify(workflow)], {
-      type: "application/json",
-    });
-    const _url = URL.createObjectURL(blob);
-    const _link = document.createElement("a");
-    // link.download = "workflow.json";
-    // link.href = url;
-    // link.click();
-  }
-
-  const [openAlert, setOpenAlert] = useState(false);
-
   useEffect(() => {
-    if (alert) {
-      setOpenAlert(true);
-    }
-  }, [alert]);
-
-  function handleOpenChange() {
-    setOpenAlert(false);
-    setAlertStore(null);
-  }
+    const hookedConsole = Hook(
+      window.console,
+      (log) => {
+        if (log.method !== "debug" && log.method !== 'error') {
+          setLogs((currLogs) => [
+            ...currLogs,
+            { ...log, id: currLogs.length.toString(), data: log.data || [] },
+          ]);
+        }
+      },
+      false,
+    );
+    return () => {
+      Unhook(hookedConsole);
+    };
+  }, []);
 
   return (
     <aside
-      className="col-span-1 flex max-h-[50svh] flex-col justify-start gap-4 border-l"
+      className="col-span-1 flex h-full max-h-screen select-none flex-col justify-between border-l"
       onDragOver={onDragOver}
       onDrop={onDrop}
     >
-      <div className="flex flex-col gap-6">
-        <div className="flex-none px-6 pt-[4rem]">
-          <div className="flex flex-col justify-between gap-6">
-            <div className="flex flex-row justify-between"></div>
-          </div>
-        </div>
-        <div className="flex flex-col gap-4 px-6">
-          <h2 className="font-bold tracking-wider">Workflow Builder</h2>
-          {/* <p className="flex flex-row gap-1 text-xs font-normal opacity-80">
-            Drag and drop nodes to the canvas to create a workflow
-          </p> */}
-          <div className="grid w-full max-w-sm items-center gap-1.5">
-            <Label htmlFor="email" className="opacity-90">
-              Title
-            </Label>
-            <Input type="email" id="email" placeholder="Workflow title" />
-          </div>
-          <div className="grid w-full max-w-sm items-center gap-1.5">
-            <Label htmlFor="email" className="opacity-90">
-              Description
-            </Label>
-            <Textarea
-              id="email"
-              placeholder="A short description for your workflow"
-            />
-          </div>
-        </div>
-      </div>
-      <div className="flex flex-col gap-2 px-6 pb-4">
-        <AlertDialog open={openAlert} onOpenChange={handleOpenChange}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>{alert?.title}</AlertDialogTitle>
-              <AlertDialogDescription>
-                {alert?.message.split("\n").map((line, index) => (
-                  <code key={index}>
-                    <p className={index === 0 ? "font-medium" : ""}>{line}</p>
-                  </code>
-                ))}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogAction
-                className="bg-red-500 hover:bg-red-600"
-                onClick={handleOpenChange}
-              >
-                Continue
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-        <div className="flex w-full gap-2">
-          <Button className="flex-grow" onClick={handleRun}>
-            <PlayIcon size={16} />
-            <span>Run</span>
-          </Button>
-          <Button className="flex flex-row gap-1">
-            <ClockIcon size={16} />
-            <span>Schedule</span>
-          </Button>
-        </div>
-        <Button>Save Workflow</Button>
-      </div>
+      <ScrollArea className="flex-1 mt-20">
+        <Console logs={logs} variant="dark" />
+      </ScrollArea>
     </aside>
   );
 }

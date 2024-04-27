@@ -73,9 +73,10 @@ const SelectInput = ({
     {description && (
       <FormDescription>
         {description.split("\n").map((line, index) => (
-          <p key={index} className={index === 0 ? "font-medium" : ""}>
+          <span key={index} className={index === 0 ? "font-medium" : ""}>
             {line}
-          </p>
+            <br />
+          </span>
         ))}
       </FormDescription>
     )}

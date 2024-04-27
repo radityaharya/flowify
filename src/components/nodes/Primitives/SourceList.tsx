@@ -40,7 +40,7 @@ export function SourceList({
         {state.playlists
           ? state.playlists?.map((playlist) =>
               playlist && isValid ? (
-                <PlaylistItemPrimitive key={playlist.id} playlist={playlist} />
+                <PlaylistItemPrimitive key={playlist.id || playlist.name || 1} playlist={playlist} />
               ) : null,
             )
           : "No playlists found"}

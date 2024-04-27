@@ -318,9 +318,16 @@ export function App() {
   }
 
   async function handleSave() {
-    const saveResponse = await saveWorkflow();
-    const formatedName = saveResponse.workflow.name.replace(/ /g, "-").toLowerCase();
-    router.push(`/workflow/${formatedName}_${saveResponse.id}`);
+    try {
+      const saveResponse = await saveWorkflow();
+      const formatedName = saveResponse.workflow.name
+        .replace(/ /g, "-")
+        .toLowerCase();
+
+      router.push(`/workflow/${formatedName}_${saveResponse.id}`);
+    } catch (error) {
+      console.error("Error saving workflow", error);
+    }
   }
 
   const { data: systemInfo, isLoading: workerLoading } = useSWR<SystemInfo>(
@@ -367,7 +374,7 @@ export function App() {
           defaultEdgeOptions={edgeOptions}
         >
           <Controls />
-          <Panel position="top-right" className="pt-20">
+          <Panel position="top-right" className="pt-20 select-none">
             <div className="flex flex-row items-center gap-4">
               <Button className="flex-grow space-x-2" onClick={handleSave}>
                 <SaveIcon size={16} />
@@ -376,7 +383,7 @@ export function App() {
               <div className="flex flex-row gap-4 pr-4 items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none bg-card text-foreground outline outline-1 outline-slate-700">
                 <TooltipProvider>
                   <Tooltip>
-                    <TooltipTrigger>
+                    <TooltipTrigger asChild>
                       <Button
                         className="flex-grow space-x-2"
                         onClick={handleRun}
@@ -409,12 +416,12 @@ export function App() {
                     )}
                   </Tooltip>
                 </TooltipProvider>
-                <div
-                  className="flex items-center space-x-2"
-                  onClick={() => setDryRun(!flowState.dryrun)}
-                  onKeyDown={() => setDryRun(!flowState.dryrun)}
-                >
-                  <Checkbox checked={flowState.dryrun} id="dryrun" />
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    checked={flowState.dryrun}
+                    id="dryrun"
+                    onChange={(e) => setDryRun(!flowState.dryrun)}
+                  />
                   <label
                     htmlFor="dryrun"
                     className="text-sm font-base leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"

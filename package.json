@@ -52,6 +52,7 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "cmdk": "^1.0.0",
+    "console-feed": "^3.6.0",
     "date-fns": "^3.6.0",
     "drizzle-orm": "latest",
     "ioredis": "^5.4.1",

@@ -42,10 +42,17 @@ const General = () => {
       name: data.name,
       description: data.description,
     });
-    const saveResponse = await saveWorkflow();
-    const formatedName = saveResponse.workflow.name.replace(/ /g, "-").toLowerCase();
-    
-    router.push(`/workflow/${formatedName}_${saveResponse.id}`);
+
+    try {
+      const saveResponse = await saveWorkflow();
+      const formatedName = saveResponse.workflow.name
+        .replace(/ /g, "-")
+        .toLowerCase();
+
+      router.push(`/workflow/${formatedName}_${saveResponse.id}`);
+    } catch (error) {
+      console.error("Error saving workflow", error);
+    }
   };
 
   useEffect(() => {
@@ -54,7 +61,7 @@ const General = () => {
       form.setValue("description", flowState.description);
       form.trigger();
     }
-    console.log("onGeneral",flowState)
+    console.log("onGeneral", flowState);
   }, [flowState, form]);
 
   return (

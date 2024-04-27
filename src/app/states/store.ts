@@ -18,6 +18,7 @@ import { create } from "zustand";
 import { v4 as uuidv4 } from "uuid";
 
 type RFState = {
+  rightBarSize: number;
   nodes: Node[];
   edges: Edge[];
   reactFlowInstance?: ReactFlowInstance;
@@ -29,6 +30,8 @@ type RFState = {
     cron?: string;
     dryrun?: boolean;
   };
+
+  setRightBarSize: (size: number) => void;
 
   onNodesChange: OnNodesChange;
   onEdgesChange: OnEdgesChange;
@@ -80,6 +83,7 @@ type RFState = {
 };
 
 const useStore = create<RFState>((set, get) => ({
+  rightBarSize: 0,
   nodes: [],
   edges: [],
   flowState: {
@@ -90,14 +94,21 @@ const useStore = create<RFState>((set, get) => ({
     dryrun: true,
   },
   reactFlowInstance: undefined,
+
+  setRightBarSize: (size: number) => {
+    set({
+      rightBarSize: size,
+    });
+  },
+
   setNodes: (nodes) => {
-    console.info("setNodes", nodes);
+    console.debug("setNodes", nodes);
     set({
       nodes: nodes,
     });
   },
   setEdges: (edges) => {
-    console.info("setEdges", edges);
+    console.debug("setEdges", edges);
     edges.forEach((edge) => {
       edge.type = "smoothstep";
     });
@@ -198,7 +209,6 @@ const useStore = create<RFState>((set, get) => ({
   getEdges: () => {
     return get().edges;
   },
-
   setFlowState: (flowState) => {
     set({
       flowState: flowState,

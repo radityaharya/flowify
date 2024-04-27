@@ -26,9 +26,12 @@ type PlaylistProps = {
 };
 
 const formSchema = z.object({
-  sortKey: z.string().min(1, {
-    message: "Playlist is required.",
-  }),
+  sortKey: z
+    .string()
+    .min(1, {
+      message: "Playlist is required.",
+    })
+    .default(""),
   sortOrder: z
     .string()
     .min(1, {
@@ -54,14 +57,13 @@ const RemoveMatch: React.FC<PlaylistProps> = ({ id, data }) => {
   } = useBasicNodeState(id, formSchema);
 
   React.useEffect(() => {
-    if (data) {
-      const parsedData = {
-        sortKey: data.sortKey,
-        sortOrder: data.sortOrder,
-      };
-      form!.reset(parsedData);
-      form?.setValue("sortOrder", parsedData.sortOrder);
-    }
+    const parsedData = {
+      sortKey: data?.sortKey || "",
+      sortOrder: data?.sortOrder || "asc",
+    };
+    form!.reset(parsedData);
+    form?.setValue("sortOrder", parsedData.sortOrder);
+    form?.trigger();
   }, [data, form]);
 
   const watch = form!.watch();

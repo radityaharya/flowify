@@ -23,7 +23,7 @@ export async function saveWorkflow() {
   const response = await responsePromise;
   const data = await response.json();
 
-  data.workflow = JSON.parse(data.workflow);
+  if (data.workflow) data.workflow = JSON.parse(data.workflow);
 
   if (data.errors) {
     throw new Error("Error saving workflow");

@@ -108,7 +108,7 @@ export function SiteNav({ className }: SiteNavProps) {
 
   const navClass = useMemo(() => {
     let classes =
-      "sticky top-0 z-[3] flex w-full items-center justify-between bg-transparent px-6 py-4 backdrop-blur-md";
+      "select-none sticky top-0 z-[3] flex w-full items-center justify-between bg-transparent px-6 py-4 backdrop-blur-md";
     if (/\/workflow(?!s)/.test(pathname))
       classes += " absolute border-b bg-background backdrop-blur-none";
     if (pathname === "/") classes += " absolute";

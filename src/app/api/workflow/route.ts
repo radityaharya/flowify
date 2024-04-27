@@ -95,15 +95,15 @@ export async function POST(request: NextRequest) {
   }
 
   if (response.workflow) {
-  try {
-    response.workflow = JSON.parse(response.workflow);
-  } catch (error) {
-    console.error('Error parsing JSON:', error);
-    return NextResponse.json(
-      { error: "Error parsing Workflow" },
-      { status: 500 },
-    );
+    try {
+      response.workflow = JSON.parse(response.workflow);
+    } catch (error) {
+      console.error("Error parsing JSON:", error);
+      return NextResponse.json(
+        { error: "Error parsing Workflow" },
+        { status: 500 },
+      );
+    }
   }
-}
   return NextResponse.json(response);
 }

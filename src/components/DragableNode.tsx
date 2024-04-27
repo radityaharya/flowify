@@ -58,7 +58,7 @@ export const DragableNode = ({
   return (
     <TooltipProvider>
       <Tooltip>
-        <div className="group h-min-content w-full my-2">
+        <div className="group h-min-content w-full">
           <div
             className="flex w-full flex-row text-start items-start justify-between gap-2 rounded-md p-2 dark:bg-accent"
             onDragStart={onDragStart}

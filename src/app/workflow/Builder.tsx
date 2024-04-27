@@ -4,10 +4,11 @@ import { type Edge, type Node } from "@xyflow/react";
 
 // import styles from "./page.module.css";
 import { useSession } from "next-auth/react";
-import { memo, useCallback, useEffect } from "react";
+import { memo, useCallback, useEffect, useRef } from "react";
 import Flow from "./Flow";
 
 import useStore from "@/app/states/store";
+import RightBar from "./RightBar";
 import Sidebar from "./Sidebar";
 
 import {
@@ -15,6 +16,8 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
+import { ImperativePanelHandle } from "react-resizable-panels";
+
 import { toast } from "sonner";
 
 import { useRouter } from "next/navigation";
@@ -41,6 +44,7 @@ function Builder({
   }, [session]);
 
   const {
+    rightBarSize,
     setNodes,
     setEdges,
     setSessionStore,
@@ -51,6 +55,8 @@ function Builder({
     reactFlowInstance,
     resetReactFlow,
   } = useStore((state) => ({
+    rightBarSize: state.rightBarSize,
+    setRightBarSize: state.setRightBarSize,
     setNodes: state.setNodes,
     setEdges: state.setEdges,
     setSessionStore: state.setSession,
@@ -133,13 +139,13 @@ function Builder({
           name: name ?? "",
           description: description ?? "",
           workflow: workflowData.workflow,
-          dryrun:true
+          dryrun: true,
         });
         toast.info(
           `Flow '${flowId}' loaded with no nodes or edges. Please add some nodes and edges to continue.`,
         );
       }
-      console.log("init flowstate", flowState)
+      console.log("init flowstate", flowState);
     } else {
       resetReactFlow();
     }
@@ -168,6 +174,23 @@ function Builder({
     };
   }, []);
 
+  const rightPanelRef = useRef<ImperativePanelHandle>(null);
+
+  // callback to resize the right panel
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+  const resizePanel = useCallback(
+    (size: number) => {
+      if (rightPanelRef.current) {
+        rightPanelRef.current.resize(size);
+      }
+    },
+    [rightPanelRef],
+  );
+
+  useEffect(() => {
+    resizePanel(rightBarSize);
+  }, [rightBarSize, resizePanel]);
+
   return (
     <div className="flex h-screen flex-col">
       <main className="grid h-screen">
@@ -176,12 +199,16 @@ function Builder({
             <Sidebar />
           </ResizablePanel>
           <ResizableHandle withHandle />
-          <ResizablePanel defaultSize={83}>
+          <ResizablePanel defaultSize={63}>
             {workflowIsLoading || sessionStore === null ? (
               <Loading />
             ) : (
               <Flow />
             )}
+          </ResizablePanel>
+          <ResizableHandle withHandle />
+          <ResizablePanel defaultSize={0} minSize={20} ref={rightPanelRef}>
+            <RightBar />
           </ResizablePanel>
         </ResizablePanelGroup>
       </main>
