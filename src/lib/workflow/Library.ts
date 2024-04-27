@@ -164,7 +164,7 @@ export default class Library extends Base {
 
     const trackUris = tracks.map((track: any) => `spotify:track:${track.id}`);
 
-    console.info("trackUris", trackUris);
+    log.debug("trackUris", trackUris);
 
     await Library.replaceTracksBatch(spClient, id, trackUris);
 

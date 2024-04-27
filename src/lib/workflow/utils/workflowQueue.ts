@@ -257,27 +257,56 @@ export async function updateWorkflowRun(
  * @param returnValues - The array of return values to be compressed.
  * @returns The compressed array of return values.
  */
-function compressReturnValues(returnValues: any) {
-  returnValues.forEach((obj: any) => {
-    obj.track.audio_features = undefined;
-    obj.track.available_markets = undefined;
-    obj.album.release_date_precision = undefined;
-    obj.added_by = undefined;
-    obj.video_thumbnail = undefined;
-    obj.track.preview_url = undefined;
-    obj.track.external_ids = undefined;
-    obj.track.external_urls = undefined;
+function compressReturnValues(returnValues: any[]) {
+  const compressedValues: any[] = [];
 
-    obj.track.album.artists.forEach((artist: any) => {
-      artist.external_urls = undefined;
-      artist.href = undefined;
-      artist.uri = undefined;
-    });
-    obj.track.artists.forEach((artist: any) => {
-      artist.external_urls = undefined;
-      artist.href = undefined;
-      artist.uri = undefined;
-    });
+  returnValues.forEach((playlist: any) => {
+    const compressedPlaylist: any = {
+      ...playlist,
+      tracks: {
+        items: playlist.tracks.map((item: any) => {
+          const compressedItem: any = {
+            ...item,
+            track: {
+              ...item.track,
+              audio_features: undefined,
+              available_markets: undefined,
+              preview_url: undefined,
+              external_ids: undefined,
+              external_urls: undefined,
+            },
+          };
+
+          if (compressedItem.track?.album) {
+            compressedItem.track.album.release_date_precision = undefined;
+            compressedItem.track.album.artists = compressedItem.track.album.artists.map(
+              (artist: SpotifyApi.ArtistObjectSimplified) => ({
+                ...artist,
+                external_urls: undefined,
+                href: undefined,
+                uri: undefined,
+              })
+            );
+          }
+
+          if (compressedItem.track) {
+            compressedItem.track.artists = compressedItem.track.artists.map(
+              (artist: SpotifyApi.ArtistObjectSimplified) => ({
+                ...artist,
+                external_urls: undefined,
+                href: undefined,
+                uri: undefined,
+              })
+            );
+          }
+
+          return compressedItem;
+        }),
+      },
+    };
+
+    compressedValues.push(compressedPlaylist);
   });
-  return returnValues;
+
+  return compressedValues;
 }
