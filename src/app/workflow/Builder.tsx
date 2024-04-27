@@ -46,6 +46,7 @@ function Builder({
     setSessionStore,
     setUserPlaylists,
     sessionStore,
+    flowState,
     setFlowState,
     reactFlowInstance,
     resetReactFlow,
@@ -54,6 +55,7 @@ function Builder({
     setEdges: state.setEdges,
     setSessionStore: state.setSession,
     sessionStore: state.session,
+    flowState: state.flowState,
     setFlowState: state.setFlowState,
     setUserPlaylists: state.setUserPlaylists,
     resetReactFlow: state.resetReactFlow,
@@ -119,6 +121,7 @@ function Builder({
           name: name ?? "",
           description: description ?? "",
           workflow: workflowData.workflow,
+          dryrun: true,
         });
         reactFlowInstance?.fitView();
         toast.success(
@@ -130,11 +133,13 @@ function Builder({
           name: name ?? "",
           description: description ?? "",
           workflow: workflowData.workflow,
+          dryrun:true
         });
         toast.info(
           `Flow '${flowId}' loaded with no nodes or edges. Please add some nodes and edges to continue.`,
         );
       }
+      console.log("init flowstate", flowState)
     } else {
       resetReactFlow();
     }
@@ -162,24 +167,6 @@ function Builder({
       window.removeEventListener("beforeunload", handleUnload);
     };
   }, []);
-
-  const handleUserPlaylists = useCallback(() => {
-    if (!session?.user?.providerAccountId) {
-      return;
-    }
-    fetch(`/api/user/${session?.user?.providerAccountId}/playlists`)
-      .then((response) => response.json())
-      .then((data) => {
-        console.info(data);
-        setUserPlaylists(data as any[]);
-      })
-      .catch((err) => {
-        console.error(err);
-      });
-  }, [session?.user?.providerAccountId, setUserPlaylists]);
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
-  useEffect(handleUserPlaylists, [handleUserPlaylists]);
 
   return (
     <div className="flex h-screen flex-col">

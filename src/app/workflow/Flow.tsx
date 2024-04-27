@@ -319,7 +319,8 @@ export function App() {
 
   async function handleSave() {
     const saveResponse = await saveWorkflow();
-    router.push(`/workflow/${saveResponse.id}`);
+    const formatedName = saveResponse.workflow.name.replace(/ /g, "-").toLowerCase();
+    router.push(`/workflow/${formatedName}_${saveResponse.id}`);
   }
 
   const { data: systemInfo, isLoading: workerLoading } = useSWR<SystemInfo>(

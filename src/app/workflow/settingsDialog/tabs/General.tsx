@@ -43,15 +43,18 @@ const General = () => {
       description: data.description,
     });
     const saveResponse = await saveWorkflow();
-    router.push(`/workflow/${saveResponse.id}`);
+    const formatedName = saveResponse.workflow.name.replace(/ /g, "-").toLowerCase();
+    
+    router.push(`/workflow/${formatedName}_${saveResponse.id}`);
   };
 
   useEffect(() => {
-    console.info(flowState);
     if (flowState) {
       form.setValue("name", flowState.name);
       form.setValue("description", flowState.description);
+      form.trigger();
     }
+    console.log("onGeneral",flowState)
   }, [flowState, form]);
 
   return (
@@ -68,6 +71,7 @@ const General = () => {
             placeholder="My Workflow"
             className="w-full"
             data-1p-ignore
+            value={flowState?.name}
           />
         </div>
         <div className="space-y-1">
@@ -78,6 +82,7 @@ const General = () => {
             placeholder="A short description for your workflow"
             className="w-full"
             data-1p-ignore
+            value={flowState?.description}
           />
         </div>
         <div className="space-y-1">

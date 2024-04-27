@@ -138,6 +138,7 @@ const PlaylistComponent: React.FC<PlaylistProps> = ({ id, data }) => {
     prevSelectedPlaylistRef.current = selectedPlaylist;
   }, [watch, selectedPlaylist, data, id, updateNodeData]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   React.useEffect(() => {
     const searchPlaylist = async () => {
       if (search.length > 0) {

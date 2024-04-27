@@ -48,6 +48,16 @@ const saveAsNewComponent: React.FC<PlaylistProps> = ({ id, data }) => {
   const prevWatchRef = React.useRef(watch);
 
   React.useEffect(() => {
+    if (data && form) {
+      form.setValue("name", data.name);
+      form.setValue("isPublic", data.isPublic);
+      form.setValue("collaborative", data.collaborative);
+      form.setValue("description", data.description);
+      form.trigger();
+    }
+  }, [data, form]);
+
+  React.useEffect(() => {
     if (JSON.stringify(prevWatchRef.current) !== JSON.stringify(watch)) {
       updateNodeData(id, {
         name: watch.name,

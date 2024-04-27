@@ -86,5 +86,24 @@ export async function POST(request: NextRequest) {
   const response = (await workflowExists(job.id))
     ? await updateWorkflowJob(session.user.id, job)
     : await storeWorkflowJob(session.user.id, job);
+
+  if (!response) {
+    return NextResponse.json(
+      { error: "Error storing workflow job" },
+      { status: 500 },
+    );
+  }
+
+  if (response.workflow) {
+  try {
+    response.workflow = JSON.parse(response.workflow);
+  } catch (error) {
+    console.error('Error parsing JSON:', error);
+    return NextResponse.json(
+      { error: "Error parsing Workflow" },
+      { status: 500 },
+    );
+  }
+}
   return NextResponse.json(response);
 }
