@@ -1,8 +1,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useHandleConnections } from "@xyflow/react";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { type ZodObject } from "zod";
+import { useShallow } from "zustand/react/shallow";
 import useStore from "~/app/states/store";
 
 type Playlist = {
@@ -15,19 +16,13 @@ type Playlist = {
 };
 
 const usePlaylistLogic = (id: string, formSchema?: ZodObject<any>) => {
-  const { nodes, updateNodeData } = useStore((state) => ({
-    nodes: state.nodes,
-    updateNodeData: state.updateNodeData,
-  }));
-
-  const [state, setState] = useState({
-    playlists: [] as Playlist[],
-    playlistIds: [] as string[],
-    invalidNodesCount: 0,
-    summary: {
-      total: 0,
-    },
-  });
+  const { nodes, getNode, updateNodeData } = useStore(
+    useShallow((state) => ({
+      nodes: state.nodes,
+      getNode: state.getNode,
+      updateNodeData: state.updateNodeData,
+    })),
+  );
 
   const form = useForm({
     resolver: formSchema ? zodResolver(formSchema) : undefined,
@@ -37,10 +32,7 @@ const usePlaylistLogic = (id: string, formSchema?: ZodObject<any>) => {
 
   const { formState, register } = form ?? {};
 
-  const getNodeData = useCallback(
-    (id: string) => nodes.find((node) => node.id === id)?.data,
-    [nodes],
-  );
+  const getNodeData = (id: string) => getNode(id)?.data;
 
   const targetConnections = useHandleConnections({
     type: "target",
@@ -52,21 +44,20 @@ const usePlaylistLogic = (id: string, formSchema?: ZodObject<any>) => {
     nodeId: id,
   });
 
-  useEffect(() => {
+  const state = useMemo(() => {
     let invalidNodesCount = 0;
     const playlistIdsSet = new Set<string>();
     const playlistsSet = new Set<Playlist>();
 
     if (!targetConnections?.length) {
-      setState({
+      return {
         playlistIds: [],
         playlists: [],
         invalidNodesCount: 0,
         summary: {
           total: 0,
         },
-      });
-      return;
+      };
     }
 
     targetConnections.forEach((connection) => {
@@ -112,7 +103,7 @@ const usePlaylistLogic = (id: string, formSchema?: ZodObject<any>) => {
       .filter((playlist) => Object.keys(playlist).length !== 0)
       .filter((playlist) => playlist.playlistId);
 
-    setState({
+    return {
       playlistIds: combinedPlaylistIds,
       playlists: combinedPlaylists,
       invalidNodesCount,
@@ -122,7 +113,7 @@ const usePlaylistLogic = (id: string, formSchema?: ZodObject<any>) => {
           0,
         ),
       },
-    });
+    };
   }, [targetConnections, getNodeData]);
 
   useEffect(() => {

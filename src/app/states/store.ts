@@ -198,7 +198,10 @@ const useStore = create<RFState>((set, get) => ({
   },
 
   getNode: (id: string) => {
-    return get().nodes.find((node) => node.id === id);
+    const node = get().nodes.find((node) => node.id === id);
+    console.log("Node ID:", id);
+    console.log("Node Data:", node?.data);
+    return node;
   },
   getEdge: (id: string) => {
     return get().edges.find((edge) => edge.id === id);

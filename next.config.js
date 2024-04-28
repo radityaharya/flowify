@@ -19,7 +19,7 @@ const config = {
         hostname: "**.spotifycdn.com",
       },
     ],
-  }
+  },
 };
 
 const sentryConfig = withSentryConfig(
@@ -56,6 +56,8 @@ const sentryConfig = withSentryConfig(
   },
 );
 
-const prodConfig = million.next(sentryConfig);
+const prodConfig = million.next(sentryConfig, {
+  rsc: true, // if used in the app router mode
+});
 
-export default process.env.NODE_ENV === "development" ? config : prodConfig;
+export default prodConfig;

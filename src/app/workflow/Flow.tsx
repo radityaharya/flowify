@@ -65,98 +65,98 @@ import { memo } from "react";
 export const Nodes = {
   "Combiner.alternate": {
     title: "Alternate",
-    node: memo(Alternate),
+    node: Alternate,
     description: "Alternate between playlists",
   },
   "Combiner.push": {
     title: "Push",
-    node: memo(Push),
+    node: Push,
     description: "Append tracks of sources sequentially",
   },
   "Filter.dedupeTracks": {
     title: "Dedup Tracks",
-    node: memo(DedupeTracks),
+    node: DedupeTracks,
     description: "Remove duplicate tracks",
   },
   "Filter.dedupeArtists": {
     title: "Dedup Artists",
-    node: memo(DedupeArtists),
+    node: DedupeArtists,
     description: "Remove duplicate artists",
   },
   "Filter.filter": {
     title: "Filter",
-    node: memo(RemoveMatch),
+    node: RemoveMatch,
     description: "Match and remove tracks",
   },
   "Filter.limit": {
     title: "Limit",
-    node: memo(Limit),
+    node: Limit,
     description: "Limit number of tracks",
   },
   "Source.playlist": {
     title: "Playlist",
-    node: memo(Playlist),
+    node: Playlist,
     description: "Playlist source",
   },
   "Library.likedTracks": {
     title: "Liked Tracks",
-    node: memo(LikedTracks),
+    node: LikedTracks,
     description: "Liked tracks",
   },
   "Library.saveAsNew": {
     title: "Save as New",
-    node: memo(SaveAsNew),
+    node: SaveAsNew,
     description: "Saves workflow output to a new playlist",
   },
   "Library.saveAsAppend": {
     title: "Save as Append",
-    node: memo(SaveAsAppend),
+    node: SaveAsAppend,
     description: "Saves workflow output to an existing playlist by appending",
   },
   "Library.saveAsReplace": {
     title: "Save as Replace",
-    node: memo(SaveAsReplace),
+    node: SaveAsReplace,
     description:
       "Saves workflow output to an existing playlist by replacing all tracks",
   },
   "Order.shuffle": {
     title: "Shuffle",
-    node: memo(Shuffle),
+    node: Shuffle,
     description: "Randomly shuffle tracks",
   },
   "Order.sort": {
     title: "Sort",
-    node: memo(Sort),
+    node: Sort,
     description: "Sort tracks based on given key",
   },
   "Order.sort-popularity": {
     title: "By Popularity",
-    node: memo(SortPopularity),
+    node: SortPopularity,
     description: "Sort tracks based on popularity",
   },
   "Selector.allButFirst": {
     title: "All But First",
-    node: memo(AllButFirst),
+    node: AllButFirst,
     description: "Selects all but the first item from the input",
   },
   "Selector.allButLast": {
     title: "All But Last",
-    node: memo(AllButLast),
+    node: AllButLast,
     description: "Selects all but the last item from the input",
   },
   "Selector.first": {
     title: "First",
-    node: memo(First),
+    node: First,
     description: "Selects the first item from the input",
   },
   "Selector.last": {
     title: "Last",
-    node: memo(Last),
+    node: Last,
     description: "Selects the last item from the input",
   },
   "Selector.recommend": {
     title: "Recommend",
-    node: memo(Recommend),
+    node: Recommend,
     description: "Get a list of recommended tracks based on the input.",
   },
 };
@@ -337,7 +337,7 @@ export function App() {
   );
 
   const edgeOptions = {
-    animated: true,
+    animated: false,
   };
 
   const setDryRun = useCallback(
@@ -462,4 +462,4 @@ export function App() {
     </div>
   );
 }
-export default memo(App);
+export default App;

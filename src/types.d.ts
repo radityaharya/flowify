@@ -125,3 +125,12 @@ interface SystemInfo {
         createdAt: Date | null;
       };
 }
+
+type Playlist = {
+  playlistId?: string;
+  name?: string;
+  description?: string;
+  image?: string;
+  owner?: string;
+  total?: number;
+};

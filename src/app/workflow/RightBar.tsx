@@ -35,7 +35,7 @@ function RightBar() {
     const hookedConsole = Hook(
       window.console,
       (log) => {
-        if (log.method !== "debug" && log.method !== 'error') {
+        if (log.method !== "debug" && log.method !== "error") {
           setLogs((currLogs) => [
             ...currLogs,
             { ...log, id: currLogs.length.toString(), data: log.data || [] },

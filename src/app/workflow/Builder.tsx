@@ -8,7 +8,7 @@ import { memo, useCallback, useEffect, useRef } from "react";
 import Flow from "./Flow";
 
 import useStore from "@/app/states/store";
-import RightBar from "./RightBar";
+import { useShallow } from "zustand/react/shallow";
 import Sidebar from "./Sidebar";
 
 import {
@@ -21,7 +21,6 @@ import { ImperativePanelHandle } from "react-resizable-panels";
 import { toast } from "sonner";
 
 import { useRouter } from "next/navigation";
-import React from "react";
 import { useWorkflowData } from "~/hooks/useWorkflowData";
 
 function Builder({
@@ -54,19 +53,21 @@ function Builder({
     setFlowState,
     reactFlowInstance,
     resetReactFlow,
-  } = useStore((state) => ({
-    rightBarSize: state.rightBarSize,
-    setRightBarSize: state.setRightBarSize,
-    setNodes: state.setNodes,
-    setEdges: state.setEdges,
-    setSessionStore: state.setSession,
-    sessionStore: state.session,
-    flowState: state.flowState,
-    setFlowState: state.setFlowState,
-    setUserPlaylists: state.setUserPlaylists,
-    resetReactFlow: state.resetReactFlow,
-    reactFlowInstance: state.reactFlowInstance,
-  }));
+  } = useStore(
+    useShallow((state) => ({
+      rightBarSize: state.rightBarSize,
+      setRightBarSize: state.setRightBarSize,
+      setNodes: state.setNodes,
+      setEdges: state.setEdges,
+      setSessionStore: state.setSession,
+      sessionStore: state.session,
+      flowState: state.flowState,
+      setFlowState: state.setFlowState,
+      setUserPlaylists: state.setUserPlaylists,
+      resetReactFlow: state.resetReactFlow,
+      reactFlowInstance: state.reactFlowInstance,
+    })),
+  );
 
   const {
     data: workflowData,
@@ -162,17 +163,17 @@ function Builder({
   // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(handleWorkflowData, [handleWorkflowData]);
 
-  useEffect(() => {
-    const handleUnload = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-    };
+  // useEffect(() => {
+  //   const handleUnload = (e: BeforeUnloadEvent) => {
+  //     e.preventDefault();
+  //   };
 
-    window.addEventListener("beforeunload", handleUnload);
+  //   window.addEventListener("beforeunload", handleUnload);
 
-    return () => {
-      window.removeEventListener("beforeunload", handleUnload);
-    };
-  }, []);
+  //   return () => {
+  //     window.removeEventListener("beforeunload", handleUnload);
+  //   };
+  // }, []);
 
   const rightPanelRef = useRef<ImperativePanelHandle>(null);
 
@@ -199,7 +200,7 @@ function Builder({
             <Sidebar />
           </ResizablePanel>
           <ResizableHandle withHandle />
-          <ResizablePanel defaultSize={63}>
+          <ResizablePanel defaultSize={83}>
             {workflowIsLoading || sessionStore === null ? (
               <Loading />
             ) : (
@@ -207,8 +208,8 @@ function Builder({
             )}
           </ResizablePanel>
           <ResizableHandle withHandle />
-          <ResizablePanel defaultSize={0} minSize={20} ref={rightPanelRef}>
-            <RightBar />
+          <ResizablePanel defaultSize={0} minSize={0} ref={rightPanelRef}>
+            {/* <RightBar /> */}
           </ResizablePanel>
         </ResizablePanelGroup>
       </main>
@@ -242,4 +243,4 @@ const LoadingSVG = () => (
   </svg>
 );
 
-export default React.memo(Builder);
+export default Builder;

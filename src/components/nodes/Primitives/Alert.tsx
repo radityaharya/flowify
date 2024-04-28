@@ -17,8 +17,8 @@ export function AlertComponent({
       ) : (
         <AlertCircle className="h-4 w-4" />
       )}
-      <AlertTitle>{title}</AlertTitle>
-      <AlertDescription className="font-normal">{description}</AlertDescription>
+      <AlertTitle className="font-bold">{title}</AlertTitle>
+      <AlertDescription className="font-base">{description}</AlertDescription>
     </Alert>
   );
 }

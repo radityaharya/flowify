@@ -37,7 +37,7 @@ function Sidebar() {
     return Object.entries(Nodes).reduce((groups, [nodeType, nodeInfo]) => {
       const type = nodeType.split(".")[0];
       if (type) {
-      if (!groups[type]) {
+        if (!groups[type]) {
           groups[type] = [];
         }
         groups[type]?.push({
