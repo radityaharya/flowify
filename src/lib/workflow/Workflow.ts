@@ -436,12 +436,7 @@ export class Runner extends Base {
         }
 
         const sources = workflow.operations.filter((operation) => {
-          return workflow.operations.some((otherOperation) => {
-            return (
-              otherOperation.sources?.includes(operation.id) &&
-              otherOperation.id !== operation.id
-            );
-          });
+          return !operation.sources || operation.sources.length === 0;
         });
 
         for (const source of sources) {

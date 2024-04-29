@@ -24,7 +24,7 @@ export async function GET(
   });
 
   if (!workflows.length) {
-    return NextResponse.json("No workflows found", { status: 404 });
+    return NextResponse.json([], { status: 200 });
   }
 
   const res = workflows.map(
