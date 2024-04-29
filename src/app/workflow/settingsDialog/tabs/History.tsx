@@ -25,12 +25,18 @@ import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Skeleton } from "~/components/ui/skeleton";
 
+type ReturnValueItem = {
+  id: string;
+  tracks: {
+    items: any[];
+  };
+};
 type HistoryResponseItem = {
   id: string;
   startedAt: string;
   completedAt: string;
   status: string;
-  returnValues: string[];
+  returnValues: ReturnValueItem[];
 };
 
 type HistoryResponse = {
@@ -172,15 +178,23 @@ function DataTable<TData, TValue>({
 const getData = async (url) => {
   const data = (await fetcher(url as string)) as HistoryResponse;
 
-  const runs = data.runs.map((run) => ({
-    ...run,
-    startedAt: run.startedAt ? new Date(run.startedAt).toLocaleString() : "N/A",
-    completedAt: run.completedAt
-      ? new Date(run.completedAt).toLocaleString()
-      : "N/A",
-    status: run.status || "unknown",
-    returnValues: `${run.returnValues.length} Tracks`,
-  }));
+  const runs = data.runs.map((run) => {
+    const totalTracks = run.returnValues.reduce((acc, curr) => {
+      return acc + (curr.tracks?.items?.length || 0);
+    }, 0);
+
+    return {
+      ...run,
+      startedAt: run.startedAt
+        ? new Date(run.startedAt).toLocaleString()
+        : "N/A",
+      completedAt: run.completedAt
+        ? new Date(run.completedAt).toLocaleString()
+        : "N/A",
+      status: run.status || "unknown",
+      returnValues: `${totalTracks} Tracks`,
+    };
+  });
 
   return runs;
 };

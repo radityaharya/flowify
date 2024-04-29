@@ -72,6 +72,7 @@ function Builder({
     data: workflowData,
     error: workflowError,
     isLoading: workflowIsLoading,
+    mutate: workflowMutate,
   } = useWorkflowData(flowId);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
@@ -132,9 +133,10 @@ function Builder({
           `Flow '${flowId}' loaded with no nodes or edges. Please add some nodes and edges to continue.`,
         );
       }
-      console.log("init flowstate", flowState);
+      console.info("init flowstate", flowState);
     } else {
-      console.log("RESET!");
+      console.info("RESET!");
+      workflowMutate();
       resetReactFlow();
     }
   }, [
@@ -149,18 +151,6 @@ function Builder({
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(handleWorkflowData, [handleWorkflowData]);
-
-  // useEffect(() => {
-  //   const handleUnload = (e: BeforeUnloadEvent) => {
-  //     e.preventDefault();
-  //   };
-
-  //   window.addEventListener("beforeunload", handleUnload);
-
-  //   return () => {
-  //     window.removeEventListener("beforeunload", handleUnload);
-  //   };
-  // }, []);
 
   const rightPanelRef = useRef<ImperativePanelHandle>(null);
 

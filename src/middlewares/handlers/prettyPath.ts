@@ -65,7 +65,8 @@ export const prettyPath = (
       matchPaths.some((path) => pathname.startsWith(path)) &&
       !pathname.includes("queue") &&
       !pathname.endsWith("run") &&
-      !pathname.includes("/api")
+      !pathname.includes("/api") &&
+      !pathname.includes("/history")
     ) {
       logger.info("Match! Prettying path:", pathname);
 

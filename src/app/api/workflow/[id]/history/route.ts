@@ -67,9 +67,7 @@ export async function GET(
         startedAt: run.startedAt,
         completedAt: run.completedAt,
         status: run.status,
-        returnValues: run.returnValues
-          ? JSON.parse(run.returnValues).tracks.map((v: any) => v.track.id)
-          : [],
+        returnValues: run.returnValues ? JSON.parse(run.returnValues) : null,
       })),
     };
 
