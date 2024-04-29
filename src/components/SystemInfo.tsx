@@ -42,7 +42,7 @@ export function SystemInfo() {
                 href="https://status.radityaharya.com/status/flowify"
                 className={cn(
                   buttonVariants({ variant: "outline" }),
-                  "text-white font-normal text-sm",
+                  "text-white font-normal text-sm h-8",
                 )}
                 target="_blank"
               >
