@@ -30,8 +30,8 @@ type PlaylistProps = {
 };
 
 const formSchema = z.object({
-  limit: z.number().optional(),
-  offset: z.number().optional(),
+  limit: z.number().default(20),
+  offset: z.number().default(0),
 });
 
 const PlaylistComponent: React.FC<PlaylistProps> = ({ id, data }) => {
@@ -49,11 +49,14 @@ const PlaylistComponent: React.FC<PlaylistProps> = ({ id, data }) => {
 
   React.useEffect(() => {
     if (data) {
-      form!.reset({
-        limit: data.limit,
-        offset: data.offset,
-      });
+      form!.setValue("limit", data.limit);
+      form!.setValue("offset", data.offset);
+    } else {
+      form!.setValue("limit", 20);
+      form!.setValue("offset", 0);
+      form!.trigger();
     }
+    form!.trigger();
   }, [data, form]);
 
   const watch = form!.watch();
@@ -72,8 +75,10 @@ const PlaylistComponent: React.FC<PlaylistProps> = ({ id, data }) => {
       image: "https://misc.scdn.co/liked-songs/liked-songs-300.png",
       total: watch.limit ?? 50,
       owner: session.user.name,
+      offset: watch.offset ?? 0,
+      limit: watch.limit ?? 20,
     });
-  }, [watch.limit, id, updateNodeData, session.user.name]);
+  }, [watch, id, updateNodeData, session.user.name]);
 
   return (
     <CardWithHeader

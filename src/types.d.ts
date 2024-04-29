@@ -41,7 +41,7 @@ interface Source {
   type: string;
   params?: Params;
   rfstate: RFState;
-  sources?: string[];
+  // sources?: string[];
 }
 
 interface Source {
@@ -81,7 +81,7 @@ interface WorkflowObject {
   id?: string;
   name: string;
   description?: string;
-  sources: Source[];
+  // : Source[];
   operations: Operation[];
   connections: Connection[];
   dryrun?: boolean;

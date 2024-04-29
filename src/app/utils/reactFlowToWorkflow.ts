@@ -1,5 +1,4 @@
 import { type Edge, type Node } from "@xyflow/react";
-import { generate } from "random-words";
 import { toast } from "sonner";
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import useStore from "../states/store";
@@ -27,31 +26,18 @@ function addNodesToWorkflow(nodes, workflow) {
   let _hasSource = false;
 
   nodes.forEach((node) => {
-    if (node.type!.startsWith("Source.")) {
-      _hasSource = true;
-      workflow.sources.push({
-        id: node.id,
-        type: node.type!,
-        params: node.data,
-        rfstate: {
-          position: node.position,
-          data: node.data,
-        },
-      });
-    } else {
-      const typeWithoutPostfix = node.type!.split("-")[0];
-      workflow.operations.push({
-        id: node.id,
-        type: typeWithoutPostfix,
-        params: node.data,
+    const typeWithoutPostfix = node.type!.split("-")[0];
+    workflow.operations.push({
+      id: node.id,
+      type: typeWithoutPostfix,
+      params: node.data,
+      position: node.position,
+      sources: [],
+      rfstate: {
         position: node.position,
-        sources: [],
-        rfstate: {
-          position: node.position,
-          data: node.data,
-        },
-      });
-    }
+        data: node.data,
+      },
+    });
   });
 }
 
@@ -68,25 +54,6 @@ function addEdgesToWorkflow(edges, workflow) {
     });
   });
 }
-
-function setNodesAsSources(workflow) {
-  workflow.operations.forEach((operation) => {
-    if (operation.sources.length === 0) {
-      workflow.sources.push({
-        id: operation.id,
-        type: operation.type,
-        params: operation.params,
-        rfstate: {
-          position: operation.position,
-          data: operation.params,
-        },
-      });
-      workflow.operations = workflow.operations.filter(
-        (op) => op.id !== operation.id,
-      );
-    }
-  });
-}
 export default async function reactFlowToWorkflow({
   nodes,
   edges,
@@ -94,36 +61,23 @@ export default async function reactFlowToWorkflow({
   workflowResponse: WorkflowResponse;
   errors: any;
 }> {
-  // const { flowState } = useStore((state) => ({
-  //   flowState: state.flowState,
-  // }));
-
   const flowState = useStore.getState().flowState;
-
-  function generateName() {
-    return generate({ exactly: 2, join: "-" });
-  }
 
   const workflowObject = {
     id: flowState.id ?? undefined,
     name:
       flowState.name && flowState.name.trim() !== ""
         ? flowState.name
-        : generateName(),
+        : "Untitled",
     description: flowState.description,
-    sources: [],
     operations: [],
     connections: [],
   };
 
   let [valid, errors] = [true, {}];
   if (nodes.length > 0 && edges.length > 0) {
-    // nodes = filterNodes(nodes);
     addNodesToWorkflow(nodes, workflowObject);
     addEdgesToWorkflow(edges, workflowObject);
-    setNodesAsSources(workflowObject);
-
-    removeUnnecessaryData(workflowObject.sources);
     removeUnnecessaryData(workflowObject.operations);
     const response = await validateWorkflow(workflowObject);
     valid = response.valid;
@@ -132,7 +86,8 @@ export default async function reactFlowToWorkflow({
       throw new Error("Workflow is not valid");
     }
   } else {
-    toast.error("No workflow provided");
+    toast.error("You cannot save an empty workflow");
+    errors = ["You cannot save an empty workflow"];
     valid = false;
   }
 

@@ -49,11 +49,16 @@ export const operationParamsTypesMap = {
     collaborative: { type: "boolean" },
     description: { type: "string" },
   },
+  "Library.playlistTracks": {
+    playlistId: { type: "string", required: true },
+    limit: { type: "number" },
+    offset: { type: "number" },
+  },
   "Library.saveAsAppend": {
-    id: { type: "string", required: true },
+    playlistId: { type: "string", required: true },
   },
   "Library.saveAsReplace": {
-    id: { type: "string", required: true },
+    playlistId: { type: "string", required: true },
   },
   "Playlist.getTracksRecomendation": {
     limit: { type: "number", required: true },
@@ -98,112 +103,6 @@ export const operations: Workflow.Operations = {
   Selector,
 };
 export class Runner extends Base {
-  /**
-   * Fetches the source values for a given workflow.
-   *
-   * @param workflow - The workflow object.
-   * @param skipCache - Optional. Indicates whether to skip the cache. Default is false.
-   * @returns A map of source values.
-   */
-  async fetchSourceValues(workflow: WorkflowObject) {
-    const sourceValues = new Map();
-    const promises = workflow.sources.map((source) =>
-      this.fetchSourceTracks(source),
-    );
-
-    const results = await Promise.allSettled(promises);
-
-    results.forEach((result, index) => {
-      if (result.status === "fulfilled") {
-        const { source, tracks } = result.value;
-        sourceValues.set(source.id, source);
-        sourceValues.set(`${source.id}.tracks`, tracks);
-      } else {
-        log.error(
-          `Failed to fetch tracks for source at index ${index}: ${result.reason}`,
-        );
-        throw new Error(
-          `Failed to fetch tracks for source at index ${index}: ${result.reason}`,
-        );
-      }
-    });
-
-    return sourceValues;
-  }
-
-  async fetchSourceTracks(source: Source) {
-    let tracks: SpotifyApi.PlaylistTrackObject[] = [];
-    log.info(
-      `Loading source ${source.id} of type ${
-        source.type
-      } with params ${JSON.stringify(source.params)}`,
-    );
-
-    if (source.type === "Source.playlist") {
-      log.info(`Loading playlist ${source.params?.playlistId ?? ""}`);
-      const limit = 25;
-      let offset = 0;
-      let result;
-      let retryAfter = 0;
-      let maxRetries = 5;
-
-      while (maxRetries > 0) {
-        try {
-          log.debug("Getting playlist tracks", {
-            id: source.params?.playlistId ?? "",
-            limit,
-            offset,
-          });
-          await new Promise((resolve) =>
-            setTimeout(resolve, retryAfter * 1000),
-          );
-          result = await this.spClient.getPlaylistTracks(
-            source.params?.playlistId as string,
-            {
-              limit,
-              offset,
-            },
-          );
-          tracks = [...tracks, ...result.body.items];
-          offset += limit;
-          retryAfter = 0;
-        } catch (error: any) {
-          if (error.statusCode === 429) {
-            retryAfter = error.headers["retry-after"];
-            log.warn(`Rate limited. Retrying after ${retryAfter} seconds.`);
-            maxRetries--;
-            continue;
-          } else {
-            throw error;
-          }
-        }
-
-        if (!result.body.next) {
-          break;
-        }
-      }
-    } else if (source.type === "Library.likedTracks") {
-      const limit = source.params?.limit ?? 50;
-      tracks = await operations.Library.likedTracks(this.spClient, {
-        limit,
-        offset: 0,
-      });
-    }
-
-    log.info(`Loaded ${tracks.length} tracks.`);
-    source.tracks = tracks;
-    return { source, tracks };
-  }
-
-  // TODO: rework source fetching to use the same method as operations
-  /**
-   * Fetches the sources for a given operation.
-   *
-   * @param operation - The operation for which to fetch the sources.
-   * @param sourceValues - A map of source values.
-   * @param workflow - The workflow containing the operations.
-   * @returns An array of SpotifyApi.PlaylistTrackObject representing the sources.
-   */
   async fetchSources(
     operation: Operation,
     sourceValues: Map<string, any>,
@@ -354,10 +253,8 @@ export class Runner extends Base {
       for (let i = 0; i < operations.length; i++) {
         const operation = operations[i]!;
         if (
-          operation.sources.every(
-            (source) =>
-              sortedOperations.find((op) => op.id === source) ??
-              workflow.sources.find((src) => src.id === source),
+          operation.sources.every((source) =>
+            sortedOperations.find((op) => op.id === source),
           )
         ) {
           sortedOperations.push(operation);
@@ -391,25 +288,11 @@ export class Runner extends Base {
     const validationPromise = new Promise<[boolean, string[] | null]>(
       (resolve) => {
         workflow.operations = this.sortOperations(workflow);
-        const sourceIds = new Set(workflow.sources.map((source) => source.id));
         const operationIds = new Set();
         const errors = [] as string[];
 
-        if (
-          !(
-            workflow.sources &&
-            workflow.operations &&
-            Array.isArray(workflow.sources) &&
-            Array.isArray(workflow.operations)
-          )
-        ) {
-          errors.push(
-            "Workflow must have 'sources' and 'operations' properties.",
-          );
-        }
-
-        if (workflow.sources.length === 0) {
-          errors.push("Workflow must have at least one source.");
+        if (!(workflow.operations && Array.isArray(workflow.operations))) {
+          errors.push("Workflow must have 'operations' properties.");
         }
 
         // Validate operations
@@ -476,84 +359,59 @@ export class Runner extends Base {
           if (operationParams) {
             const paramsCopy = { ...operation.params };
             for (const [param, paramType] of Object.entries(operationParams)) {
-              if (paramType.required && !operation.params[param]) {
+              if (operation.params[param]) {
+                if (paramType.type === "string[]") {
+                  if (
+                    !(
+                      Array.isArray(operation.params[param]) &&
+                      operation.params[param].every(
+                        (item: any) => typeof item === "string",
+                      )
+                    )
+                  ) {
+                    errors.push(
+                      `Invalid param type: ${param} in operation: ${JSON.stringify(
+                        operation,
+                      )} expected string[] but got ${typeof operation.params[
+                        param
+                      ]}`,
+                    );
+                  }
+                } else if (paramType.type === "number[]") {
+                  if (
+                    !(
+                      Array.isArray(operation.params[param]) &&
+                      operation.params[param].every(
+                        (item: any) => typeof item === "number",
+                      )
+                    )
+                  ) {
+                    errors.push(
+                      `Invalid param type: ${param} in operation: ${JSON.stringify(
+                        operation,
+                      )} expected number[] but got ${typeof operation.params[
+                        param
+                      ]}`,
+                    );
+                  }
+                  // biome-ignore lint/suspicious/useValidTypeof: <explanation>
+                } else if (typeof operation.params[param] !== paramType.type) {
+                  errors.push(
+                    `Invalid param type: ${param} in operation: ${JSON.stringify(
+                      operation,
+                    )} expected ${paramType.type} but got ${typeof operation
+                      .params[param]}`,
+                  );
+                }
+              } else if (paramType.required) {
                 errors.push(
                   `Missing required param: ${param} in operation: ${JSON.stringify(
                     operation,
                   )}`,
                 );
               }
-              if (paramType.type === "string[]") {
-                if (
-                  !(
-                    Array.isArray(operation.params[param]) &&
-                    operation.params[param].every(
-                      (item: any) => typeof item === "string",
-                    )
-                  )
-                ) {
-                  throw new Error(
-                    `Invalid param type: ${param} in operation: ${JSON.stringify(
-                      operation,
-                    )} expected string[] but got ${typeof operation.params[
-                      param
-                    ]}`,
-                  );
-                }
-              } else if (paramType.type === "number[]") {
-                if (
-                  !(
-                    Array.isArray(operation.params[param]) &&
-                    operation.params[param].every(
-                      (item: any) => typeof item === "number",
-                    )
-                  )
-                ) {
-                  throw new Error(
-                    `Invalid param type: ${param} in operation: ${JSON.stringify(
-                      operation,
-                    )} expected number[] but got ${typeof operation.params[
-                      param
-                    ]}`,
-                  );
-                }
-                // biome-ignore lint/suspicious/useValidTypeof: <explanation>
-              } else if (typeof operation.params[param] !== paramType.type) {
-                throw new Error(
-                  `Invalid param type: ${param} in operation: ${JSON.stringify(
-                    operation,
-                  )} expected ${paramType.type} but got ${typeof operation
-                    .params[param]}`,
-                );
-              }
               delete paramsCopy[param];
             }
-
-            // TODO: Extra params validation
-            // if (Object.keys(paramsCopy).length > 0) {
-            //   throw new Error(
-            //     `Extra params: ${Object.keys(paramsCopy).join(
-            //       ", ",
-            //     )} in operation: ${JSON.stringify(operation)}`,
-            //   );
-            // }
-          }
-
-          // Validate operation sources
-          if (operation.sources) {
-            for (const source of operation.sources) {
-              if (!(sourceIds.has(source) || operationIds.has(source))) {
-                errors.push(
-                  `Invalid source: ${source} in operation: ${JSON.stringify(
-                    operation,
-                  )}`,
-                );
-              }
-            }
-          } else {
-            errors.push(
-              `Missing sources in operation: ${JSON.stringify(operation)}`,
-            );
           }
 
           if (
@@ -577,10 +435,22 @@ export class Runner extends Base {
           }
         }
 
-        // Validate sources
-        for (const source of workflow.sources) {
-          if (!(source.id && source.type && source.params)) {
-            errors.push(`Invalid source structure: ${JSON.stringify(source)}`);
+        const sources = workflow.operations.filter((operation) => {
+          return workflow.operations.some((otherOperation) => {
+            return (
+              otherOperation.sources?.includes(operation.id) &&
+              otherOperation.id !== operation.id
+            );
+          });
+        });
+
+        for (const source of sources) {
+          if (!(source.params.playlistId || source.params.id)) {
+            errors.push(
+              `First operation must have be a Liked Tracks or Playlist operation: ${JSON.stringify(
+                source,
+              )}`,
+            );
           }
         }
 
@@ -629,12 +499,9 @@ export class Runner extends Base {
           throw new Error(`Invalid workflow: ${errors.join("\n")}`);
         }
 
-        const sourceValues = (await this.fetchSourceValues(workflow)) as Map<
-          string,
-          any
-        >;
+        const sourceValues = new Map();
+
         const final: any[] = [];
-        let result: any;
         for (const operation of sortedOperations) {
           if (timeoutOccurred) {
             reject(new Error("Operation timed out after 10 seconds"));
@@ -645,7 +512,6 @@ export class Runner extends Base {
             workflow,
           );
           final.push(res);
-          result = res;
         }
 
         resolve(final.filter((f) => f.id));

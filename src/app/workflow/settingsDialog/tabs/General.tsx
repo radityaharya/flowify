@@ -78,7 +78,6 @@ const General = () => {
             placeholder="My Workflow"
             className="w-full"
             data-1p-ignore
-            value={flowState?.name}
           />
         </div>
         <div className="space-y-1">
@@ -89,7 +88,6 @@ const General = () => {
             placeholder="A short description for your workflow"
             className="w-full"
             data-1p-ignore
-            value={flowState?.description}
           />
         </div>
         <div className="space-y-1">

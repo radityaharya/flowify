@@ -42,15 +42,6 @@ type PlaylistProps = {
   data: Playlist;
 };
 
-type Playlist = {
-  playlistId?: string;
-  name?: string;
-  description?: string;
-  image?: string;
-  total?: number;
-  owner?: string;
-};
-
 const formSchema = z.object({
   playlistId: z.string().min(1, {
     message: "Playlist is required.",
@@ -111,6 +102,14 @@ function SaveAsReplaceComponent({ id, data }: PlaylistProps) {
       form?.setValue("playlistId", data.playlistId);
       updateNodeData(id, data);
       form?.trigger("playlistId");
+
+      // Fetch playlist info
+      fetch(`/api/user/@me/playlist/${data.playlistId}`)
+        .then((response) => response.json())
+        .then((playlist: Playlist) => {
+          setSelectedPlaylist(playlist);
+        })
+        .catch((error) => console.error("Error:", error));
     }
   }, [data, form, id, updateNodeData]);
 
@@ -174,7 +173,7 @@ function SaveAsReplaceComponent({ id, data }: PlaylistProps) {
       id={id}
       type="Library"
       status={formState.isValid ? "success" : "error"}
-      info="Replace all tracks in a playlist with new tracks."
+      info="Replaces the tracks in the selected playlist"
     >
       <NodeHandle
         type="source"

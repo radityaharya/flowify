@@ -13,6 +13,7 @@ import {
   getIncomers,
   getOutgoers,
 } from "@xyflow/react";
+import { generate } from "random-words";
 import { create } from "zustand";
 
 import { v4 as uuidv4 } from "uuid";
@@ -199,8 +200,8 @@ const useStore = create<RFState>((set, get) => ({
 
   getNode: (id: string) => {
     const node = get().nodes.find((node) => node.id === id);
-    console.log("Node ID:", id);
-    console.log("Node Data:", node?.data);
+    // console.log("Node ID:", id);
+    // console.log("Node Data:", node?.data);
     return node;
   },
   getEdge: (id: string) => {
@@ -223,13 +224,17 @@ const useStore = create<RFState>((set, get) => ({
     });
   },
   resetReactFlow: () => {
+    function generateName() {
+      let name = generate({ exactly: 2, join: " " });
+      return name.toLowerCase().replace(/\b(\w)/g, (s) => s.toUpperCase());
+    }
     set({
       nodes: [],
       edges: [],
       flowState: {
         id: undefined,
-        name: "Untitled Workflow",
-        description: "Make sure to save your workflow!",
+        name: generateName(),
+        description: "We named it, but you can change it in the settings 😄",
         workflow: undefined,
         dryrun: true,
       },

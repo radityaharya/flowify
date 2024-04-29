@@ -26,9 +26,7 @@ export default class Order extends Base {
     function getOrderKey(obj, path) {
       return path.split(".").reduce((o, i) => {
         let indexMatch;
-        // biome-ignore lint/suspicious/noAssignInExpressions: <explanation>
         if ((indexMatch = i.match(/^(\w+)\[(\d+)\]$/))) {
-          // Handle array access
           const propName = indexMatch[1];
           const index = parseInt(indexMatch[2], 10);
           if (
@@ -39,13 +37,12 @@ export default class Order extends Base {
             return o[propName][index];
           } else {
             log.error(`Failed to access property '${i}' on object:`, o);
-            return undefined; // Or handle the error differently
+            throw new Error(`Failed to access property '${i}' on object`);
           }
         } else {
-          // Handle object property access
           if (!o?.hasOwnProperty(i)) {
             log.error(`Failed to access property '${i}' on object:`, o);
-            return undefined; // Or handle the error differently
+            throw new Error(`Failed to access property '${i}' on object`);
           }
           return o[i];
         }

@@ -10,10 +10,6 @@ const NodeHandle = (props) => {
   }));
 
   const nodeId = useNodeId();
-  // const node = nodes.find((node) => node.id === nodeId);
-
-  // const outgoers = getOutgoers(node!, nodes, edges)
-  // const incomers = getOutgoers(node!, nodes, edges)
 
   const isHandleConnectable = useMemo(() => {
     if (typeof props.isConnectable === "function") {
@@ -29,15 +25,11 @@ const NodeHandle = (props) => {
 
       const connectable = connectedEdges.length < props.isConnectable;
 
-      // if (!connectable && ( props.type === "source" && outgoers.length >= props.isConnectable || props.type === "target" && incomers.length >= props.isConnectable)) {
-      //   toast.error(props.type === "source" ? `You can only connect ${props.isConnectable} sources` : `You can only connect ${props.isConnectable} targets`);
-      // }
-
       return connectable;
     }
 
     return props.isConnectable;
-  }, [getNode, edges, nodeId, props.isConnectable, props.type]);
+  }, [getNode, edges, nodeId, props.isConnectable]);
 
   return (
     <Handle

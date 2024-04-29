@@ -9,6 +9,11 @@ export async function saveWorkflow() {
     edges,
   });
 
+  if (errors.length > 0) {
+    console.error("Errors in workflow", errors);
+    return;
+  }
+
   const responsePromise = fetch("/api/workflow", {
     method: "POST",
     body: JSON.stringify(workflow),
@@ -23,8 +28,6 @@ export async function saveWorkflow() {
   const response = await responsePromise;
   const data = await response.json();
 
-  if (data.workflow) data.workflow = JSON.parse(data.workflow);
-
   if (data.errors) {
     throw new Error("Error saving workflow");
   }
@@ -33,8 +36,8 @@ export async function saveWorkflow() {
     ...state,
     flowState: {
       ...state.flowState,
-      description: data.description,
-      name: data.name,
+      description: data.workflow.description,
+      name: data.workflow.name,
       id: data.id,
     },
   }));

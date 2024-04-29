@@ -35,8 +35,6 @@ export default class Combiner extends Base {
     const result = [] as SpotifyApi.PlaylistTrackObject[];
     let longestSourceLength = 0;
 
-    // Convert sources to an array of arrays of PlaylistTrackObject
-
     const sourcesTracks = sources.map((source) => {
       let tracks: SpotifyApi.PlaylistTrackObject[];
       if (

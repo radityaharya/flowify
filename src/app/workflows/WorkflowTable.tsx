@@ -57,7 +57,21 @@ type WorkflowsTableColumn = {
 
 function getTargets(operations: WorkflowResponse["workflow"]["operations"]) {
   const targets = operations.filter((operation) => {
-    return operation.type.startsWith("Library.saveAs"); //TODO: Find a better way to filter
+    return !operations.some((otherOperation) => {
+      return (
+        otherOperation.sources?.includes(operation.id) &&
+        otherOperation.id !== operation.id
+      );
+    });
+  });
+
+  targets.forEach((target: any) => {
+    if (!target.params.name) {
+      target.params.name = "New playlist";
+      target.params.owner = "New playlist";
+      target.params.image =
+        "https://misc.scdn.co/liked-songs/liked-songs-300.png";
+    }
   });
 
   return targets;
@@ -222,10 +236,18 @@ const columns: ColumnDef<WorkflowsTableColumn>[] = [
     },
   },
   {
-    accessorKey: "workflow.sources",
+    accessorKey: "workflow.operations",
     header: "Sources",
     cell: ({ row, getValue }) => {
-      const sources = getValue() as WorkflowResponse["workflow"]["sources"];
+      const operations =
+        getValue() as WorkflowResponse["workflow"]["operations"];
+
+      const sources = operations.filter((operation) => {
+        return (
+          !operation.sources ||
+          (Array.isArray(operation.sources) && operation.sources.length === 0)
+        );
+      });
       return <ColapsiblePlaylists sources={sources} />;
     },
     meta: {
@@ -238,6 +260,8 @@ const columns: ColumnDef<WorkflowsTableColumn>[] = [
     cell: ({ row, getValue }) => {
       const operations =
         getValue() as WorkflowResponse["workflow"]["operations"];
+
+      const connections = (row.original as any).connections;
       const targets = getTargets(operations);
       return <ColapsiblePlaylists sources={targets} />;
     },

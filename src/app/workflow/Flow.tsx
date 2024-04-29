@@ -56,11 +56,9 @@ import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import reactFlowToWorkflow from "~/app/utils/reactFlowToWorkflow";
 import { saveWorkflow } from "~/app/utils/saveWorkflow";
 
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { runWorkflow } from "~/app/utils/runWorkflow";
-
-import { memo } from "react";
 
 export const Nodes = {
   "Combiner.alternate": {
@@ -93,7 +91,7 @@ export const Nodes = {
     node: Limit,
     description: "Limit number of tracks",
   },
-  "Source.playlist": {
+  "Library.playlistTracks": {
     title: "Playlist",
     node: Playlist,
     description: "Playlist source",
@@ -196,6 +194,7 @@ export function App() {
   );
 
   const router = useRouter();
+  const path = usePathname();
 
   const nodeTypes = useMemo(
     () =>
@@ -222,7 +221,7 @@ export function App() {
 
         const placeholderNode = {
           id: `placeholder-${playlistId}`,
-          type: "Source.playlist",
+          type: "Library.playlistTracks",
           position,
           data: {
             id: `placeholder-${playlistId}`,
@@ -314,17 +313,29 @@ export function App() {
       nodes,
       edges,
     });
+    if (errors.length > 0) {
+      console.error("Errors in workflow", errors);
+      return;
+    }
     const _runResponse = await runWorkflow(workflowResponse);
   }
 
   async function handleSave() {
     try {
       const saveResponse = await saveWorkflow();
-      const formatedName = saveResponse.workflow.name
+      const formattedName = saveResponse.workflow.name
         .replace(/ /g, "-")
         .toLowerCase();
 
-      router.push(`/workflow/${formatedName}_${saveResponse.id}`);
+      const curName = path.match(/\/workflow\/(.*?)_/)?.[1];
+
+      if (formattedName !== curName) {
+        console.log(
+          "redirecting to",
+          `/workflow/${formattedName}_${saveResponse.id}`,
+        );
+        router.push(`/workflow/${formattedName}_${saveResponse.id}`);
+      }
     } catch (error) {
       console.error("Error saving workflow", error);
     }
@@ -420,7 +431,7 @@ export function App() {
                   <Checkbox
                     checked={flowState.dryrun}
                     id="dryrun"
-                    onChange={(e) => setDryRun(!flowState.dryrun)}
+                    onClick={(e) => setDryRun(!flowState.dryrun)}
                   />
                   <label
                     htmlFor="dryrun"

@@ -2,7 +2,6 @@
 
 import { type Edge, type Node } from "@xyflow/react";
 
-// import styles from "./page.module.css";
 import { useSession } from "next-auth/react";
 import { memo, useCallback, useEffect, useRef } from "react";
 import Flow from "./Flow";
@@ -83,7 +82,7 @@ function Builder({
       return;
     }
     if (workflowData?.workflow) {
-      const { name, sources, operations, connections, description } =
+      const { name, operations, connections, description } =
         workflowData.workflow;
 
       const formatedName = name.replace(/ /g, "-").toLowerCase();
@@ -93,26 +92,13 @@ function Builder({
         router.push(`/workflow/${formatedName}_${workflowData.id}`);
       }
 
-      if (
-        sources.length > 0 &&
-        operations.length > 0 &&
-        connections.length > 0
-      ) {
-        const nodes = sources
-          .map((item) => {
-            return {
-              ...item,
-              ...item.rfstate,
-            };
-          })
-          .concat(
-            operations.map((item) => {
-              return {
-                ...item,
-                ...item.rfstate,
-              };
-            }),
-          ) as Node[];
+      if (operations.length > 0 && connections.length > 0) {
+        const nodes = operations.map((item) => {
+          return {
+            ...item,
+            ...item.rfstate,
+          };
+        }) as Node[];
         const edges = connections.map((item) => {
           return {
             id: `${item.source}->${item.target}`,
@@ -148,6 +134,7 @@ function Builder({
       }
       console.log("init flowstate", flowState);
     } else {
+      console.log("RESET!");
       resetReactFlow();
     }
   }, [
@@ -177,7 +164,6 @@ function Builder({
 
   const rightPanelRef = useRef<ImperativePanelHandle>(null);
 
-  // callback to resize the right panel
   // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   const resizePanel = useCallback(
     (size: number) => {

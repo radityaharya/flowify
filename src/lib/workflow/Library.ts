@@ -20,7 +20,7 @@ export default class Library extends Base {
 
   static async _getPlaylistWithTracks(
     spClient: SpotifyWebApi,
-    id: string,
+    playlistId: string,
     limit: number | null = null,
   ) {
     let tracks: SpotifyApi.TrackObjectFull[] = [];
@@ -31,8 +31,8 @@ export default class Library extends Base {
     while (limit === null || tracks.length < limit) {
       try {
         await new Promise((resolve) => setTimeout(resolve, retryAfter * 1000));
-        log.debug("Getting playlist tracks...", { id, offset });
-        result = await spClient.getPlaylistTracks(id, {
+        log.debug("Getting playlist tracks...", { playlistId, offset });
+        result = await spClient.getPlaylistTracks(playlistId, {
           limit: 20,
           offset,
         });
@@ -57,7 +57,7 @@ export default class Library extends Base {
       }
     }
     return {
-      id,
+      id: playlistId,
       tracks,
     };
   }
@@ -69,18 +69,18 @@ export default class Library extends Base {
    * class, which is used to make API requests to the Spotify API.
    * @param {any[]} sources - The `sources` parameter is an array that contains the sources of tracks
    * to be added to the playlist. It can have different formats:
-   * @param params - { id: string }
+   * @param params - { playlistId: string }
    * @returns the playlist with the added tracks.
    */
   static async saveAsAppend(
     spClient: SpotifyWebApi,
     sources: any[],
-    params: { id: string; dryrun?: boolean },
+    params: { playlistId: string; dryrun?: boolean },
   ) {
     log.info("Saving as append playlist...");
     log.debug("SaveAsAppend Sources:", sources);
 
-    const id = params.id;
+    const id = params.playlistId;
 
     const tracks = Library.getTracks(sources);
 
@@ -138,19 +138,19 @@ export default class Library extends Base {
    * class, which is used to make API requests to the Spotify Web API.
    * @param {any[]} sources - The `sources` parameter is an array that contains the sources of tracks
    * to be saved. It can have different formats:
-   * @param params - { id: string }
+   * @param params - { playlistId: string }
    * @returns the result of calling the `_getPlaylistWithTracks` method with the `spClient` and
    * `id` as arguments.
    */
   static async saveAsReplace(
     spClient: SpotifyWebApi,
     sources: any[],
-    params: { id: string; dryrun?: boolean },
+    params: { playlistId: string; dryrun?: boolean },
   ) {
     log.info("Saving as replace playlist...");
     log.debug("SaveAsReplace Sources:", sources);
 
-    const id = params.id;
+    const id = params.playlistId;
 
     const tracks = Library.getTracks(sources);
 
@@ -174,21 +174,35 @@ export default class Library extends Base {
   static async likedTracks(
     spClient: SpotifyWebApi,
     _sources: any[],
-    { limit = 50, offset = 0 }: { limit?: number; offset?: number },
+    params: { limit?: number; offset?: number },
   ) {
     const tracks: SpotifyApi.TrackObjectFull[] = [];
     let result;
     let retryAfter = 0;
 
+    if (!params.limit) {
+      params.limit = 50;
+    }
+
+    if (!params.offset) {
+      params.offset = 0;
+    }
+
+    log.info("Getting liked tracks...");
+    log.info("Limit:", params.limit);
+
     while (true) {
       try {
         await new Promise((resolve) => setTimeout(resolve, retryAfter * 1000));
         result = await spClient.getMySavedTracks({
-          limit: Math.min(limit - tracks.length, limit),
-          offset: offset + tracks.length,
+          limit: Math.min(params.limit - tracks.length, params.limit),
+          offset: params.offset + tracks.length,
         });
         tracks.push(...result.body.items);
-        if (tracks.length >= limit || result.body.items.length < limit) {
+        if (
+          tracks.length >= params.limit ||
+          result.body.items.length < params.limit
+        ) {
           break;
         }
       } catch (error: any) {
@@ -208,13 +222,15 @@ export default class Library extends Base {
     spClient: SpotifyWebApi,
     _sources: any[],
     params: {
-      id: string;
+      playlistId: string;
       limit?: number;
       offset?: number;
     },
   ) {
+    log.info("Getting playlist tracks...");
+    log.info("Playlist ID:", params.playlistId);
     const tracks: SpotifyApi.TrackObjectFull[] = [];
 
-    return await Library._getPlaylistWithTracks(spClient, params.id);
+    return await Library._getPlaylistWithTracks(spClient, params.playlistId);
   }
 }

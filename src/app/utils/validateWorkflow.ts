@@ -24,35 +24,23 @@ export async function requestValidateWorkflow(
 export async function validateWorkflow(workflow: WorkflowObject) {
   const validatePromise = requestValidateWorkflow(workflow).then((result) => {
     if (result.errors.length > 0 || !result.valid) {
-      throw new Error("Validation failed");
+      result.errors.forEach((error) => {
+        toast.error(`Error Type: ${error.errorType}`, {
+          description: `Operation: ${JSON.stringify(error.operation, null, 2)}`,
+        });
+      });
+      throw new Error(result.errors.map((error) => error.errorType).join(", "));
     }
     return result;
   });
 
   toast.promise(validatePromise, {
     loading: "Validating workflow...",
-    success: (validationResult: { valid: boolean; errors: any[] }) => {
-      const { valid, errors } = validationResult;
-      console.info("validationResult", validationResult);
-      if (!valid) {
-        toast.error(
-          `Workflow is not valid because of the following errors: \n${errors
-            .map(
-              (error) =>
-                `Error Type: ${error.errorType}\nOperation: ${JSON.stringify(
-                  error.operation,
-                  null,
-                  2,
-                )}\n\n`,
-            )
-            .join("")}`,
-        );
-        return "Workflow is not valid";
-      } else {
-        return "Workflow is valid";
-      }
+    success: "Workflow is valid!",
+    error: (error: Error) => {
+      console.error("Error validating workflow", error);
+      return "Workflow is not valid";
     },
-    error: "Workflow is not valid",
   });
 
   type ErrorType = { errorType: string; operation: string };

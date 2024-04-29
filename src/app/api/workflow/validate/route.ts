@@ -6,6 +6,24 @@ import { Runner } from "~/lib/workflow/Workflow";
 import { getAccessTokenFromUserId } from "~/server/db/helper";
 
 const log = new Logger("/api/workflow/validate");
+
+function parseErrors(errorMessage: string) {
+  const errorType = errorMessage.substring(0, errorMessage.indexOf(":"));
+  const operation = errorMessage
+    .substring(errorMessage.indexOf(":") + 1)
+    .trim();
+  let operationObj = {};
+  try {
+    operationObj = operation ? JSON.parse(operation) : undefined;
+  } catch (_e) {
+    operationObj = operation;
+  }
+  return {
+    errorType: errorType.replace("Invalid ", ""),
+    operation: operationObj,
+  };
+}
+
 export async function POST(request: NextRequest) {
   const session = await getServerSession({ req: request, ...authOptions });
   if (!session) {
@@ -36,26 +54,10 @@ export async function POST(request: NextRequest) {
   let res: any;
   try {
     const [valid, errors] = await runner.validateWorkflow(workflow);
-    res = { valid, errors };
+    res = { valid, errors: errors?.map(parseErrors) };
   } catch (err) {
     const errorMessage = (err as Error).message;
-    const errorLines = errorMessage.split("\n");
-    const prettyErrors = errorLines.map((line) => {
-      const [errorType, operation] = line.split(" in operation: ") as [
-        string,
-        string,
-      ];
-      let operationObj = {};
-      try {
-        operationObj = operation ? JSON.parse(operation) : undefined;
-      } catch (_e) {
-        operationObj = operation;
-      }
-      return {
-        errorType: errorType.replace("Invalid ", ""),
-        operation: operationObj,
-      };
-    });
+    const prettyErrors = parseErrors(errorMessage);
 
     res = { valid: false, errors: prettyErrors };
     return NextResponse.json(res, { status: 500 });

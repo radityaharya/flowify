@@ -90,7 +90,7 @@ const saveAsNewComponent: React.FC<PlaylistProps> = ({ id, data }) => {
               name="name"
               inputType={"text"}
               label={"Playlist Name"}
-              placeholder="20"
+              placeholder="My Playlist"
               register={register!}
               description={``}
             />

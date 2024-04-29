@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { Position } from "@xyflow/react";
+import { Position, useHandleConnections } from "@xyflow/react";
 import React from "react";
 import NodeHandle from "../Primitives/NodeHandle";
 
@@ -27,26 +27,19 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import Image from "next/image";
 import useStore from "~/app/states/store";
 
-import * as z from "zod";
 import { CardWithHeader } from "../Primitives/Card";
 
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+
 import { Form, FormField, FormItem, FormLabel } from "@/components/ui/form";
-import useBasicNodeState from "~/hooks/useBasicNodeState";
 import Debug from "../Primitives/Debug";
 import { PlaylistItem as PlaylistItemPrimitive } from "../Primitives/PlaylistItem";
 
 type PlaylistProps = {
   id: string;
-  data: any;
-};
-
-type Playlist = {
-  playlistId?: string;
-  name?: string;
-  description?: string;
-  image?: string;
-  total?: number;
-  owner?: string;
+  data: Playlist;
 };
 
 const formSchema = z.object({
@@ -71,28 +64,70 @@ const PlaylistItem = ({
   </CommandItem>
 );
 
-function SaveAsReplaceComponent({ id, data }: PlaylistProps) {
+function SaveAsAppendComponent({ id, data }: PlaylistProps) {
   const [open, setOpen] = React.useState(false);
-  const [selectedPlaylist, setSelectedPlaylist] = React.useState<Playlist>({});
+  const [selectedPlaylist, setSelectedPlaylist] =
+    React.useState<Playlist>(data);
   const [search, setSearch] = React.useState("");
 
-  const { session, userPlaylists, nodes } = useStore((state) => ({
-    session: state.session,
-    userPlaylists: state.userPlaylists,
-    nodes: state.nodes,
-  }));
+  const { session, updateNodeData, userPlaylists, nodes } = useStore(
+    (state) => ({
+      session: state.session,
+      updateNodeData: state.updateNodeData,
+      userPlaylists: state.userPlaylists,
+      nodes: state.nodes,
+    }),
+  );
 
-  const {
-    state,
-    isValid,
-    targetConnections,
-    sourceConnections,
-    form,
-    formState,
-    register,
-    getNodeData,
-    updateNodeData,
-  } = useBasicNodeState(id, formSchema);
+  const form = useForm({
+    resolver: zodResolver(formSchema),
+    mode: "all",
+    shouldUnregister: false,
+  });
+  const { formState, register } = form;
+
+  const TargetConnections = useHandleConnections({
+    type: "target",
+  });
+  const SourceConnections = useHandleConnections({
+    type: "source",
+  });
+
+  const watch = form.watch();
+  const prevWatchRef = React.useRef(watch);
+  const prevSelectedPlaylistRef = React.useRef(selectedPlaylist);
+
+  React.useEffect(() => {
+    if (data) {
+      form?.setValue("playlistId", data.playlistId);
+      updateNodeData(id, data);
+      form?.trigger("playlistId");
+
+      // Fetch playlist info
+      fetch(`/api/user/@me/playlist/${data.playlistId}`)
+        .then((response) => response.json())
+        .then((playlist: Playlist) => {
+          setSelectedPlaylist(playlist);
+        })
+        .catch((error) => console.error("Error:", error));
+    }
+  }, [data, form, id, updateNodeData]);
+
+  React.useEffect(() => {
+    if (
+      JSON.stringify(prevWatchRef.current) !== JSON.stringify(watch) ||
+      JSON.stringify(prevSelectedPlaylistRef.current) !==
+        JSON.stringify(selectedPlaylist)
+    ) {
+      updateNodeData(id, {
+        id: watch.playlistId,
+        ...watch,
+        ...selectedPlaylist,
+      });
+    }
+    prevWatchRef.current = watch;
+    prevSelectedPlaylistRef.current = selectedPlaylist;
+  }, [id, watch, selectedPlaylist, updateNodeData]);
 
   React.useEffect(() => {
     const userPlaylists = async () => {
@@ -115,11 +150,16 @@ function SaveAsReplaceComponent({ id, data }: PlaylistProps) {
       .catch((err) => {
         console.error(err);
       });
-  }, [session]);
+  }, [session.user.providerAccountId]);
+
+  function getNodeData(id: string) {
+    const node = nodes.find((node) => node.id === id);
+    return node?.data;
+  }
 
   const handleSelect = (playlist) => {
     console.info("handle select", playlist);
-    form!.setValue("playlistId", playlist.playlistId, {
+    form.setValue("playlistId", playlist.playlistId, {
       shouldValidate: true,
     });
     console.info("data after update", getNodeData(id));
@@ -129,11 +169,11 @@ function SaveAsReplaceComponent({ id, data }: PlaylistProps) {
 
   return (
     <CardWithHeader
-      title={`Save as Replace`}
+      title={`Save as Append`}
       id={id}
       type="Library"
-      status={formState!.isValid ? "success" : "error"}
-      info="Replace all tracks in a playlist with new tracks."
+      status={formState.isValid ? "success" : "error"}
+      info="Append tracks to a playlist."
     >
       <NodeHandle
         type="source"
@@ -145,11 +185,11 @@ function SaveAsReplaceComponent({ id, data }: PlaylistProps) {
         position={Position.Left}
         style={{ background: "#555" }}
       />
-      <Form {...form!}>
-        <form onSubmit={form!.handleSubmit((data) => console.info(data))}>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit((data) => console.info(data))}>
           <div className="flex flex-col gap-4">
             <FormField
-              control={form!.control}
+              control={form.control}
               name="playlistId"
               render={({ field, formState }) => (
                 <FormItem className="flex flex-col">
@@ -210,6 +250,7 @@ function SaveAsReplaceComponent({ id, data }: PlaylistProps) {
                                   ))
                                 : Array.from({ length: 3 }).map((_, index) => (
                                     <CommandItem
+                                      // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
                                       key={`loading-${index}`}
                                       value="loading"
                                       onSelect={() => {
@@ -251,12 +292,12 @@ function SaveAsReplaceComponent({ id, data }: PlaylistProps) {
       </Form>
       <Debug
         id={id}
-        isValid={formState!.isValid}
-        TargetConnections={targetConnections}
-        SourceConnections={sourceConnections}
+        isValid={formState.isValid}
+        TargetConnections={TargetConnections}
+        SourceConnections={SourceConnections}
       />
     </CardWithHeader>
   );
 }
 
-export default SaveAsReplaceComponent;
+export default SaveAsAppendComponent;
