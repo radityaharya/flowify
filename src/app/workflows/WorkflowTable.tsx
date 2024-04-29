@@ -1,5 +1,4 @@
 "use client";
-import { fetcher } from "@/app/utils/fetcher";
 import {
   Collapsible,
   CollapsibleContent,
@@ -75,6 +74,23 @@ function getTargets(operations: WorkflowResponse["workflow"]["operations"]) {
   });
 
   return targets;
+}
+
+function getSources(operations: WorkflowResponse["workflow"]["operations"]) {
+  const sources = operations.filter((operation) => {
+    return !operation.sources || operation.sources.length === 0;
+  });
+
+  sources.forEach((source: any) => {
+    if (!source.params.name) {
+      source.params.name = "New playlist";
+      source.params.owner = "New playlist";
+      source.params.image =
+        "https://misc.scdn.co/liked-songs/liked-songs-300.png";
+    }
+  });
+
+  return sources;
 }
 
 function relativeDate(date: number) {
@@ -236,18 +252,11 @@ const columns: ColumnDef<WorkflowsTableColumn>[] = [
     },
   },
   {
-    accessorKey: "workflow.operations",
+    accessorKey: "workflow.sources",
     header: "Sources",
     cell: ({ row, getValue }) => {
-      const operations =
-        getValue() as WorkflowResponse["workflow"]["operations"];
-
-      const sources = operations.filter((operation) => {
-        return (
-          !operation.sources ||
-          (Array.isArray(operation.sources) && operation.sources.length === 0)
-        );
-      });
+      const operations = getValue() as any;
+      const sources = getSources(operations);
       return <ColapsiblePlaylists sources={sources} />;
     },
     meta: {
@@ -255,13 +264,10 @@ const columns: ColumnDef<WorkflowsTableColumn>[] = [
     },
   },
   {
-    accessorKey: "workflow.operations",
+    accessorKey: "workflow.targets",
     header: "Targets", //TODO: temp
     cell: ({ row, getValue }) => {
-      const operations =
-        getValue() as WorkflowResponse["workflow"]["operations"];
-
-      const connections = (row.original as any).connections;
+      const operations = getValue() as any;
       const targets = getTargets(operations);
       return <ColapsiblePlaylists sources={targets} />;
     },
@@ -349,10 +355,8 @@ function DataTable<TData, TValue>({
       <TableBody>
         {isLoading ? (
           [...Array(5)].map((_, index) => (
-            // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
             <TableRow key={index}>
               {columns.map((column, columnIndex) => (
-                // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
                 <TableCell key={columnIndex}>
                   {column.meta?.type === "playlist" ? (
                     <PlaylistCardSkeleton />
@@ -388,9 +392,50 @@ function DataTable<TData, TValue>({
   );
 }
 
-type WorkflowTableProps = {
-  workflows?: WorkflowResponse[];
+export const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  if (!res.ok) {
+    const error = {
+      status: res.status,
+      info: "An error occurred while fetching the data.",
+    };
+    const json = await res.json();
+    error.info = json.error;
+    console.info(error);
+    throw error;
+  }
+
+  const data = await res.json();
+  return data.map((workflow) => {
+    return {
+      id: workflow.id,
+      workflow: {
+        ...workflow.workflow,
+        sources: getSources(workflow.workflow.operations),
+        targets: getTargets(workflow.workflow.operations),
+      },
+      createdAt: workflow.createdAt,
+      lastRunAt: workflow.lastRunAt,
+      modifiedAt: workflow.modifiedAt,
+      cron: workflow.cron,
+    };
+  });
 };
+
+type WorkflowTableProps = {
+  workflows?: {
+    id: string;
+    workflow: WorkflowResponse["workflow"] & {
+      sources: any[];
+      targets: any[];
+    };
+    createdAt: number;
+    lastRunAt: number;
+    modifiedAt: number;
+    cron: string;
+  }[];
+};
+
 export function WorkflowTable({ workflows }: WorkflowTableProps) {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -426,7 +471,6 @@ export function WorkflowTable({ workflows }: WorkflowTableProps) {
           </CardTitle>
           <CardDescription>Manage your workflows here.</CardDescription>
         </div>
-        {/* <Button onClick={refreshData}>Refresh</Button> */}
         <Link
           className={buttonVariants({ variant: "default" })}
           href="/workflow"
