@@ -143,6 +143,22 @@ export const workflowRunsRelations = relations(workflowRuns, ({ one }) => ({
     references: [workflowJobs.id],
   }),
 }));
+
+export const workflowRunOperations = pgTable(
+  "workflowRunOperation",
+  {
+    id: varchar("id", { length: 255 }).notNull().primaryKey(),
+    workflowRunId: varchar("workflowRunId", { length: 255 }).notNull(),
+    data: text("data"),
+    startedAt: timestamp("startedAt", { mode: "date" }),
+    completedAt: timestamp("completedAt", { mode: "date" }),
+  },
+  (workflowRunOperation) => ({
+    workflowRunIdIdx: index("workflowRunOperation_workflowRunId_idx").on(
+      workflowRunOperation.workflowRunId,
+    ),
+  }),
+);
 // export const trackModifications = pgTable(
 //   "trackModificattion",
 //   {

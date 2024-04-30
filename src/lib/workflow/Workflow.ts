@@ -107,20 +107,25 @@ export class Runner extends Base {
     operation: Operation,
     sourceValues: Map<string, any>,
     workflow: WorkflowObject,
+    controller: AbortController,
+    operationCallback?: (operationId: string, data: any) => Promise<string>,
   ) {
     const sources = [] as SpotifyApi.PlaylistTrackObject[];
     for (const source of operation.sources) {
       if (sourceValues.has(source)) {
+        log.debug(`FOUND CACHED SOURCE`);
         sources.push(
           sourceValues.get(source) as SpotifyApi.PlaylistTrackObject,
         );
       } else if (sourceValues.has(`${source}.tracks`)) {
+        log.debug(`FOUND CACHED SOURCE`);
         sources.push(
           sourceValues.get(
             `${source}.tracks`,
           ) as SpotifyApi.PlaylistTrackObject,
         );
       } else {
+        log.debug(`RUNNING SOURCE ${source}`);
         const sourceOperation = workflow.operations.find(
           (op) => op.id === source,
         );
@@ -129,6 +134,8 @@ export class Runner extends Base {
             source,
             sourceValues,
             workflow,
+            controller,
+            operationCallback,
           );
           sources.push(result as SpotifyApi.PlaylistTrackObject);
         } else {
@@ -152,6 +159,8 @@ export class Runner extends Base {
     operationId: string,
     sourceValues: Map<string, any>,
     workflow: WorkflowObject,
+    controller: AbortController,
+    operationCallback?: (operationId: string, data: any) => Promise<string>,
   ) {
     const operation = workflow.operations.find((op) => op.id === operationId);
     if (!operation) {
@@ -159,7 +168,17 @@ export class Runner extends Base {
       return;
     }
 
-    const sources = await this.fetchSources(operation, sourceValues, workflow);
+    if (controller.signal.aborted) {
+      throw new Error(`Operation timed out`);
+    }
+
+    const sources = await this.fetchSources(
+      operation,
+      sourceValues,
+      workflow,
+      controller,
+      operationCallback,
+    );
 
     // Split the operation type into class name and method name
     const [className, methodName] = operation.type.split(".") as [
@@ -167,15 +186,14 @@ export class Runner extends Base {
       keyof Workflow.Operations[keyof Workflow.Operations],
     ];
 
-    // Get the class from the operations object
     const operationClass = operations[className];
 
-    // add dryrun to save operations
     if (workflow.dryrun) {
       log.info("DRYRUN!");
       operation.params.dryrun = true;
     }
 
+    const startTime = new Date();
     const result = await operationClass[methodName](
       this.spClient,
       sources,
@@ -183,6 +201,19 @@ export class Runner extends Base {
     );
 
     sourceValues.set(operationId, result);
+    const finishTime = new Date();
+    if (operationCallback) {
+      const res = await operationCallback(operationId, {
+        startedAt: startTime,
+        completedAt: finishTime,
+        executionTime: finishTime.getTime() - startTime.getTime(),
+        operation,
+      });
+      if (res !== "ok") {
+        log.error(`Operation callback failed for operation ${operationId}`);
+      }
+      log.info(`${operation.type} completed`);
+    }
     return result;
   }
 
@@ -470,51 +501,74 @@ export class Runner extends Base {
    * @returns The result of the workflow execution.
    * @throws Error if the workflow is invalid.
    */
-  async runWorkflow(workflow: WorkflowObject, timeoutAfter = 20000) {
-    let timeoutOccurred = false;
+  async runWorkflow(
+    workflow: WorkflowObject,
+    timeoutAfter = 20000,
+    operationCallback?: (operationId: string, data: any) => Promise<string>,
+  ) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => {
+      controller.abort(
+        new Error(`Operation timed out after ${timeoutAfter / 1000} seconds`),
+      );
+    }, timeoutAfter);
 
-    const timeout = new Promise((_, reject) =>
-      setTimeout(() => {
-        timeoutOccurred = true;
-        reject(
-          Error(`Operation timed out after ${timeoutAfter / 1000} seconds`),
-        );
-      }, timeoutAfter),
+    try {
+      const workflowResult = await this.runWorkflowInternal(
+        workflow,
+        controller,
+        operationCallback,
+      );
+      clearTimeout(timeout);
+      return workflowResult;
+    } catch (error: any) {
+      if (error.name === "AbortError") {
+        throw new Error(`Workflow timed out`);
+      }
+      throw error;
+    }
+  }
+
+  async runWorkflowInternal(
+    workflow: WorkflowObject,
+    controller: AbortController,
+    operationCallback?: (operationId: string, data: any) => Promise<string>,
+  ) {
+    const sortedOperations = await this.sortOperations(workflow);
+    log.info(
+      "sortedOperations",
+      sortedOperations.map((op) => op.id),
     );
 
-    // biome-ignore lint/suspicious/noAsyncPromiseExecutor: <explanation>
-    const workflowPromise = new Promise(async (resolve, reject) => {
-      try {
-        const sortedOperations = this.sortOperations(workflow);
+    workflow.operations = sortedOperations;
+    const [valid, errors] = await this.validateWorkflow(workflow);
 
-        workflow.operations = sortedOperations;
-        const [valid, errors] = await this.validateWorkflow(workflow);
+    if (!valid && errors) {
+      throw new Error(`Invalid workflow: ${errors.join("\n")}`);
+    }
 
-        if (!valid && errors) {
-          throw new Error(`Invalid workflow: ${errors.join("\n")}`);
-        }
+    const sourceValues = new Map();
+    const runOperations = new Set();
+    const final: any[] = [];
 
-        const sourceValues = new Map();
-
-        const final: any[] = [];
-        for (const operation of sortedOperations) {
-          if (timeoutOccurred) {
-            reject(new Error("Operation timed out after 10 seconds"));
-          }
-          const res = await this.runOperation(
-            operation.id,
-            sourceValues,
-            workflow,
-          );
-          final.push(res);
-        }
-
-        resolve(final.filter((f) => f.id));
-      } catch (error) {
-        reject(error);
+    for (const operation of sortedOperations) {
+      if (controller.signal.aborted) {
+        throw new Error(`Workflow timed out`);
       }
-    });
 
-    return Promise.race([workflowPromise, timeout]);
+      if (!runOperations.has(operation.id)) {
+        const res = await this.runOperation(
+          operation.id,
+          sourceValues,
+          workflow,
+          controller,
+          operationCallback,
+        );
+        final.push(res);
+        runOperations.add(operation.id);
+      }
+    }
+
+    return final.filter((f) => f.id);
   }
 }

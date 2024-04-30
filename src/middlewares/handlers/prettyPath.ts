@@ -68,7 +68,7 @@ export const prettyPath = (
       !pathname.includes("/api") &&
       !pathname.includes("/history")
     ) {
-      logger.info("Match! Prettying path:", pathname);
+      logger.debug("Match! Prettying path:", pathname);
 
       if (pathname.startsWith("/workflow")) {
         const newRequest = handleWorkflowPath(request);

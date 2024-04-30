@@ -6,7 +6,7 @@ import Redis from "ioredis";
 import { v4 as uuidv4 } from "uuid";
 import { env } from "~/env";
 import { db } from "~/server/db";
-import { workflowJobs, workflowRuns } from "~/server/db/schema";
+import { workflowJobs, workflowRuns, workflowRunOperations } from "~/server/db/schema";
 
 const log = new Logger("workflowQueue");
 
@@ -250,6 +250,32 @@ export async function updateWorkflowRun(
   }
 }
 
+export async function updateWorkflowRunOperation(
+  operationId: string,
+  workflowRunId: string,
+  data: any,
+) {
+  log.info(`Updating operation ${operationId}`);
+  const { startedAt, completedAt, ...cleanData } = data;
+  await db
+    .insert(workflowRunOperations)
+    .values({
+      id: operationId,
+      workflowRunId: workflowRunId,
+      data: JSON.stringify(cleanData),
+      startedAt: data.startedAt,
+      completedAt: data.completedAt,
+    })
+    .onConflictDoUpdate({
+      target: workflowRunOperations.id,
+      set: {
+        workflowRunId: workflowRunId,
+        data: JSON.stringify(cleanData),
+        startedAt: data.startedAt,
+        completedAt: data.completedAt,
+      },
+    });
+}
 /**
  * Compresses the return values by removing unnecessary properties.
  * @param returnValues - The array of return values to be compressed.

@@ -118,7 +118,7 @@ export const withUserApi = (
   return async (request: NextRequest, _next: NextFetchEvent) => {
     const { pathname } = request.nextUrl;
     if (matchPaths.some((path) => pathname.startsWith(path))) {
-      logger.info("Match!");
+      logger.debug("Match!");
 
       const user = await getUser(request);
 

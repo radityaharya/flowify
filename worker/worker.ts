@@ -2,7 +2,7 @@ import { env } from "~/env";
 import { Runner } from "@lib/workflow/Workflow";
 import { getAccessTokenFromUserId } from "~/server/db/helper";
 import { Worker } from "bullmq";
-import { updateWorkflowRun } from "@lib/workflow/utils/workflowQueue";
+import { updateWorkflowRun, updateWorkflowRunOperation } from "@lib/workflow/utils/workflowQueue";
 import Redis from "ioredis";
 import os from "os";
 import { Logger } from "@lib/log";
@@ -58,10 +58,11 @@ const worker = new Worker(
       access_token: accessToken,
     });
     const workflow = data.workflow as WorkflowObject;
+    const operationCallback = createOperationCallback(job.id!);
     let res: any;
     try {
       log.info("Running workflow...");
-      res = await runner.runWorkflow(workflow);
+      res = await runner.runWorkflow(workflow, 50000, operationCallback);
     } catch (e) {
       await updateWorkflowRun(job.id!, "failed", WORKER_ID);
       await reportIdle();
@@ -71,7 +72,7 @@ const worker = new Worker(
     log.info("Workflow executed successfully");
     await updateWorkflowRun(job.id!, "completed", WORKER_ID, res);
     await reportIdle();
-    return res
+    return res;
   },
   {
     connection,
@@ -81,6 +82,14 @@ const worker = new Worker(
     useWorkerThreads: true,
   },
 );
+
+function createOperationCallback(workflowRunId: string) {
+  return async function operationCallback(id: string, data: any) {
+    await updateWorkflowRunOperation(id, workflowRunId, data);
+    return "ok";
+  };
+}
+
 
 async function reportInit() {
   log.info("Worker started");
