@@ -5,8 +5,10 @@ export async function runWorkflow(workflow: WorkflowResponse) {
   if (!workflow.id) {
     throw new Error("Workflow ID is undefined");
   }
+
+  const dryrun = useStore.getState().flowState.dryrun;
   const id = workflow.id;
-  const promise = fetch(`/api/workflow/${id}/run`, {
+  const promise = fetch(`/api/workflow/${id}/run${dryrun ? "?dryrun=true" : ""}`, {
     method: "POST",
   })
     .then((res) => {
@@ -29,15 +31,13 @@ export async function runWorkflow(workflow: WorkflowResponse) {
 
   const jobId = job.id as string;
 
-  const dryrun = useStore.getState().flowState.dryrun;
-
   const pollRequest = (id: string) => {
     return new Promise((resolve, reject) => {
       let isRequesting = false;
       const interval = setInterval(() => {
         if (isRequesting) return;
         isRequesting = true;
-        fetch(`/api/workflow/queue/${id}${dryrun ? "?dryrun=true" : ""}`)
+        fetch(`/api/workflow/queue/${id}`)
           .then((res) => res.json())
           .then((data: QueueResponse) => {
             isRequesting = false;
