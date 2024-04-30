@@ -479,7 +479,6 @@ export function WorkflowTable({ workflows }: WorkflowTableProps) {
         </Link>
       </CardHeader>
       <CardContent className="space-y-1">
-        {error && <div>Error loading history</div>}
         <DataTable columns={columns} data={data} isLoading={isLoading} />
       </CardContent>
     </Card>

@@ -110,9 +110,6 @@ const useStore = create<RFState>((set, get) => ({
   },
   setEdges: (edges) => {
     console.debug("setEdges", edges);
-    edges.forEach((edge) => {
-      edge.type = "smoothstep";
-    });
     set({
       edges: edges,
     });
@@ -278,4 +275,25 @@ const useStore = create<RFState>((set, get) => ({
   },
 }));
 
+type WorkflowRunState = {
+  workflowRun: QueueResponse | null;
+  setWorkflowRun: (workflowRun: QueueResponse) => void;
+  resetWorkflowRun: () => void;
+};
+
+export const workflowRunStore = create<WorkflowRunState>((set, get) => ({
+  workflowRun: null,
+  setWorkflowRun: (workflowRun) => {
+    console.info("workflowRun", workflowRun);
+    set({
+      workflowRun: workflowRun,
+    });
+  },
+  resetWorkflowRun: () => {
+    set({
+      workflowRun: null,
+    });
+  },
+}));
+  
 export default useStore;

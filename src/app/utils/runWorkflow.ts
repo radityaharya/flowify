@@ -1,16 +1,20 @@
 import { toast } from "sonner";
-import useStore from "../states/store";
+import useStore, { workflowRunStore } from "../states/store";
 
 export async function runWorkflow(workflow: WorkflowResponse) {
   if (!workflow.id) {
     throw new Error("Workflow ID is undefined");
   }
 
-  const dryrun = useStore.getState().flowState.dryrun;
+  const dryrun = !useStore.getState().flowState.dryrun;
   const id = workflow.id;
-  const promise = fetch(`/api/workflow/${id}/run${dryrun ? "?dryrun=true" : ""}`, {
-    method: "POST",
-  })
+  console.log("dryrun", dryrun);
+  const promise = fetch(
+    `/api/workflow/${id}/run${dryrun ? "?dryrun=true" : ""}`,
+    {
+      method: "POST",
+    },
+  )
     .then((res) => {
       return res.json();
     })
@@ -30,6 +34,7 @@ export async function runWorkflow(workflow: WorkflowResponse) {
   }
 
   const jobId = job.id as string;
+  const workflowRun = workflowRunStore.getState();
 
   const pollRequest = (id: string) => {
     return new Promise((resolve, reject) => {
@@ -44,9 +49,12 @@ export async function runWorkflow(workflow: WorkflowResponse) {
             if (data.error) {
               clearInterval(interval);
               reject(new Error(data.error));
-            } else if (data.status === "completed") {
-              clearInterval(interval);
-              resolve(data);
+            } else {
+              workflowRun.setWorkflowRun(data);
+              if (data.status === "completed") {
+                clearInterval(interval);
+                resolve(data);
+              }
             }
           })
           .catch((err) => {
@@ -61,10 +69,14 @@ export async function runWorkflow(workflow: WorkflowResponse) {
   toast.promise(pollRequest(jobId), {
     loading: "Running workflow...",
     success: () => {
+      setTimeout(() => {
+        workflowRun.resetWorkflowRun();
+      }, 5000);
       return "Workflow completed successfully";
     },
     error: (data) => {
       console.info("data on err", data);
+      workflowRun.resetWorkflowRun();
       return "Failed running workflow: " + data;
     },
   });

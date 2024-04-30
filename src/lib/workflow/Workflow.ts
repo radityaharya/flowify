@@ -534,7 +534,7 @@ export class Runner extends Base {
     controller: AbortController,
     operationCallback?: (operationId: string, data: any) => Promise<string>,
   ) {
-    const sortedOperations = await this.sortOperations(workflow);
+    const sortedOperations = this.sortOperations(workflow);
     log.info(
       "sortedOperations",
       sortedOperations.map((op) => op.id),

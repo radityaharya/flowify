@@ -6,7 +6,11 @@ import Redis from "ioredis";
 import { v4 as uuidv4 } from "uuid";
 import { env } from "~/env";
 import { db } from "~/server/db";
-import { workflowJobs, workflowRuns, workflowRunOperations } from "~/server/db/schema";
+import {
+  workflowJobs,
+  workflowRunOperations,
+  workflowRuns,
+} from "~/server/db/schema";
 
 const log = new Logger("workflowQueue");
 
@@ -314,7 +318,7 @@ function compressReturnValues(returnValues: any[]) {
               );
           }
 
-          if (compressedItem.track) {
+          if (compressedItem.track?.artists) {
             compressedItem.track.artists = compressedItem.track.artists.map(
               (artist: SpotifyApi.ArtistObjectSimplified) => ({
                 ...artist,

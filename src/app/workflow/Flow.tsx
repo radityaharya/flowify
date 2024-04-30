@@ -348,7 +348,7 @@ export function App() {
   );
 
   const edgeOptions = {
-    animated: false,
+    animated: true,
   };
 
   const setDryRun = useCallback(

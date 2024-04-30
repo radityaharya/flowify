@@ -1,14 +1,11 @@
-"use client";
-
-import * as React from "react";
-
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-
-import { cn } from "~/lib/utils";
-
-import { DotIcon, InfoIcon } from "lucide-react";
+import { CheckIcon, DotIcon, InfoIcon } from "lucide-react";
+import * as React from "react";
+import { workflowRunStore } from "~/app/states/store";
+import { LoadingSpinner } from "~/components/LoadingSpinner";
 import { Separator } from "~/components/ui/separator";
+import { cn } from "~/lib/utils";
 
 interface CardWithHeaderProps {
   children: React.ReactNode;
@@ -20,6 +17,49 @@ interface CardWithHeaderProps {
   className?: string;
 }
 
+const StatusBadge = React.memo(
+  ({ operationStatus }: { operationStatus: string | undefined }) => {
+    const [isVisible, setIsVisible] = React.useState(false);
+
+    React.useEffect(() => {
+      setIsVisible(true);
+    }, []);
+
+    const statusMapping = {
+      completed: (
+        <div className="flex flex-row gap-1 items-center">
+          <CheckIcon className="w-4 h-4" />
+          {"Completed"}
+        </div>
+      ),
+      default: (
+        <div className="flex flex-row gap-1 items-center">
+          <LoadingSpinner className="w-4 h-4" />
+          {"Pending"}
+        </div>
+      ),
+    };
+
+    return (
+      <Badge
+        variant={operationStatus === "completed" ? "outline" : "secondary"}
+        className={cn(
+          "text-sm space-x-2 bg-amber-500/40 border-2 border-amber-500 transition-all duration-500 ease-in-out transform",
+          {
+            "bg-green-500/40 border-2 border-green-500":
+              operationStatus === "completed",
+            "-translate-y-4": !isVisible,
+            "translate-y-0": isVisible,
+          },
+        )}
+      >
+        {statusMapping[operationStatus as keyof typeof statusMapping] ||
+          statusMapping.default}
+      </Badge>
+    );
+  },
+);
+
 export function CardWithHeader({
   children,
   id,
@@ -29,10 +69,29 @@ export function CardWithHeader({
   info,
   className,
 }: CardWithHeaderProps) {
+  const { workflowRun } = workflowRunStore((state) => ({
+    workflowRun: state.workflowRun,
+  }));
+
+  const operationStatus = workflowRun?.operations?.find(
+    (operation) => operation.id === id,
+  )?.completedAt
+    ? "completed"
+    : undefined;
+
+  const isRunning = workflowRun?.id;
+
   return (
     <div className="bg-transparent flex flex-col">
       <div className="flex flex-row">
-        <div className="flex flex-col gap-2"></div>
+        <div className="flex flex-col gap-2 h-10 py-1">
+          {isRunning && (
+            <StatusBadge
+              key={operationStatus}
+              operationStatus={operationStatus}
+            />
+          )}
+        </div>
       </div>
       <Card
         className={cn(

@@ -233,7 +233,6 @@ const History = () => {
         <Button onClick={refreshData}>Refresh</Button>
       </div>
       <div className="space-y-1">
-        {error && <div>Error loading history</div>}
         <DataTable columns={columns} data={data} isLoading={isLoading} />
       </div>
     </div>

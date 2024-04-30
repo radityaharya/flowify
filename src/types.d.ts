@@ -97,6 +97,14 @@ interface WorkflowResponse {
   modifiedAt?: number;
 }
 
+type WorkflowRunOperation = {
+  id: string;
+  workflowRunId: string;
+  completedAt: string;
+  data: string;
+  startedAt: string;
+};
+
 interface QueueResponse {
   id: string;
   workflowId: string;
@@ -107,6 +115,7 @@ interface QueueResponse {
   workerId: string;
   returnValues?: any;
   workflow?: WorkflowObject;
+  operations?: WorkflowRunOperation[];
 }
 
 interface SystemInfo {
