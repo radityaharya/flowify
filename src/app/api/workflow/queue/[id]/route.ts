@@ -61,6 +61,15 @@ export async function GET(
           workflow: true,
         },
       },
+      operations: {
+        columns: {
+          id: true,
+          workflowRunId: true,
+          data: true,
+          startedAt: true,
+          completedAt: true,
+        },
+      },
     },
   });
 

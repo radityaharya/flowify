@@ -137,10 +137,15 @@ export const workflowRuns = pgTable(
     workflowIdIdx: index("workflowRuns_workflowId_idx").on(workflowRun.id),
   }),
 );
-export const workflowRunsRelations = relations(workflowRuns, ({ one }) => ({
+export const workflowRunsRelations = relations(workflowRuns, ({ one, many }) => ({
   workflow: one(workflowJobs, {
     fields: [workflowRuns.workflowId],
     references: [workflowJobs.id],
+  }),
+  operations: many(workflowRunOperations),
+  worker: one(workerPool, {
+    fields: [workflowRuns.workerId],
+    references: [workerPool.deviceHash],
   }),
 }));
 
@@ -159,6 +164,18 @@ export const workflowRunOperations = pgTable(
     ),
   }),
 );
+
+
+export const workflowRunOperationsRelations = relations(
+  workflowRunOperations,
+  ({ one }) => ({
+    workflowRun: one(workflowRuns, {
+      fields: [workflowRunOperations.workflowRunId],
+      references: [workflowRuns.id],
+    }),
+  }),
+);
+
 // export const trackModifications = pgTable(
 //   "trackModificattion",
 //   {
