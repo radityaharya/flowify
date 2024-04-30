@@ -57,7 +57,7 @@ const PlaylistItem = ({
 }) => (
   <CommandItem
     key={playlist.playlistId}
-    value={playlist.playlistId}
+    value={playlist.name}
     onSelect={onSelect}
   >
     <PlaylistItemPrimitive playlist={playlist} />
@@ -97,6 +97,7 @@ function SaveAsReplaceComponent({ id, data }: PlaylistProps) {
   const prevWatchRef = React.useRef(watch);
   const prevSelectedPlaylistRef = React.useRef(selectedPlaylist);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   React.useEffect(() => {
     if (data) {
       form?.setValue("playlistId", data.playlistId);
@@ -111,7 +112,7 @@ function SaveAsReplaceComponent({ id, data }: PlaylistProps) {
         })
         .catch((error) => console.error("Error:", error));
     }
-  }, [data, form, id, updateNodeData]);
+  }, []);
 
   React.useEffect(() => {
     if (
