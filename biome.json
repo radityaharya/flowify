@@ -47,7 +47,8 @@
         "noAssignInExpressions": "off"
       },
       "correctness": {
-        "noUndeclaredVariables": "off"
+        "noUndeclaredVariables": "off",
+        "useExhaustiveDependencies":"warn"
       }
     }
   },

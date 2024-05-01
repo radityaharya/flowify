@@ -233,4 +233,101 @@ export default class Library extends Base {
 
     return await Library._getPlaylistWithTracks(spClient, params.playlistId);
   }
+
+  static async albumTracks(
+    spClient: SpotifyWebApi,
+    _sources: any[],
+    params: {
+      albumId: string;
+      limit?: number;
+      offset?: number;
+    },
+  ) {
+    log.info("Getting album tracks...");
+    log.info("Album ID:", params.albumId);
+    const tracks: SpotifyApi.TrackObjectFull[] = [];
+    let result;
+    let retryAfter = 0;
+
+    if (!params.limit) {
+      params.limit = 50;
+    }
+
+    if (!params.offset) {
+      params.offset = 0;
+    }
+
+    while (true) {
+      try {
+        await new Promise((resolve) => setTimeout(resolve, retryAfter * 1000));
+        result = await spClient.getAlbumTracks(params.albumId, {
+          limit: Math.min(params.limit - tracks.length, params.limit),
+          offset: params.offset + tracks.length,
+        });
+        tracks.push(...result.body.items);
+        if (
+          tracks.length >= params.limit ||
+          result.body.items.length < params.limit
+        ) {
+          break;
+        }
+      } catch (error: any) {
+        if (error.statusCode === 429) {
+          retryAfter = error.headers["retry-after"];
+          log.warn(`Rate limited. Retrying after ${retryAfter} seconds.`);
+        } else {
+          throw error;
+        }
+      }
+    }
+
+    return tracks;
+  }
+
+  static async artistTopTracks(
+    spClient: SpotifyWebApi,
+    _sources: any[],
+    params: {
+      artistId: string;
+      limit?: number;
+      offset?: number;
+    },
+  ) {
+    log.info("Getting artist top tracks...");
+    log.info("Artist ID:", params.artistId);
+    const tracks: SpotifyApi.TrackObjectFull[] = [];
+    let result;
+    let retryAfter = 0;
+
+    if (!params.limit) {
+      params.limit = 50;
+    }
+
+    if (!params.offset) {
+      params.offset = 0;
+    }
+
+    while (true) {
+      try {
+        await new Promise((resolve) => setTimeout(resolve, retryAfter * 1000));
+        result = await spClient.getArtistTopTracks(params.artistId, "US");
+        tracks.push(...result.body.tracks);
+        if (
+          tracks.length >= params.limit ||
+          result.body.tracks.length < params.limit
+        ) {
+          break;
+        }
+      } catch (error: any) {
+        if (error.statusCode === 429) {
+          retryAfter = error.headers["retry-after"];
+          log.warn(`Rate limited. Retrying after ${retryAfter} seconds.`);
+        } else {
+          throw error;
+        }
+      }
+    }
+
+    return tracks;
+  }
 }

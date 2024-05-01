@@ -28,8 +28,12 @@ export const operationParamsTypesMap = {
   "Filter.limit": {
     limit: { type: "number", required: true },
   },
+  "Filter.excludeTracks": {
+    operationId: { type: "string", required: true },
+  },
   "Combiner.push": {},
   "Combiner.alternate": {},
+  "Combiner.randomStream": {},
   "Utility.save": {},
   "Utility.removeKeys": {
     keys: { type: "string[]", required: true },
@@ -43,6 +47,8 @@ export const operationParamsTypesMap = {
     sortOrder: { type: "string", required: true },
   },
   "Order.shuffle": {},
+  "Order.reverse": {},
+  "Order.separateArtists": {},
   "Library.saveAsNew": {
     name: { type: "string", required: true },
     isPublic: { type: "boolean" },
@@ -60,20 +66,17 @@ export const operationParamsTypesMap = {
   "Library.saveAsReplace": {
     playlistId: { type: "string", required: true },
   },
-  "Playlist.getTracksRecomendation": {
-    limit: { type: "number", required: true },
-    market: { type: "string" },
-    seedTracks: { type: "string[]" },
-    seedArtists: { type: "string[]" },
-    seedGenres: { type: "string[]" },
-    minAcousticness: { type: "number" },
-    maxAcousticness: { type: "number" },
-    targetAcousticness: { type: "number" },
-    minDanceability: { type: "number" },
-    maxDanceability: { type: "number" },
-    targetDanceability: { type: "number" },
-  },
   "Library.likedTracks": {
+    limit: { type: "number" },
+    offset: { type: "number" },
+  },
+  "Library.albumTracks": {
+    albumId: { type: "string", required: true },
+    limit: { type: "number" },
+    offset: { type: "number" },
+  },
+  "Library.artistTopTracks": {
+    artistId: { type: "string", required: true },
     limit: { type: "number" },
     offset: { type: "number" },
   },
@@ -214,6 +217,7 @@ export class Runner extends Base {
       }
       log.info(`${operation.type} completed`);
     }
+    this.operationValues.set(operation.id, result);
     return result;
   }
 

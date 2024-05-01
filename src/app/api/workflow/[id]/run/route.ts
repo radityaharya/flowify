@@ -33,16 +33,6 @@ export async function POST(
   }
   const id = params.id;
 
-  const workers = await db.query.workerPool.findMany({});
-
-  if (workers.length === 0) {
-    log.error("No workers available");
-    return NextResponse.json(
-      { error: "No workers available" },
-      { status: 500 },
-    );
-  }
-
   const workflow = await db.query.workflowJobs.findFirst({
     where: (workflowJobs, { eq }) => eq(workflowJobs.id, id),
   });

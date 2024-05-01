@@ -1,3 +1,5 @@
+import _ from "lodash";
+
 enum LogLevel {
   DEBUG,
   INFO,
@@ -58,6 +60,21 @@ class Logger {
   }
 
   debug(message: string, data?: any): void {
+    let parsed;
+    try {
+      parsed = this.getTracks(data);
+      data = parsed
+    } catch (error) {
+      this.error("Failed to parse data", error);
+    }
+
+    data = this.deepUnset(data, "audio_features");
+    data = this.deepUnset(data, "available_markets");
+    data = this.deepUnset(data, "preview_url");
+    data = this.deepUnset(data, "external_ids");
+    data = this.deepUnset(data, "external_urls");
+    data = this.deepUnset(data, "release_date_precision");
+    data = this.deepUnset(data, "artists");
     this.log(LogLevel.DEBUG, message, data);
   }
 
@@ -80,6 +97,118 @@ class Logger {
   logTrackTitles(tracks: SpotifyApi.TrackObjectFull[]): void {
     tracks.forEach((track) => this.info(`Track: ${track.name}`));
   }
+
+  getTracks(sources: any[]) {
+    const tracks: SpotifyApi.TrackObjectFull[] = [];
+
+    _.forEach(sources, (source) => {
+      let trackSource;
+
+      if (_.has(source, "tracks")) {
+        trackSource = _.get(source, "tracks");
+      } else if (_.has(source, "items")) {
+        trackSource = _.get(source, "items");
+      } else if (
+        _.has(source, "track") &&
+        !_.isObject(_.get(source, "track"))
+      ) {
+        trackSource = _.get(source, "track") ? [_.get(source, "track")] : [];
+      } else if (_.isArray(source)) {
+        trackSource = source;
+      }
+
+      if (!trackSource) return;
+
+      if (_.has(trackSource, "tracks")) {
+        _.forEach(trackSource, (track) => {
+          if (_.get(track, "track.type") === "track") {
+            tracks.push(_.get(track, "track") as SpotifyApi.TrackObjectFull);
+          }
+        });
+      } else if (
+        _.isArray(trackSource) &&
+        _.isObject(_.get(trackSource, [0]))
+      ) {
+        _.forEach(trackSource, (track) => {
+          if (_.get(track, "track.type") === "track") {
+            tracks.push(_.get(track, "track") as SpotifyApi.TrackObjectFull);
+          } else if (_.get(track, "type") === "track") {
+            tracks.push(track as SpotifyApi.TrackObjectFull);
+          } else {
+            tracks.push(track as SpotifyApi.TrackObjectFull);
+          }
+        });
+      } else {
+        throw new Error("Invalid source type");
+      }
+    });
+
+    return tracks;
+  }
+
+  compressReturnValues(returnValues: any[]) {
+    const compressedValues: any[] = [];
+
+    returnValues.forEach((playlist: any) => {
+      const compressedPlaylist: any = {
+        ...playlist,
+        tracks: {
+          items: playlist.tracks.map((item: any) => {
+            const compressedItem: any = {
+              ...item,
+              track: {
+                ...item.track,
+                audio_features: undefined,
+                available_markets: undefined,
+                preview_url: undefined,
+                external_ids: undefined,
+                external_urls: undefined,
+              },
+            };
+
+            if (compressedItem.track?.album) {
+              compressedItem.track.album.release_date_precision = undefined;
+              compressedItem.track.album.artists =
+                compressedItem.track.album.artists.map(
+                  (artist: SpotifyApi.ArtistObjectSimplified) => ({
+                    ...artist,
+                    external_urls: undefined,
+                    href: undefined,
+                    uri: undefined,
+                  }),
+                );
+            }
+
+            if (compressedItem.track?.artists) {
+              compressedItem.track.artists = compressedItem.track.artists.map(
+                (artist: SpotifyApi.ArtistObjectSimplified) => ({
+                  ...artist,
+                  external_urls: undefined,
+                  href: undefined,
+                  uri: undefined,
+                }),
+              );
+            }
+
+            return compressedItem;
+          }),
+        },
+      };
+
+      compressedValues.push(compressedPlaylist);
+    });
+
+    return compressedValues;
+  }
+
+  deepUnset = (obj: any, prop: string) => {
+    if (_.isObject(obj)) {
+      _.unset(obj, prop);
+      _.forEach(obj, (value) => {
+        this.deepUnset(value, prop);
+      });
+    }
+  };
 }
 
 export { Logger, LogLevel };

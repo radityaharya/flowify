@@ -1,6 +1,8 @@
 import SpotifyWebApi from "spotify-web-api-node";
 import { env } from "~/env";
 import { Logger } from "../log";
+import _ from "lodash";
+
 export interface AccessToken {
   slug: string;
   access_token: string;
@@ -10,6 +12,7 @@ const log = new Logger("Base");
 
 export class Base {
   public spClient: SpotifyWebApi;
+  public operationValues: Map<string, any> = new Map();
 
   constructor(
     public accessToken: AccessToken,
@@ -56,6 +59,8 @@ export class Base {
 
       const trackChunks = chunk(trackUris, chunkSize);
 
+      log.debug("Adding tracks to playlist", trackChunks);
+
       for (const trackChunk of trackChunks) {
         while (true) {
           try {
@@ -63,7 +68,8 @@ export class Base {
             await new Promise((resolve) =>
               setTimeout(resolve, retryAfter * 1000),
             );
-            await spClient.addTracksToPlaylist(playlistId, trackChunk);
+            const snapshot = await spClient.addTracksToPlaylist(playlistId, trackChunk);
+            log.info("Add Track Snapshot", snapshot.body.snapshot_id);
             break;
           } catch (error: any) {
             if (error.statusCode === 429) {
@@ -102,6 +108,8 @@ export class Base {
 
       const trackChunks = chunk(trackUris, chunkSize);
 
+      log.debug("Removing tracks from playlist", trackChunks);
+
       for (const trackChunk of trackChunks) {
         while (true) {
           try {
@@ -110,7 +118,12 @@ export class Base {
               setTimeout(resolve, retryAfter * 1000),
             );
             const trackObjects = trackChunk.map((uri) => ({ uri }));
-            await spClient.removeTracksFromPlaylist(playlistId, trackObjects);
+            log.info("Removing tracks", trackObjects);
+            const snapshot = await spClient.removeTracksFromPlaylist(
+              playlistId,
+              trackObjects,
+            );
+            log.info("Remove Track Snapshot", snapshot.body.snapshot_id);
             break;
           } catch (error: any) {
             if (error.statusCode === 429) {
@@ -169,53 +182,50 @@ export class Base {
    * @throws {Error} If the source type is invalid.
    */
   static getTracks(sources: any[]) {
-    const tracks = [] as SpotifyApi.TrackObjectFull[];
+    const tracks: SpotifyApi.TrackObjectFull[] = [];
 
-    for (const source of sources) {
+    _.forEach(sources, (source) => {
       let trackSource;
 
-      if (source.hasOwnProperty("tracks")) {
-        trackSource = source.tracks;
-      } else if (source.hasOwnProperty("items")) {
-        trackSource = source.items;
+      if (_.has(source, "tracks")) {
+        trackSource = _.get(source, "tracks");
+      } else if (_.has(source, "items")) {
+        trackSource = _.get(source, "items");
       } else if (
-        source.hasOwnProperty("track") &&
-        typeof source.track !== "object"
+        _.has(source, "track") &&
+        !_.isObject(_.get(source, "track"))
       ) {
-        trackSource = source.track ? [source.track] : [];
-      } else if (Array.isArray(source)) {
+        trackSource = _.get(source, "track") ? [_.get(source, "track")] : [];
+      } else if (_.isArray(source)) {
         trackSource = source;
       }
 
-      if (!trackSource) continue;
+      if (!trackSource) return;
 
-      if (trackSource.hasOwnProperty("tracks")) {
-        for (const track of trackSource) {
-          if (track.track && track.track.type === "track") {
-            tracks.push(track.track as SpotifyApi.TrackObjectFull);
-          } else if (track.track && track.type === "track") {
-            tracks.push(track as SpotifyApi.TrackObjectFull);
+      if (_.has(trackSource, "tracks")) {
+        _.forEach(trackSource, (track) => {
+          if (_.get(track, "track.type") === "track") {
+            tracks.push(_.get(track, "track") as SpotifyApi.TrackObjectFull);
           }
-        }
+        });
       } else if (
-        Array.isArray(trackSource) &&
-        typeof trackSource[0] === "object"
+        _.isArray(trackSource) &&
+        _.isObject(_.get(trackSource, [0]))
       ) {
-        for (const track of trackSource) {
-          if (track.track && track.track.type === "track") {
-            tracks.push(track.track as SpotifyApi.TrackObjectFull);
-          } else if (track.track && track.type === "track") {
+        _.forEach(trackSource, (track) => {
+          if (_.get(track, "track.type") === "track") {
+            tracks.push(_.get(track, "track") as SpotifyApi.TrackObjectFull);
+          } else if (_.get(track, "type") === "track") {
             tracks.push(track as SpotifyApi.TrackObjectFull);
           } else {
-            // log.error("ERROR1", track);
             tracks.push(track as SpotifyApi.TrackObjectFull);
           }
-        }
+        });
       } else {
         log.error("ERROR2", trackSource);
         throw new Error("Invalid source type");
       }
-    }
+    });
 
     return tracks;
   }

@@ -217,11 +217,6 @@ const PlaylistComponent: React.FC<PlaylistProps> = ({ id, data }) => {
         position={Position.Right}
         style={{ background: "#555" }}
       />
-      <NodeHandle
-        type="target"
-        position={Position.Left}
-        style={{ background: "#555" }}
-      />
       <Form {...form!}>
         <form onSubmit={form!.handleSubmit((data) => console.info(data))}>
           <div className="flex flex-col gap-4">

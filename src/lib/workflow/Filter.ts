@@ -1,4 +1,4 @@
-import * as _ from "radash";
+import _ from "lodash";
 import type SpotifyWebApi from "spotify-web-api-node";
 import { Logger } from "../log";
 /* eslint-disable @typescript-eslint/ban-types */
@@ -17,74 +17,64 @@ export default class Filter extends Base {
 
     const tracks = Filter.getTracks(sources);
 
-    if (Array.isArray(tracks)) {
-      const res = tracks.filter((track: any) => {
+    if (_.isArray(tracks)) {
+      const res = _.filter(tracks, (track: any) => {
         if (params.filterKey && params.filterValue) {
           const [operator, value] = params.filterValue.split(" ") as [
             string,
             string,
           ];
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-          const trackValue = _.get(track, params.filterKey) as any;
+          const trackValue = _.get(track, params.filterKey);
 
-          let type = "string";
           let filterValue: string | number | Date | boolean | object;
 
-          if (!Number.isNaN(Number(value))) {
-            filterValue = Number(value);
-            type = "number";
-          } else if (!Number.isNaN(Date.parse(value))) {
+          if (!_.isNaN(_.toNumber(value))) {
+            filterValue = _.toNumber(value);
+          } else if (!_.isNaN(Date.parse(value))) {
             filterValue = new Date(value);
-            type = "date";
           } else {
             filterValue = value;
           }
 
-          switch (type) {
-            case "number":
-              switch (operator) {
-                case ">":
-                  return trackValue > filterValue;
-                case "<":
-                  return trackValue < filterValue;
-                case ">=":
-                  return trackValue >= filterValue;
-                case "<=":
-                  return trackValue <= filterValue;
-                case "==":
-                  return trackValue === filterValue;
-                default:
-                  throw new Error(`Invalid operator: ${operator}`);
-              }
-            case "string":
-              return trackValue.includes(filterValue);
-            case "boolean":
-              return trackValue === Boolean(filterValue);
-            // biome-ignore lint/suspicious/noFallthroughSwitchClause: <explanation>
-            case "object":
-              if (filterValue instanceof Date) {
-                const trackDateValue = new Date(
-                  trackValue as number | string | Date,
-                );
-                switch (operator) {
-                  case ">":
-                    return trackDateValue > filterValue;
-                  case "<":
-                    return trackDateValue < filterValue;
-                  case ">=":
-                    return trackDateValue >= filterValue;
-                  case "<=":
-                    return trackDateValue <= filterValue;
-                  case "==":
-                    return trackDateValue.getTime() === filterValue.getTime();
-                  default:
-                    throw new Error(`Invalid operator: ${operator}`);
-                }
-              }
-            default:
-              throw new Error(
-                `Unsupported filterValue type: ${typeof filterValue}`,
-              );
+          if (_.isNumber(filterValue)) {
+            switch (operator) {
+              case ">":
+                return trackValue > filterValue;
+              case "<":
+                return trackValue < filterValue;
+              case ">=":
+                return trackValue >= filterValue;
+              case "<=":
+                return trackValue <= filterValue;
+              case "==":
+                return trackValue === filterValue;
+              default:
+                throw new Error(`Invalid operator: ${operator}`);
+            }
+          } else if (_.isString(filterValue)) {
+            return _.includes(trackValue, filterValue);
+          } else if (_.isBoolean(filterValue)) {
+            return trackValue === Boolean(filterValue);
+          } else if (_.isObject(filterValue) && _.isDate(filterValue)) {
+            const trackDateValue = new Date(trackValue);
+            switch (operator) {
+              case ">":
+                return trackDateValue > filterValue;
+              case "<":
+                return trackDateValue < filterValue;
+              case ">=":
+                return trackDateValue >= filterValue;
+              case "<=":
+                return trackDateValue <= filterValue;
+              case "==":
+                return trackDateValue.getTime() === filterValue.getTime();
+              default:
+                throw new Error(`Invalid operator: ${operator}`);
+            }
+          } else {
+            throw new Error(
+              `Unsupported filterValue type: ${typeof filterValue}`,
+            );
           }
         }
         return true;
@@ -113,9 +103,10 @@ export default class Filter extends Base {
     const tracks = Filter.getTracks(sources);
 
     if (_.isArray(tracks)) {
-      return _.unique(tracks, (track): string | number | symbol =>
-        _.get(track, "track.artists[0].id"),
+      const uniqueTracks = _.uniqBy(tracks, (track): string | number | symbol =>
+        _.get(track, "artists[0].id", ""),
       );
+      return uniqueTracks;
     }
     return [];
   }
@@ -130,74 +121,64 @@ export default class Filter extends Base {
 
     const tracks = Filter.getTracks(sources);
 
-    if (Array.isArray(tracks)) {
-      const res = tracks.filter((track: any) => {
+    if (_.isArray(tracks)) {
+      const res = _.filter(tracks, (track: any) => {
         if (params.matchKey && params.matchValue) {
           const [operator, value] = params.matchValue.split(" ") as [
             string,
             string,
           ];
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-          const trackValue = _.get(track, params.matchKey) as any;
+          const trackValue = _.get(track, params.matchKey);
 
-          let type = "string";
           let matchValue: string | number | Date | boolean | object;
 
-          if (!Number.isNaN(Number(value))) {
-            matchValue = Number(value);
-            type = "number";
-          } else if (!Number.isNaN(Date.parse(value))) {
+          if (!_.isNaN(_.toNumber(value))) {
+            matchValue = _.toNumber(value);
+          } else if (!_.isNaN(Date.parse(value))) {
             matchValue = new Date(value);
-            type = "date";
           } else {
             matchValue = value;
           }
 
-          switch (type) {
-            case "number":
-              switch (operator) {
-                case ">":
-                  return trackValue > matchValue;
-                case "<":
-                  return trackValue < matchValue;
-                case ">=":
-                  return trackValue >= matchValue;
-                case "<=":
-                  return trackValue <= matchValue;
-                case "==":
-                  return trackValue === matchValue;
-                default:
-                  throw new Error(`Invalid operator: ${operator}`);
-              }
-            case "string":
-              return trackValue.includes(matchValue);
-            case "boolean":
-              return trackValue === Boolean(matchValue);
-            // biome-ignore lint/suspicious/noFallthroughSwitchClause: <explanation>
-            case "object":
-              if (matchValue instanceof Date) {
-                const trackDateValue = new Date(
-                  trackValue as number | string | Date,
-                );
-                switch (operator) {
-                  case ">":
-                    return trackDateValue > matchValue;
-                  case "<":
-                    return trackDateValue < matchValue;
-                  case ">=":
-                    return trackDateValue >= matchValue;
-                  case "<=":
-                    return trackDateValue <= matchValue;
-                  case "==":
-                    return trackDateValue.getTime() === matchValue.getTime();
-                  default:
-                    throw new Error(`Invalid operator: ${operator}`);
-                }
-              }
-            default:
-              throw new Error(
-                `Unsupported matchValue type: ${typeof matchValue}`,
-              );
+          if (_.isNumber(matchValue)) {
+            switch (operator) {
+              case ">":
+                return trackValue > matchValue;
+              case "<":
+                return trackValue < matchValue;
+              case ">=":
+                return trackValue >= matchValue;
+              case "<=":
+                return trackValue <= matchValue;
+              case "==":
+                return trackValue === matchValue;
+              default:
+                throw new Error(`Invalid operator: ${operator}`);
+            }
+          } else if (_.isString(matchValue)) {
+            return _.includes(trackValue, matchValue);
+          } else if (_.isBoolean(matchValue)) {
+            return trackValue === Boolean(matchValue);
+          } else if (_.isObject(matchValue) && _.isDate(matchValue)) {
+            const trackDateValue = new Date(trackValue);
+            switch (operator) {
+              case ">":
+                return trackDateValue > matchValue;
+              case "<":
+                return trackDateValue < matchValue;
+              case ">=":
+                return trackDateValue >= matchValue;
+              case "<=":
+                return trackDateValue <= matchValue;
+              case "==":
+                return trackDateValue.getTime() === matchValue.getTime();
+              default:
+                throw new Error(`Invalid operator: ${operator}`);
+            }
+          } else {
+            throw new Error(
+              `Unsupported matchValue type: ${typeof matchValue}`,
+            );
           }
         }
         return false;
@@ -221,6 +202,29 @@ export default class Filter extends Base {
     if (Array.isArray(tracks)) {
       return tracks.slice(0, params.limit);
     }
+    return [];
+  }
+
+  trackFilter(
+    _spClient: SpotifyWebApi,
+    sources: any[],
+    params: { filterOperationId: string | undefined },
+  ) {
+    log.info("Filtering tracks...");
+    log.debug("Filter Sources:", sources);
+
+    const tracks = Filter.getTracks(sources);
+    if (!params.filterOperationId) {
+      return tracks;
+    }
+    const filterTracks = Filter.getTracks(
+      this.operationValues.get(params.filterOperationId),
+    );
+
+    if (_.isArray(tracks) && _.isArray(filterTracks)) {
+      return _.differenceBy(tracks, filterTracks, "id");
+    }
+
     return [];
   }
 }

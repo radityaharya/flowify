@@ -4,6 +4,7 @@ import { Logger } from "../log";
 /* eslint-disable @typescript-eslint/ban-types */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Base } from "./Base";
+import _ from "lodash";
 
 const log = new Logger("Order");
 export default class Order extends Base {
@@ -23,57 +24,78 @@ export default class Order extends Base {
 
     const tracks = Order.getTracks(sources);
 
-    function getOrderKey(obj, path) {
-      return path.split(".").reduce((o, i) => {
-        let indexMatch;
-        if ((indexMatch = i.match(/^(\w+)\[(\d+)\]$/))) {
-          const propName = indexMatch[1];
-          const index = parseInt(indexMatch[2], 10);
-          if (
-            o?.hasOwnProperty(propName) &&
-            Array.isArray(o[propName]) &&
-            o[propName].length > index
-          ) {
-            return o[propName][index];
-          } else {
-            log.error(`Failed to access property '${i}' on object:`, o);
-            throw new Error(`Failed to access property '${i}' on object`);
-          }
-        } else {
-          if (!o?.hasOwnProperty(i)) {
-            log.error(`Failed to access property '${i}' on object:`, o);
-            throw new Error(`Failed to access property '${i}' on object`);
-          }
-          return o[i];
-        }
-      }, obj);
-    }
-
-    if (Array.isArray(tracks)) {
+    if (_.isArray(tracks)) {
       log.info("Sorting by", [params.sortKey, params.sortOrder]);
       const sortKey = params.sortKey || "popularity";
       const sortOrder = params.sortOrder === "asc" ? "asc" : "desc";
-      const sortedTracks = tracks.sort((a, b) => {
-        const keyA = getOrderKey(a, sortKey);
-        const keyB = getOrderKey(b, sortKey);
-        if (keyA < keyB) return sortOrder === "asc" ? -1 : 1;
-        if (keyA > keyB) return sortOrder === "asc" ? 1 : -1;
-        return 0;
-      });
+
+      const sortedTracks = _.orderBy(
+        tracks,
+        [(track) => _.get(track, sortKey)],
+        [sortOrder],
+      );
+
       return sortedTracks;
     }
     return [];
   }
 
-  static shuffle(_spClient: SpotifyWebApi, sources: any[], _params: {}) {
+  static shuffle(
+    _spClient: SpotifyWebApi,
+    sources: any[],
+    params: { weight: number },
+  ) {
     log.info("Shuffling...");
     log.debug("Shuffle Sources:", sources);
 
     const tracks = Order.getTracks(sources);
 
-    if (Array.isArray(tracks)) {
-      return tracks.sort(() => Math.random() - 0.5);
+    if (_.isArray(tracks)) {
+      const weight = params.weight || 0.5; // Default weight is 0.5 if not provided
+      return _.orderBy(tracks, () => Math.pow(Math.random(), weight));
     }
     return [];
+  }
+
+  static reverse(_spClient: SpotifyWebApi, sources: any[], _params: {}) {
+    log.info("Reversing...");
+    log.debug("Reverse Sources:", sources);
+
+    const tracks = Order.getTracks(sources);
+
+    if (_.isArray(tracks)) {
+      return tracks.reverse();
+    }
+    return [];
+  }
+
+  static separateArtists(
+    _spClient: SpotifyWebApi,
+    sources: any[],
+    _params: {},
+  ) {
+    log.info("Separating Artists...");
+    log.debug("Separate Artists Sources:", sources);
+
+    const tracks = Order.getTracks(sources);
+
+    const groupedTracks = _.groupBy(tracks, (track) => track.artists[0]!.id);
+
+    const sortedGroups = _.orderBy(_.values(groupedTracks), "length", "desc");
+
+    const interleavedTracks: (SpotifyApi.TrackObjectFull | undefined)[] = [];
+    while (
+      _.some(
+        sortedGroups,
+        (group: SpotifyApi.TrackObjectFull[]) => group.length > 0,
+      )
+    ) {
+      _.forEach(sortedGroups, (group: SpotifyApi.TrackObjectFull[]) => {
+        if (group.length > 0) {
+          interleavedTracks.push(group.shift());
+        }
+      });
+    }
+    return interleavedTracks;
   }
 }

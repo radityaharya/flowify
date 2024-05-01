@@ -19,12 +19,16 @@ import { useShallow } from "zustand/react/shallow";
 
 import Alternate from "@nodes/Combiner/Alternate";
 import Push from "@nodes/Combiner/Push";
+import RandomStream from "@nodes/Combiner/RandomStream";
 
 import LikedTracks from "@nodes/Library/LikedTracks";
 import Playlist from "@nodes/Library/Playlist";
 import SaveAsAppend from "@nodes/Library/SaveAsAppend";
 import SaveAsNew from "@nodes/Library/SaveAsNew";
 import SaveAsReplace from "@nodes/Library/SaveAsReplace";
+import AlbumTracks from "@nodes/Library/AlbumTracks";
+import Last from "@nodes/Selectors/Last";
+import ArtistsTopTracks from "@nodes/Library/ArtistsTopTracks";
 
 import DedupeArtists from "@nodes/Filter/DedupeArtists";
 import DedupeTracks from "@nodes/Filter/DedupeTracks";
@@ -34,11 +38,12 @@ import RemoveMatch from "@nodes/Filter/RemoveMatch";
 import Shuffle from "@nodes/Order/Shuffle";
 import Sort from "@nodes/Order/Sort";
 import SortPopularity from "@nodes/Order/SortPopularity";
+import Reverse from "@nodes/Order/Reverse";
+import SeparateArtists from "@nodes/Order/SeparateArtists";
 
 import AllButFirst from "@nodes/Selectors/AllButFirst";
 import AllButLast from "@nodes/Selectors/AllButLast";
 import First from "@nodes/Selectors/First";
-import Last from "@nodes/Selectors/Last";
 import Recommend from "@nodes/Selectors/Recommend";
 
 import { Button } from "@/components/ui/button";
@@ -70,6 +75,11 @@ export const Nodes = {
     title: "Push",
     node: Push,
     description: "Append tracks of sources sequentially",
+  },
+  "Combiner.randomStream": {
+    title: "Random Stream",
+    node: RandomStream,
+    description: "Randomly select tracks from sources",
   },
   "Filter.dedupeTracks": {
     title: "Dedup Tracks",
@@ -117,10 +127,30 @@ export const Nodes = {
     description:
       "Saves workflow output to an existing playlist by replacing all tracks",
   },
+  "Library.albumTracks": {
+    title: "Album",
+    node: AlbumTracks,
+    description: "Album source",
+  },
+  "Library.artistsTopTracks": {
+    title: "Artists Top Tracks",
+    node: ArtistsTopTracks,
+    description: "Top tracks of artists",
+  },
   "Order.shuffle": {
     title: "Shuffle",
     node: Shuffle,
     description: "Randomly shuffle tracks",
+  },
+  "Order.reverse": {
+    title: "Reverse",
+    node: Reverse,
+    description: "Reverse the order of tracks",
+  },
+  "Order.separateArtists": {
+    title: "Separate Artists",
+    node: SeparateArtists,
+    description: "Sort tracks based on artists",
   },
   "Order.sort": {
     title: "Sort",

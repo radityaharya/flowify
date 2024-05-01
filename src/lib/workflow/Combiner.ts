@@ -7,6 +7,14 @@ import { Base } from "./Base";
 
 const log = new Logger("Combiner");
 export default class Combiner extends Base {
+  /**
+   * Pushes the tracks from the given sources into a single array.
+   *
+   * @param _spClient - The SpotifyWebApi client.
+   * @param sources - An array of sources containing tracks.
+   * @param _params - Additional parameters (currently unused).
+   * @returns An array of PlaylistTrackObject containing the combined tracks from all sources.
+   */
   static push(_spClient: SpotifyWebApi, sources: any[], _params: {}) {
     log.debug("Push Sources:", sources);
     log.info("Pushing...");
@@ -29,6 +37,15 @@ export default class Combiner extends Base {
     return obj?.hasOwnProperty("track");
   }
 
+  /**
+   * Combines the tracks from multiple sources in an alternating manner.
+   *
+   * @param _spClient - The SpotifyWebApi instance.
+   * @param sources - An array of sources containing tracks to be combined.
+   * @param _params - Additional parameters (currently unused).
+   * @returns An array of PlaylistTrackObject representing the combined tracks.
+   * @throws Error if the source type is invalid.
+   */
   static alternate(_spClient: SpotifyWebApi, sources: any[], _params: {}) {
     log.debug("Alternate Sources:", sources);
     log.info("Alternating...");
@@ -62,6 +79,33 @@ export default class Combiner extends Base {
         }
       });
     }
+    return result;
+  }
+
+  /**
+   * Selects a random stream from the given sources.
+   *
+   * @param _spClient - The SpotifyWebApi client.
+   * @param sources - An array of sources.
+   * @param _params - Additional parameters.
+   * @returns An array of SpotifyApi.PlaylistTrackObject representing the selected random stream.
+   */
+  static randomStream(_spClient: SpotifyWebApi, sources: any[], _params: {}) {
+    log.debug("RandomStream Sources:", sources);
+    log.info("Selecting a random stream...");
+
+    const result = [] as SpotifyApi.PlaylistTrackObject[];
+
+    const randomSource = sources[Math.floor(Math.random() * sources.length)];
+
+    if (randomSource.tracks) {
+      result.push(...randomSource.tracks);
+    } else if (Array.isArray(randomSource)) {
+      result.push(...randomSource);
+    } else {
+      log.error("Invalid source type:", typeof randomSource);
+    }
+
     return result;
   }
 }

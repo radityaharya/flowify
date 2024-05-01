@@ -12,8 +12,8 @@ interface NodeBuilderProps {
   title: string;
   type: string;
   info: string;
-  formSchema: ZodObject<any>;
-  formFields: (args: { form: any; register: any }) => React.ReactNode;
+  formSchema?: ZodObject<any>;
+  formFields?: (args: { form: any; register: any }) => React.ReactNode;
   extraContent?: React.ReactNode;
   handleConnectionType?: "source" | "target" | "both";
 }
@@ -44,24 +44,27 @@ const NodeBuilder: React.FC<NodeBuilderProps> = ({
   // Handle data updates from props or form
   React.useEffect(() => {
     if (data) {
-      form!.reset(data);
+      form?.reset(data);
     }
   }, [data, form]);
 
-  const watch = form!.watch();
+  const watch = form?.watch();
   const prevWatchRef = React.useRef(watch);
   React.useEffect(() => {
     if (JSON.stringify(prevWatchRef.current) !== JSON.stringify(watch)) {
-      updateNodeData(id, {
+      updateNodeData?.(id, {
         ...watch,
       });
     }
     prevWatchRef.current = watch;
   }, [watch, id, updateNodeData]);
 
-  const formValid = formState!.isValid;
+  const formValid = formState?.isValid;
   const nodeValid = React.useMemo(() => {
-    return formValid && isValid;
+    if (formState) {
+      return formValid && isValid;
+    }
+    return isValid;
   }, [formValid, isValid]);
 
   return (
@@ -96,7 +99,7 @@ const NodeBuilder: React.FC<NodeBuilderProps> = ({
       {extraContent}
       <Debug
         id={id}
-        isValid={nodeValid}
+        isValid={nodeValid!}
         TargetConnections={targetConnections}
         SourceConnections={sourceConnections}
       />
