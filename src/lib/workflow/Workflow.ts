@@ -13,7 +13,7 @@ import Utility from "./Utility";
 
 import { Logger } from "../log";
 
-import { WorkflowObjectSchema } from "@schema";
+import { WorkflowObjectSchema } from "~/schemas";
 
 const log = new Logger("workflow");
 
