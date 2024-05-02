@@ -13,90 +13,13 @@ import Utility from "./Utility";
 
 import { Logger } from "../log";
 
+import { WorkflowObjectSchema } from "@schema";
+
 const log = new Logger("workflow");
-export const operationParamsTypesMap = {
-  "Filter.filter": {
-    filterKey: { type: "string", required: true },
-    filterValue: { type: "string", required: true },
-  },
-  "Filter.dedupeTracks": {},
-  "Filter.dedupeArtists": {},
-  "Filter.match": {
-    matchKey: { type: "string", required: true },
-    matchValue: { type: "string", required: true },
-  },
-  "Filter.limit": {
-    limit: { type: "number", required: true },
-  },
-  "Filter.excludeTracks": {
-    operationId: { type: "string", required: true },
-  },
-  "Combiner.push": {},
-  "Combiner.alternate": {},
-  "Combiner.randomStream": {},
-  "Utility.save": {},
-  "Utility.removeKeys": {
-    keys: { type: "string[]", required: true },
-  },
-  "Utility.includeOnlyKeys": {
-    keys: { type: "string[]", required: true },
-  },
-  "Utility.summary": {},
-  "Order.sort": {
-    sortKey: { type: "string", required: true },
-    sortOrder: { type: "string", required: true },
-  },
-  "Order.shuffle": {},
-  "Order.reverse": {},
-  "Order.separateArtists": {},
-  "Library.saveAsNew": {
-    name: { type: "string", required: true },
-    isPublic: { type: "boolean" },
-    collaborative: { type: "boolean" },
-    description: { type: "string" },
-  },
-  "Library.playlistTracks": {
-    playlistId: { type: "string", required: true },
-    limit: { type: "number" },
-    offset: { type: "number" },
-  },
-  "Library.saveAsAppend": {
-    playlistId: { type: "string", required: true },
-  },
-  "Library.saveAsReplace": {
-    playlistId: { type: "string", required: true },
-  },
-  "Library.likedTracks": {
-    limit: { type: "number" },
-    offset: { type: "number" },
-  },
-  "Library.albumTracks": {
-    albumId: { type: "string", required: true },
-    limit: { type: "number" },
-    offset: { type: "number" },
-  },
-  "Library.artistTopTracks": {
-    artistId: { type: "string", required: true },
-    limit: { type: "number" },
-    offset: { type: "number" },
-  },
-  "Selector.first": {
-    count: { type: "number" },
-  },
-  "Selector.last": {
-    count: { type: "number" },
-  },
-  "Selector.allButFirst": {},
-  "Selector.allButLast": {},
-  "Selector.recommend": {
-    seedType: { type: "string" },
-    count: { type: "number" },
-  },
-} as Record<string, Record<string, { type: string; required?: boolean }>>;
 
-import type { Workflow } from "./types/base";
+import type { Workflow as WorkflowType } from "./types/base";
 
-export const operations: Workflow.Operations = {
+export const operations: WorkflowType.Operations = {
   Filter,
   Combiner,
   Utility,
@@ -107,9 +30,9 @@ export const operations: Workflow.Operations = {
 };
 export class Runner extends Base {
   async fetchSources(
-    operation: Operation,
+    operation: Workflow.Operation,
     sourceValues: Map<string, any>,
-    workflow: WorkflowObject,
+    workflow: Workflow.WorkflowObject,
     controller: AbortController,
     operationCallback?: (operationId: string, data: any) => Promise<string>,
   ) {
@@ -161,7 +84,7 @@ export class Runner extends Base {
   async runOperation(
     operationId: string,
     sourceValues: Map<string, any>,
-    workflow: WorkflowObject,
+    workflow: Workflow.WorkflowObject,
     controller: AbortController,
     operationCallback?: (operationId: string, data: any) => Promise<string>,
   ) {
@@ -185,8 +108,8 @@ export class Runner extends Base {
 
     // Split the operation type into class name and method name
     const [className, methodName] = operation.type.split(".") as [
-      keyof Workflow.Operations,
-      keyof Workflow.Operations[keyof Workflow.Operations],
+      keyof WorkflowType.Operations,
+      keyof WorkflowType.Operations[keyof WorkflowType.Operations],
     ];
 
     const operationClass = operations[className];
@@ -227,10 +150,10 @@ export class Runner extends Base {
    * @param workflow - The workflow to sort the operations for.
    * @returns An array of sorted operations.
    */
-  sortOperations(workflow: WorkflowObject) {
+  sortOperations(workflow: Workflow.WorkflowObject) {
     log.info("Sorting operations...");
-    const sortedOperations = [] as Operation[];
-    const operations = [...workflow.operations] as Operation[];
+    const sortedOperations = [] as Workflow.Operation[];
+    const operations = [...workflow.operations] as Workflow.Operation[];
 
     let hasLoop = false;
     const visited = new Set();
@@ -240,7 +163,7 @@ export class Runner extends Base {
       visited.add(operationId);
       recStack.add(operationId);
 
-      const operation = operationsMap.get(operationId) as Operation;
+      const operation = operationsMap.get(operationId) as Workflow.Operation;
       if (operation?.sources) {
         for (const source of operation.sources) {
           if (!visited.has(source) && detectLoop(source, operationsMap)) {
@@ -256,7 +179,7 @@ export class Runner extends Base {
     }
 
     // Create a map for quick lookup
-    const operationsMap = new Map() as Map<string, Operation>;
+    const operationsMap = new Map() as Map<string, Workflow.Operation>;
     for (const operation of operations) {
       operationsMap.set(operation.id, operation);
     }
@@ -301,203 +224,7 @@ export class Runner extends Base {
 
     return sortedOperations;
   }
-  /**
-   * Validates a workflow.
-   *
-   * @param workflow - The workflow to validate.
-   * @returns A tuple containing a boolean indicating whether the validation passed or not, and an array of error messages if validation failed.
-   */
-  validateWorkflow(
-    workflow: WorkflowObject,
-  ): Promise<[boolean, string[] | null]> {
-    log.info("Validating workflow...");
 
-    // let timeoutOccurred = false;
-    const timeout = new Promise<[boolean, string[]]>((_resolve, reject) =>
-      setTimeout(() => {
-        // timeoutOccurred = true;
-        reject(new Error(`Validation timed out after ${5000 / 1000} seconds`));
-      }, 5000),
-    );
-
-    const validationPromise = new Promise<[boolean, string[] | null]>(
-      (resolve) => {
-        workflow.operations = this.sortOperations(workflow);
-        const operationIds = new Set();
-        const errors = [] as string[];
-
-        if (!(workflow.operations && Array.isArray(workflow.operations))) {
-          errors.push("Workflow must have 'operations' properties.");
-        }
-
-        // Validate operations
-        if (workflow.operations.length === 0) {
-          errors.push("Workflow must have at least one operation.");
-        }
-
-        for (const operation of workflow.operations) {
-          if (typeof operation.id !== "string") {
-            errors.push(
-              `Invalid operation id: ${
-                operation.id
-              } in operation: ${JSON.stringify(operation)}`,
-            );
-          }
-
-          if (typeof operation.type !== "string") {
-            errors.push(
-              `Invalid operation type: ${
-                operation.type
-              } in operation: ${JSON.stringify(
-                operation,
-              )} its type is ${typeof operation.type}`,
-            );
-          }
-
-          if (operationIds.has(operation.id)) {
-            errors.push(
-              `Duplicate operation id: ${
-                operation.id
-              } in operation: ${JSON.stringify(operation)}`,
-            );
-          }
-          operationIds.add(operation.id);
-
-          const operationType = operation.type;
-          if (!operationParamsTypesMap.hasOwnProperty(operationType)) {
-            errors.push(
-              `Invalid operation type: ${operationType} in operation: ${JSON.stringify(
-                operation,
-              )}`,
-            );
-          } else {
-            const [className, methodName] = operationType.split(".") as [
-              keyof Workflow.Operations,
-              keyof Workflow.Operations[keyof Workflow.Operations],
-            ];
-            const operationClass = operations[className];
-            if (
-              !operationClass ||
-              typeof operationClass[methodName] !== "function"
-            ) {
-              errors.push(
-                `Invalid operation type: ${operationType} in operation: ${JSON.stringify(
-                  operation,
-                )}`,
-              );
-            }
-          }
-
-          const operationParams = operationParamsTypesMap[
-            operation.type
-          ] as Record<string, { type: string; required?: boolean }>;
-          if (operationParams) {
-            const paramsCopy = { ...operation.params };
-            for (const [param, paramType] of Object.entries(operationParams)) {
-              if (operation.params[param]) {
-                if (paramType.type === "string[]") {
-                  if (
-                    !(
-                      Array.isArray(operation.params[param]) &&
-                      operation.params[param].every(
-                        (item: any) => typeof item === "string",
-                      )
-                    )
-                  ) {
-                    errors.push(
-                      `Invalid param type: ${param} in operation: ${JSON.stringify(
-                        operation,
-                      )} expected string[] but got ${typeof operation.params[
-                        param
-                      ]}`,
-                    );
-                  }
-                } else if (paramType.type === "number[]") {
-                  if (
-                    !(
-                      Array.isArray(operation.params[param]) &&
-                      operation.params[param].every(
-                        (item: any) => typeof item === "number",
-                      )
-                    )
-                  ) {
-                    errors.push(
-                      `Invalid param type: ${param} in operation: ${JSON.stringify(
-                        operation,
-                      )} expected number[] but got ${typeof operation.params[
-                        param
-                      ]}`,
-                    );
-                  }
-                  // biome-ignore lint/suspicious/useValidTypeof: <explanation>
-                } else if (typeof operation.params[param] !== paramType.type) {
-                  errors.push(
-                    `Invalid param type: ${param} in operation: ${JSON.stringify(
-                      operation,
-                    )} expected ${paramType.type} but got ${typeof operation
-                      .params[param]}`,
-                  );
-                }
-              } else if (paramType.required) {
-                errors.push(
-                  `Missing required param: ${param} in operation: ${JSON.stringify(
-                    operation,
-                  )}`,
-                );
-              }
-              delete paramsCopy[param];
-            }
-          }
-
-          if (
-            !(
-              operation.id &&
-              operation.type &&
-              operation.params &&
-              operation.sources
-            )
-          ) {
-            const missing = [] as string[];
-            if (!operation.id) missing.push("id");
-            if (!operation.type) missing.push("type");
-            if (!operation.params) missing.push("params");
-            if (!operation.sources) missing.push("sources");
-            errors.push(
-              `Invalid operation structure: ${JSON.stringify(
-                operation,
-              )} missing ${missing.join(", ")}`,
-            );
-          }
-        }
-
-        const sources = workflow.operations.filter((operation) => {
-          return !operation.sources || operation.sources.length === 0;
-        });
-
-        for (const source of sources) {
-          if (!(source.params.playlistId || source.params.id)) {
-            errors.push(
-              `First operation must have be a Liked Tracks or Playlist operation: ${JSON.stringify(
-                source,
-              )}`,
-            );
-          }
-        }
-
-        if (errors.length > 0) {
-          log.error(`Validation failed with ${errors.length} errors:`);
-          for (const error of errors) {
-            log.error(error);
-          }
-          resolve([false, errors]);
-        } else {
-          resolve([true, []]);
-        }
-      },
-    );
-
-    return Promise.race([validationPromise, timeout]);
-  }
   /**
    * Runs the given workflow.
    *
@@ -506,7 +233,7 @@ export class Runner extends Base {
    * @throws Error if the workflow is invalid.
    */
   async runWorkflow(
-    workflow: WorkflowObject,
+    workflow: Workflow.WorkflowObject,
     timeoutAfter = 20000,
     operationCallback?: (operationId: string, data: any) => Promise<string>,
   ) {
@@ -534,7 +261,7 @@ export class Runner extends Base {
   }
 
   async runWorkflowInternal(
-    workflow: WorkflowObject,
+    workflow: Workflow.WorkflowObject,
     controller: AbortController,
     operationCallback?: (operationId: string, data: any) => Promise<string>,
   ) {
@@ -545,11 +272,8 @@ export class Runner extends Base {
     );
 
     workflow.operations = sortedOperations;
-    const [valid, errors] = await this.validateWorkflow(workflow);
 
-    if (!valid && errors) {
-      throw new Error(`Invalid workflow: ${errors.join("\n")}`);
-    }
+    workflow = WorkflowObjectSchema.parse(workflow);
 
     const sourceValues = new Map();
     const runOperations = new Set();

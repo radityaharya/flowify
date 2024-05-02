@@ -8,8 +8,7 @@ import {
 import { getServerSession } from "next-auth";
 import { type NextRequest, NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
-import { Runner } from "~/lib/workflow/Workflow";
-import { getAccessTokenFromUserId } from "~/server/db/helper";
+import { WorkflowObjectSchema } from "~/schemas";
 
 const log = new Logger("/api/workflow");
 
@@ -23,54 +22,19 @@ export async function POST(request: NextRequest) {
       { status: 401 },
     );
   }
-  const accessToken = await getAccessTokenFromUserId(session.user.id);
-  if (!accessToken) {
+
+  const workflow = (await request.json()).workflow;
+  const workflowParsed = WorkflowObjectSchema.safeParse(workflow);
+
+  if (!workflowParsed.success) {
     return NextResponse.json(
-      {
-        error: "Something went wrong, unable to get access token",
-      },
-      { status: 500 },
-    );
-  }
-
-  log.info("Received workflow from user", session.user.id);
-  let workflowRes: WorkflowResponse;
-  try {
-    workflowRes = (await request.json()) as WorkflowResponse;
-  } catch (err) {
-    log.error("Error parsing workflow", err);
-    return NextResponse.json(
-      { error: "Error parsing workflow: " + (err as Error).message },
-      { status: 400 },
-    );
-  }
-  const runner = new Runner({
-    slug: session.user.id,
-    access_token: accessToken,
-  });
-
-  const workflow = workflowRes.workflow;
-
-  if (!workflow) {
-    return NextResponse.json(
-      { error: "No workflow provided" },
-      { status: 400 },
-    );
-  }
-
-  const operations = runner.sortOperations(workflow);
-  workflow.operations = operations;
-  const [valid, errors] = await runner.validateWorkflow(workflow);
-
-  if (!valid) {
-    return NextResponse.json(
-      { error: "Invalid workflow", errors },
+      { error: "Invalid workflow", errors: workflow.error },
       { status: 400 },
     );
   }
 
   const job = {
-    id: workflow.id ?? uuidv4(),
+    id: workflowParsed.data.id ?? uuidv4(),
     data: {
       workflow,
     },

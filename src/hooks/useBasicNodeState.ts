@@ -47,7 +47,7 @@ const usePlaylistLogic = (id: string, formSchema?: ZodObject<any>) => {
   const state = useMemo(() => {
     let invalidNodesCount = 0;
     const playlistIdsSet = new Set<string>();
-    const playlistsSet = new Set<Playlist>();
+    const playlistsSet = new Set<Workflow.Playlist>();
 
     if (!targetConnections?.length) {
       return {
@@ -82,7 +82,7 @@ const usePlaylistLogic = (id: string, formSchema?: ZodObject<any>) => {
         invalidNodesCount++;
       }
 
-      const playlist: Playlist = {
+      const playlist: Workflow.Playlist = {
         playlistId: playlistId as string,
         name: name as string,
         description: description as string,
@@ -94,7 +94,9 @@ const usePlaylistLogic = (id: string, formSchema?: ZodObject<any>) => {
       playlistIdsSet.add(playlistId as string);
 
       (playlistIds || []).forEach((id) => playlistIdsSet.add(id as string));
-      (playlists || []).forEach((pl) => playlistsSet.add(pl as Playlist));
+      (playlists || []).forEach((pl) =>
+        playlistsSet.add(pl as Workflow.Playlist),
+      );
     });
 
     const combinedPlaylistIds = Array.from(playlistIdsSet).filter(Boolean);

@@ -6,6 +6,7 @@ import { getAccessTokenFromUserId } from "@/server/db/helper";
 import { getServerSession } from "next-auth";
 import { type NextRequest, NextResponse } from "next/server";
 import { createWorkflowQueue } from "~/lib/workflow/utils/workflowQueue";
+import { WorkflowObjectSchema } from "~/schemas";
 
 const log = new Logger("/api/workflow/[id]/run");
 export async function POST(
@@ -51,18 +52,28 @@ export async function POST(
     slug: session.user.id,
     access_token: accessToken,
   });
-  const workflowObj = JSON.parse(workflow.workflow) as WorkflowObject;
+  const workflowParsed = WorkflowObjectSchema.safeParse(
+    (await JSON.parse(workflow.workflow)) as any,
+  );
 
-  workflowObj.operations = runner.sortOperations(workflowObj);
-  workflowObj.dryrun = dryrun;
+  if (!workflowParsed.success) {
+    log.error("Invalid workflow", {
+      errors: workflowParsed.error,
+      workflowId: workflow.id,
+      userId: session.user.id,
+    } as any);
+    return NextResponse.json({ error: "Invalid workflow" }, { status: 400 });
+  }
+
+  workflowParsed.data.operations = runner.sortOperations(workflowParsed.data);
+  workflowParsed.data.dryrun = dryrun;
   if (dryrun) {
     log.info("Dryrun mode enabled");
   }
-  runner.validateWorkflow(workflowObj);
 
   try {
     const job = await createWorkflowQueue(
-      workflowObj,
+      workflowParsed.data,
       session.user.id,
       workflow.id,
     );

@@ -1,7 +1,7 @@
 import { toast } from "sonner";
 import useStore, { workflowRunStore } from "../states/store";
 
-export async function runWorkflow(workflow: WorkflowResponse) {
+export async function runWorkflow(workflow: Workflow.WorkflowResponse) {
   if (!workflow.id) {
     throw new Error("Workflow ID is undefined");
   }
@@ -44,7 +44,7 @@ export async function runWorkflow(workflow: WorkflowResponse) {
         isRequesting = true;
         fetch(`/api/workflow/queue/${id}`)
           .then((res) => res.json())
-          .then((data: QueueResponse) => {
+          .then((data: Workflow.QueueResponse) => {
             isRequesting = false;
             if (data.error) {
               clearInterval(interval);

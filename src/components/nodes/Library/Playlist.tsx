@@ -48,7 +48,7 @@ import { PlaylistItem as PlaylistItemPrimitive } from "../Primitives/PlaylistIte
 type PlaylistProps = {
   id: string;
   // TODO type on playlist
-  data: Playlist;
+  data: Workflow.Playlist;
 };
 
 type Playlist = {
@@ -72,7 +72,7 @@ const PlaylistItem = ({
   playlist,
   onSelect,
 }: {
-  playlist: Playlist;
+  playlist: Workflow.Playlist;
   onSelect: () => void;
 }) => (
   <CommandItem
@@ -87,7 +87,7 @@ const PlaylistItem = ({
 const PlaylistComponent: React.FC<PlaylistProps> = ({ id, data }) => {
   const [open, setOpen] = React.useState(false);
   const [selectedPlaylist, setSelectedPlaylist] =
-    React.useState<Playlist>(data);
+    React.useState<Workflow.Playlist>(data);
   const [search, setSearch] = React.useState("");
 
   const {
@@ -200,7 +200,7 @@ const PlaylistComponent: React.FC<PlaylistProps> = ({ id, data }) => {
       shouldValidate: true,
     });
     console.info("data after update", getNodeData(id));
-    setSelectedPlaylist(playlist as Playlist);
+    setSelectedPlaylist(playlist as Workflow.Playlist);
     setOpen(false);
   };
 

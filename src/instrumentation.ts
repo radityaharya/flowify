@@ -37,7 +37,7 @@ export const register = async () => {
           slug: data.userId,
           access_token: accessToken,
         });
-        const workflow = data.workflow as WorkflowObject;
+        const workflow = data.workflow as Workflow.WorkflowObject;
         let res: any;
         try {
           res = await runner.runWorkflow(workflow);

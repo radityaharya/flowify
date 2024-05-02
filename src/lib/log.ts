@@ -1,5 +1,3 @@
-import _ from "lodash";
-
 enum LogLevel {
   DEBUG,
   INFO,
@@ -61,9 +59,10 @@ class Logger {
 
   debug(message: string, data?: any): void {
     let parsed;
+    if (this.logLevel > LogLevel.DEBUG) return;
     try {
       parsed = this.getTracks(data);
-      data = parsed
+      data = parsed;
     } catch (error) {
       this.error("Failed to parse data", error);
     }
@@ -94,48 +93,44 @@ class Logger {
     this.logLevel = level;
   }
 
-  logTrackTitles(tracks: SpotifyApi.TrackObjectFull[]): void {
-    tracks.forEach((track) => this.info(`Track: ${track.name}`));
-  }
+  getTracks(sources) {
+    const tracks = [] as SpotifyApi.TrackObjectFull[];
 
-  getTracks(sources: any[]) {
-    const tracks: SpotifyApi.TrackObjectFull[] = [];
-
-    _.forEach(sources, (source) => {
+    sources.forEach((source) => {
       let trackSource;
 
-      if (_.has(source, "tracks")) {
-        trackSource = _.get(source, "tracks");
-      } else if (_.has(source, "items")) {
-        trackSource = _.get(source, "items");
+      if (source.hasOwnProperty("tracks")) {
+        trackSource = source.tracks;
+      } else if (source.hasOwnProperty("items")) {
+        trackSource = source.items;
       } else if (
-        _.has(source, "track") &&
-        !_.isObject(_.get(source, "track"))
+        source.hasOwnProperty("track") &&
+        typeof source.track !== "object"
       ) {
-        trackSource = _.get(source, "track") ? [_.get(source, "track")] : [];
-      } else if (_.isArray(source)) {
+        trackSource = source.track ? [source.track] : [];
+      } else if (Array.isArray(source)) {
         trackSource = source;
       }
 
       if (!trackSource) return;
 
-      if (_.has(trackSource, "tracks")) {
-        _.forEach(trackSource, (track) => {
-          if (_.get(track, "track.type") === "track") {
-            tracks.push(_.get(track, "track") as SpotifyApi.TrackObjectFull);
+      if (trackSource.hasOwnProperty("tracks")) {
+        trackSource.forEach((track) => {
+          if (track.track && track.track.type === "track") {
+            tracks.push(track.track);
           }
         });
       } else if (
-        _.isArray(trackSource) &&
-        _.isObject(_.get(trackSource, [0]))
+        Array.isArray(trackSource) &&
+        typeof trackSource[0] === "object"
       ) {
-        _.forEach(trackSource, (track) => {
-          if (_.get(track, "track.type") === "track") {
-            tracks.push(_.get(track, "track") as SpotifyApi.TrackObjectFull);
-          } else if (_.get(track, "type") === "track") {
-            tracks.push(track as SpotifyApi.TrackObjectFull);
+        trackSource.forEach((track) => {
+          if (track.track && track.track.type === "track") {
+            tracks.push(track.track);
+          } else if (track.type === "track") {
+            tracks.push(track);
           } else {
-            tracks.push(track as SpotifyApi.TrackObjectFull);
+            tracks.push(track);
           }
         });
       } else {
@@ -201,10 +196,10 @@ class Logger {
     return compressedValues;
   }
 
-  deepUnset = (obj: any, prop: string) => {
-    if (_.isObject(obj)) {
-      _.unset(obj, prop);
-      _.forEach(obj, (value) => {
+  deepUnset = (obj, prop) => {
+    if (typeof obj === "object" && obj !== null) {
+      delete obj[prop];
+      Object.values(obj).forEach((value) => {
         this.deepUnset(value, prop);
       });
     }

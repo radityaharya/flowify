@@ -21,25 +21,25 @@ import Alternate from "@nodes/Combiner/Alternate";
 import Push from "@nodes/Combiner/Push";
 import RandomStream from "@nodes/Combiner/RandomStream";
 
+import AlbumTracks from "@nodes/Library/AlbumTracks";
+import ArtistsTopTracks from "@nodes/Library/ArtistsTopTracks";
 import LikedTracks from "@nodes/Library/LikedTracks";
 import Playlist from "@nodes/Library/Playlist";
 import SaveAsAppend from "@nodes/Library/SaveAsAppend";
 import SaveAsNew from "@nodes/Library/SaveAsNew";
 import SaveAsReplace from "@nodes/Library/SaveAsReplace";
-import AlbumTracks from "@nodes/Library/AlbumTracks";
 import Last from "@nodes/Selectors/Last";
-import ArtistsTopTracks from "@nodes/Library/ArtistsTopTracks";
 
 import DedupeArtists from "@nodes/Filter/DedupeArtists";
 import DedupeTracks from "@nodes/Filter/DedupeTracks";
 import Limit from "@nodes/Filter/Limit";
 import RemoveMatch from "@nodes/Filter/RemoveMatch";
 
+import Reverse from "@nodes/Order/Reverse";
+import SeparateArtists from "@nodes/Order/SeparateArtists";
 import Shuffle from "@nodes/Order/Shuffle";
 import Sort from "@nodes/Order/Sort";
 import SortPopularity from "@nodes/Order/SortPopularity";
-import Reverse from "@nodes/Order/Reverse";
-import SeparateArtists from "@nodes/Order/SeparateArtists";
 
 import AllButFirst from "@nodes/Selectors/AllButFirst";
 import AllButLast from "@nodes/Selectors/AllButLast";
@@ -371,11 +371,10 @@ export function App() {
     }
   }
 
-  const { data: systemInfo, isLoading: workerLoading } = useSWR<SystemInfo>(
-    "/api/systeminfo",
-    fetcher,
-    { refreshInterval: 10000 },
-  );
+  const { data: systemInfo, isLoading: workerLoading } =
+    useSWR<Workflow.SystemInfo>("/api/systeminfo", fetcher, {
+      refreshInterval: 10000,
+    });
 
   const edgeOptions = {
     animated: true,

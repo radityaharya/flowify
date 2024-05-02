@@ -1,10 +1,10 @@
+import _ from "lodash";
 import type SpotifyWebApi from "spotify-web-api-node";
 import { Logger } from "../log";
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/ban-types */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Base } from "./Base";
-import _ from "lodash";
 
 const log = new Logger("Order");
 export default class Order extends Base {

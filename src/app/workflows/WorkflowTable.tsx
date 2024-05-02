@@ -54,7 +54,9 @@ type WorkflowsTableColumn = {
   cron: string;
 };
 
-function getTargets(operations: WorkflowResponse["workflow"]["operations"]) {
+function getTargets(
+  operations: Workflow.WorkflowResponse["workflow"]["operations"],
+) {
   const targets = operations.filter((operation) => {
     return !operations.some((otherOperation) => {
       return (
@@ -76,7 +78,9 @@ function getTargets(operations: WorkflowResponse["workflow"]["operations"]) {
   return targets;
 }
 
-function getSources(operations: WorkflowResponse["workflow"]["operations"]) {
+function getSources(
+  operations: Workflow.WorkflowResponse["workflow"]["operations"],
+) {
   const sources = operations.filter((operation) => {
     return !operation.sources || operation.sources.length === 0;
   });
@@ -238,7 +242,7 @@ const columns: ColumnDef<WorkflowsTableColumn>[] = [
     },
     accessorKey: "workflow.name",
     cell: ({ row, getValue }) => {
-      const name = getValue() as WorkflowResponse["workflow"]["name"];
+      const name = getValue() as Workflow.WorkflowResponse["workflow"]["name"];
       const id = (row.original as any).id;
       return (
         <div className="font-medium">
@@ -279,7 +283,7 @@ const columns: ColumnDef<WorkflowsTableColumn>[] = [
     header: "Created",
     accessorKey: "createdAt",
     cell: ({ row, getValue }) => {
-      const createdAt = getValue() as WorkflowResponse["createdAt"];
+      const createdAt = getValue() as Workflow.WorkflowResponse["createdAt"];
       return relativeDate(createdAt!);
     },
   },
@@ -287,7 +291,7 @@ const columns: ColumnDef<WorkflowsTableColumn>[] = [
     header: "Last Run",
     accessorKey: "lastRunAt",
     cell: ({ row, getValue }) => {
-      const lastRunAt = getValue() as WorkflowResponse["lastRunAt"];
+      const lastRunAt = getValue() as Workflow.WorkflowResponse["lastRunAt"];
       return lastRunAt ? relativeDate(lastRunAt) : "Never";
     },
   },
@@ -295,7 +299,7 @@ const columns: ColumnDef<WorkflowsTableColumn>[] = [
     header: "Modified",
     accessorKey: "modifiedAt",
     cell: ({ row, getValue }) => {
-      const modifiedAt = getValue() as WorkflowResponse["modifiedAt"];
+      const modifiedAt = getValue() as Workflow.WorkflowResponse["modifiedAt"];
       return modifiedAt ? relativeDate(modifiedAt) : "N/A";
     },
   },
@@ -425,7 +429,7 @@ export const fetcher = async (url: string) => {
 type WorkflowTableProps = {
   workflows?: {
     id: string;
-    workflow: WorkflowResponse["workflow"] & {
+    workflow: Workflow.WorkflowResponse["workflow"] & {
       sources: any[];
       targets: any[];
     };

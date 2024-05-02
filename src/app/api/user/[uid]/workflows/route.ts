@@ -35,7 +35,7 @@ export async function GET(
       createdAt: createdAt?.getTime(),
       lastRunAt: workflowRuns[0]?.startedAt?.getTime(),
     }),
-  ) as WorkflowResponse[];
+  ) as Workflow.WorkflowResponse[];
 
   log.info(`Returning workflows for user ${session.user.id}`);
   return NextResponse.json(res);

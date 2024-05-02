@@ -58,7 +58,7 @@ export default async function reactFlowToWorkflow({
   nodes,
   edges,
 }: ReactFlowToWorkflowInput): Promise<{
-  workflowResponse: WorkflowResponse;
+  workflowResponse: Workflow.WorkflowResponse;
   errors: any;
 }> {
   const flowState = useStore.getState().flowState;
@@ -93,12 +93,12 @@ export default async function reactFlowToWorkflow({
 
   console.info("workflow", workflowObject);
 
-  const workflowResponse: WorkflowResponse = {
+  const workflowResponse: Workflow.WorkflowResponse = {
     id: workflowObject.id,
     name: workflowObject.name,
     workflow: workflowObject,
     cron: flowState.cron,
-  } as WorkflowResponse;
+  } as Workflow.WorkflowResponse;
 
   return { workflowResponse, errors };
 }

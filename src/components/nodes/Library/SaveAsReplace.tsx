@@ -39,7 +39,7 @@ import { PlaylistItem as PlaylistItemPrimitive } from "../Primitives/PlaylistIte
 
 type PlaylistProps = {
   id: string;
-  data: Playlist;
+  data: Workflow.Playlist;
 };
 
 const formSchema = z.object({
@@ -52,7 +52,7 @@ const PlaylistItem = ({
   playlist,
   onSelect,
 }: {
-  playlist: Playlist;
+  playlist: Workflow.Playlist;
   onSelect: () => void;
 }) => (
   <CommandItem
@@ -67,7 +67,7 @@ const PlaylistItem = ({
 function SaveAsReplaceComponent({ id, data }: PlaylistProps) {
   const [open, setOpen] = React.useState(false);
   const [selectedPlaylist, setSelectedPlaylist] =
-    React.useState<Playlist>(data);
+    React.useState<Workflow.Playlist>(data);
   const [search, setSearch] = React.useState("");
 
   const { session, updateNodeData, userPlaylists, nodes } = useStore(
@@ -107,7 +107,7 @@ function SaveAsReplaceComponent({ id, data }: PlaylistProps) {
       // Fetch playlist info
       fetch(`/api/user/@me/playlist/${data.playlistId}`)
         .then((response) => response.json())
-        .then((playlist: Playlist) => {
+        .then((playlist: Workflow.Playlist) => {
           setSelectedPlaylist(playlist);
         })
         .catch((error) => console.error("Error:", error));
@@ -164,7 +164,7 @@ function SaveAsReplaceComponent({ id, data }: PlaylistProps) {
       shouldValidate: true,
     });
     console.info("data after update", getNodeData(id));
-    setSelectedPlaylist(playlist as Playlist);
+    setSelectedPlaylist(playlist as Workflow.Playlist);
     setOpen(false);
   };
 

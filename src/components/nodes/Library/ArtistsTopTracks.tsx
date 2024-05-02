@@ -49,7 +49,7 @@ const ArtistsTopTracks: React.FC = ({ id, data }: any) => {
             register={register}
             placeholder={"0"}
             description={"The offset to start at"}
-            />
+          />
         </>
       )}
     />

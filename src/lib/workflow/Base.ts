@@ -1,7 +1,7 @@
+import _ from "lodash";
 import SpotifyWebApi from "spotify-web-api-node";
 import { env } from "~/env";
 import { Logger } from "../log";
-import _ from "lodash";
 
 export interface AccessToken {
   slug: string;
@@ -68,8 +68,11 @@ export class Base {
             await new Promise((resolve) =>
               setTimeout(resolve, retryAfter * 1000),
             );
-            const snapshot = await spClient.addTracksToPlaylist(playlistId, trackChunk);
-            log.info("Add Track Snapshot", snapshot.body.snapshot_id);
+            const snapshot = await spClient.addTracksToPlaylist(
+              playlistId,
+              trackChunk,
+            );
+            log.debug("Add Track Snapshot", snapshot.body.snapshot_id);
             break;
           } catch (error: any) {
             if (error.statusCode === 429) {
@@ -123,7 +126,7 @@ export class Base {
               playlistId,
               trackObjects,
             );
-            log.info("Remove Track Snapshot", snapshot.body.snapshot_id);
+            log.debug("Remove Track Snapshot", snapshot.body.snapshot_id);
             break;
           } catch (error: any) {
             if (error.statusCode === 429) {

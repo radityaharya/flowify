@@ -151,7 +151,7 @@ async function checkOrWakeWorkers() {
  * @throws If there is an error adding the job to the queue.
  */
 export async function createWorkflowQueue(
-  workflow: WorkflowObject,
+  workflow: Workflow.WorkflowObject,
   userId: string,
   workflowId: string,
 ) {

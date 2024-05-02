@@ -57,7 +57,7 @@ const worker = new Worker(
       slug: data.userId,
       access_token: accessToken,
     });
-    const workflow = data.workflow as WorkflowObject;
+    const workflow = data.workflow as Workflow.WorkflowObject;
     const operationCallback = createOperationCallback(job.id!);
     let res: any;
     try {

@@ -86,6 +86,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "1.7.1",
+    "@faker-js/faker": "^8.4.1",
     "@next/eslint-plugin-next": "^14.2.2",
     "@types/bun": "^1.1.0",
     "@types/eslint": "^8.56.9",

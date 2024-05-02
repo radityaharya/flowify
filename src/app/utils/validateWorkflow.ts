@@ -1,14 +1,10 @@
 import { toast } from "sonner";
-
-type validationResponse = {
-  valid: boolean;
-  errors: {
-    errorType: string;
-    operation: string;
-  }[];
-};
+import { ZodError } from "zod";
+type validationResponse =
+  | { success: true; data: Workflow.WorkflowObject }
+  | { success: false; error: ZodError };
 export async function requestValidateWorkflow(
-  workflow: WorkflowObject,
+  workflow: Workflow.WorkflowObject,
 ): Promise<validationResponse> {
   const data = await fetch("/api/workflow/validate", {
     method: "POST",
@@ -17,21 +13,23 @@ export async function requestValidateWorkflow(
     },
     body: JSON.stringify(workflow),
   });
-  const json = await data.json();
+  const json = (await data.json()) as validationResponse;
   return json;
 }
 
-export async function validateWorkflow(workflow: WorkflowObject) {
-  const validatePromise = requestValidateWorkflow(workflow).then((result) => {
-    if (result.errors.length > 0 || !result.valid) {
-      result.errors.forEach((error) => {
-        toast.error(`Error Type: ${error.errorType}`, {
-          description: `Operation: ${JSON.stringify(error.operation, null, 2)}`,
-        });
-      });
-      throw new Error(result.errors.map((error) => error.errorType).join(", "));
+export async function validateWorkflow(workflow: Workflow.WorkflowObject) {
+  const validatePromise = requestValidateWorkflow(workflow).then((response) => {
+    if (response.success) {
+      return { valid: true, errors: [] };
+    } else {
+      return {
+        valid: false,
+        errors: response.error.errors.map((error) => ({
+          errorType: error.message,
+          operation: error.path.join("."),
+        })),
+      };
     }
-    return result;
   });
 
   toast.promise(validatePromise, {

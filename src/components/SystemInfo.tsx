@@ -11,7 +11,7 @@ import Link from "next/link";
 import useSWR from "swr";
 
 export function SystemInfo() {
-  const { data, isLoading: workerLoading } = useSWR<SystemInfo>(
+  const { data, isLoading: workerLoading } = useSWR<Workflow.SystemInfo>(
     "/api/systeminfo",
     fetcher,
   );

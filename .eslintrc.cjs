@@ -44,6 +44,9 @@ const config = {
     "@typescript-eslint/consistent-indexed-object-style": "off",
     "@typescript-eslint/prefer-nullish-coalescing": "off",
     "prefer-const": "off",
+    "@typescript-eslint/no-unnecessary-type-assertion": "warn",
+    "@typescript-eslint/consistent-generic-constructors": "warn",
+    "@typescript-eslint/no-namespace": "warn",
   },
 };
 

@@ -205,26 +205,26 @@ export default class Filter extends Base {
     return [];
   }
 
-  trackFilter(
-    _spClient: SpotifyWebApi,
-    sources: any[],
-    params: { filterOperationId: string | undefined },
-  ) {
-    log.info("Filtering tracks...");
-    log.debug("Filter Sources:", sources);
+  // static trackFilter(
+  //   _spClient: SpotifyWebApi,
+  //   sources: any[],
+  //   params: { filterOperationId: string | undefined },
+  // ) {
+  //   log.info("Filtering tracks...");
+  //   log.debug("Filter Sources:", sources);
 
-    const tracks = Filter.getTracks(sources);
-    if (!params.filterOperationId) {
-      return tracks;
-    }
-    const filterTracks = Filter.getTracks(
-      this.operationValues.get(params.filterOperationId),
-    );
+  //   const tracks = Filter.getTracks(sources);
+  //   if (!params.filterOperationId) {
+  //     return tracks;
+  //   }
+  //   const filterTracks = Filter.getTracks(
+  //     this.operationValues.get(params.filterOperationId),
+  //   );
 
-    if (_.isArray(tracks) && _.isArray(filterTracks)) {
-      return _.differenceBy(tracks, filterTracks, "id");
-    }
+  //   if (_.isArray(tracks) && _.isArray(filterTracks)) {
+  //     return _.differenceBy(tracks, filterTracks, "id");
+  //   }
 
-    return [];
-  }
+  //   return [];
+  // }
 }

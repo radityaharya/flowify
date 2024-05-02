@@ -27,7 +27,7 @@ type RFState = {
     id?: string | null;
     name: string;
     description: string;
-    workflow?: WorkflowObject;
+    workflow?: Workflow.WorkflowObject;
     cron?: string;
     dryrun?: boolean;
   };
@@ -75,7 +75,7 @@ type RFState = {
     id?: string | null;
     name: string;
     description: string;
-    workflow?: WorkflowObject;
+    workflow?: Workflow.WorkflowObject;
     cron?: string;
     dryrun?: boolean;
   }) => void;
@@ -275,8 +275,8 @@ const useStore = create<RFState>((set, get) => ({
 }));
 
 type WorkflowRunState = {
-  workflowRun: QueueResponse | null;
-  setWorkflowRun: (workflowRun: QueueResponse) => void;
+  workflowRun: Workflow.QueueResponse | null;
+  setWorkflowRun: (workflowRun: Workflow.QueueResponse) => void;
   resetWorkflowRun: () => void;
 };
 
@@ -294,5 +294,5 @@ export const workflowRunStore = create<WorkflowRunState>((set, get) => ({
     });
   },
 }));
-  
+
 export default useStore;

@@ -40,7 +40,11 @@ const RandomStream: React.FC<PlaylistProps> = ({ id, data }) => {
         style={{ background: "#555" }}
       />
       <div className="flex flex-col gap-4">
-        <SourceList state={state} isValid={isValid} operationType="Selecting from" />
+        <SourceList
+          state={state}
+          isValid={isValid}
+          operationType="Selecting from"
+        />
         <Separator />
         <Debug
           id={id}

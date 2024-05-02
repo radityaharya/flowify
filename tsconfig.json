@@ -32,6 +32,7 @@
       "drizzle-orm": ["node_modules/drizzle-orm"],
       "@lib/*": ["./src/lib/*"],
       "@nodes/*": ["./src/components/nodes/*"],
+      "@schema": ["./src/schemas"],
     }
   },
   "include": [
@@ -42,7 +43,7 @@
     "**/*.cjs",
     ".next/types/**/*.ts",
     "node_modules/@types/**/*.ts",
-    "src/types.d.ts"
+    "src/schemas.ts",
   ],
   "exclude": ["node_modules"]
 }
