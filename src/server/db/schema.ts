@@ -1,6 +1,7 @@
 import { randomUUID } from "crypto";
 import { relations, sql } from "drizzle-orm";
 import {
+  boolean,
   index,
   integer as int,
   integer,
@@ -106,6 +107,7 @@ export const workflowJobs = pgTable(
     modifiedAt: timestamp("modifiedAt", { mode: "date" }),
     userId: varchar("userId", { length: 255 }).notNull(),
     cron: varchar("cron", { length: 255 }),
+    deleted: boolean("deleted"),
   },
   (workflowJob) => ({
     userIdIdx: index("workflowJobs_userId_idx").on(workflowJob.userId),

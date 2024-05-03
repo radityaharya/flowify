@@ -18,7 +18,7 @@ function PageHeader({
       >
         {children}
       </div>
-      <div className="absolute top-0 left-0 z-[1] h-full w-full bg-background opacity-70" />
+      <div className="absolute top-0 left-0 z-[1] h-full w-full bg-background opacity-40 blur-sm" />
       <GradientBackground />
     </section>
   );

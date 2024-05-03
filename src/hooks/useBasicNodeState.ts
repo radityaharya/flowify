@@ -55,7 +55,7 @@ const usePlaylistLogic = (id: string, formSchema?: ZodObject<any>) => {
 
     targetConnections.forEach((connection) => {
       const node = getNode(connection.source);
-      const target = node!.data;
+      const target = node?.data;
       if (!target) return;
 
       let {
@@ -77,10 +77,10 @@ const usePlaylistLogic = (id: string, formSchema?: ZodObject<any>) => {
         invalidNodesCount++;
       }
       
-      if (currentNode!.type === "Selector.recommend") {
+      if (currentNode?.type === "Selector.recommend") {
         playlistId = `recommend-${playlistId}`;
         name = `[Recommended] ${name}`;
-        total = currentNode!.data.count;
+        total = currentNode?.data.count;
       }
       const playlist: Workflow.Playlist = {
         playlistId: playlistId as string,

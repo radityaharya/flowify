@@ -4,7 +4,7 @@ import { Logger } from "~/lib/log";
 
 const logger = new Logger("middleware:userApi");
 
-const matchPaths = ["/api/user", "/api/workflow"];
+const matchPaths = ["/api/user", "/api/workflow", "/workflow"];
 
 const secret = process.env.NEXTAUTH_SECRET;
 
@@ -121,6 +121,10 @@ export const withUserApi = (
       logger.debug("Match!");
 
       const user = await getUser(request);
+
+      if (!user && pathname.startsWith("/workflow")) {
+        return NextResponse.redirect(new URL("/auth/login", process.env.NEXTAUTH_URL));
+      }
 
       if (!user) {
         return errorResponse("Not authenticated", 401);

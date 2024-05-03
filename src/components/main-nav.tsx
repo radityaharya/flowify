@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 
 import useStore from "@/app/states/store";
 import { useMemo } from "react";
+import { Session } from "next-auth";
 
 interface NavLinkProps extends LinkProps {
   href: string;
@@ -72,7 +73,7 @@ export function MainNav() {
           Flowify
         </div>
       </Link>
-      <nav className="flex items-center gap-2 text-sm">
+      <nav className="hidden sm:flex items-center gap-2 text-sm">
         <NavLink
           href="/workflow"
           onClick={() => resetReactFlow()}
@@ -100,21 +101,23 @@ export function MainNav() {
 }
 interface SiteNavProps {
   className?: string;
+  session: Session | null;
 }
 
-export function SiteNav({ className }: SiteNavProps) {
-  const { data: session } = useSession();
+export function SiteNav({ className, session }: SiteNavProps) {
+  // const { data: session } = useSession();
   const pathname = usePathname();
 
   const navClass = useMemo(() => {
     let classes =
-      "select-none sticky top-0 z-[3] flex w-full items-center justify-between bg-transparent px-6 py-4 backdrop-blur-md";
+      "select-none sticky top-0 z-[20] flex w-full items-center justify-between bg-transparent px-6 py-4 backdrop-blur-md";
     if (/\/workflow(?!s)/.test(pathname))
       classes += " absolute border-b bg-background backdrop-blur-none";
     if (pathname === "/") classes += " absolute";
     if (pathname.startsWith("/auth"))
       classes += " absolute bg-transparent backdrop-blur-none";
     if (pathname.startsWith("/auth/p")) classes += " hidden";
+    if (pathname.startsWith("/workflows")) classes += " border-b";
     return classes;
   }, [pathname]);
 
@@ -122,7 +125,9 @@ export function SiteNav({ className }: SiteNavProps) {
     <div className={cn(navClass, className)}>
       <MainNav />
       <div className="flex flex-row gap-6 items-center">
+        <div className="hidden sm:block">
         <SystemInfo />
+        </div>
         {session ? (
           <div className="flex flex-row items-center gap-4">
             <span className="font-medium text-foreground text-sm">

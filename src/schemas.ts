@@ -275,14 +275,23 @@ export const WorkflowObjectSchema = z
     return true;
   });
 
+const WorkflowRunSchema = z.object({
+  id: z.string(),
+  workflowId: z.string(),
+  completedAt: z.optional(z.number()),
+  startedAt: z.number(),
+  error: z.optional(z.string()),
+  workerId: z.string(),
+});
+
 const WorkflowResponseSchema = z.object({
   id: z.optional(z.string()),
-  name: z.string(),
   workflow: WorkflowObjectSchema,
   cron: z.optional(z.string()),
   createdAt: z.optional(z.number()),
   lastRunAt: z.optional(z.number()),
   modifiedAt: z.optional(z.number()),
+  runs: z.optional(z.array(WorkflowRunSchema)),
 });
 
 const WorkflowRunOperationSchema = z.object({
@@ -325,8 +334,6 @@ const SystemInfoSchema = z.object({
     }),
   ]),
 });
-
-
 
 declare global {
   namespace Workflow {
