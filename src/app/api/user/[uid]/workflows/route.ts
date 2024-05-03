@@ -40,9 +40,11 @@ export async function GET(
   }
 
   const workflows = await db.query.workflowJobs.findMany({
-    where: (workflowJobs, { eq, or, isNull }) =>
-      eq(workflowJobs.userId, session.user.id) &&
-      or(isNull(workflowJobs.deleted), eq(workflowJobs.deleted, false)),
+    where: (workflowJobs, { eq, and, or, isNull }) =>
+      and(
+        eq(workflowJobs.userId, session.user.id),
+        or(isNull(workflowJobs.deleted), eq(workflowJobs.deleted, false)),
+      ),
     with: {
       workflowRuns: {
         columns: {
