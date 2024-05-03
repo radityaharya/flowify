@@ -51,15 +51,6 @@ type PlaylistProps = {
   data: Workflow.Playlist;
 };
 
-type Playlist = {
-  playlistId?: string;
-  name?: string;
-  description?: string;
-  image?: string;
-  total?: number;
-  owner?: string;
-};
-
 const formSchema = z.object({
   playlistId: z.string().min(1, {
     message: "Playlist is required.",

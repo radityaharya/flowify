@@ -25,14 +25,6 @@ type PlaylistProps = {
   data: any;
 };
 
-type Playlist = {
-  playlistId?: string;
-  name?: string;
-  description?: string;
-  image?: string;
-  total?: number;
-  owner?: string;
-};
 
 const formSchema = z.object({
   filterKey: z.string().min(1, {

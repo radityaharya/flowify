@@ -29,7 +29,7 @@ const DebugInfo = ({
           data: {JSON.stringify(getNodeData(id), null, 2)}
         </pre>
       </pre>
-      <ScrollArea className="nodrag flex max-h-[200px] flex-col gap-2 overflow-auto overflow-x-hidden py-2">
+      <ScrollArea className="nodrag flex max-h-[1200px] flex-col gap-2 overflow-auto overflow-x-hidden py-2">
         <pre className="text-xs">TargetConnections:</pre>
         {TargetConnections?.map((connection) => (
           <pre key={connection.source} className="py-1 text-xs">

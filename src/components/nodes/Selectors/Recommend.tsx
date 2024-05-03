@@ -52,12 +52,12 @@ const Recommend: React.FC<PlaylistProps> = ({ id, data }) => {
     if (data) {
       const parsedData = {
         seedType: data.seedType || "tracks",
-        count: data.count || 20,
+        count: data.count || 27,
       };
       form!.reset(parsedData);
       form?.setValue("seedType", parsedData.seedType);
     }
-  }, [data, form]);
+  }, [data]);
 
   const watch = form!.watch();
   const prevWatchRef = React.useRef(watch);
@@ -109,11 +109,11 @@ const Recommend: React.FC<PlaylistProps> = ({ id, data }) => {
             <InputPrimitive
               control={form!.control}
               name="count"
-              inputType={"Number"}
-              label={"Number"}
+              inputType={"number"}
+              label={"Count"}
               placeholder="20"
               register={register!}
-              description={`Numbers of tracks tp generate`}
+              description={`Numbers of tracks to generate`}
             />
             <Separator />
             <InputPrimitive
@@ -130,13 +130,12 @@ const Recommend: React.FC<PlaylistProps> = ({ id, data }) => {
               }
               selectOptions={selectOptions}
               register={register!}
-              description={`The operation to perform`}
+              description={`The type of seed to use for the recommendation engine.`}
             />
             <Separator />
           </div>
         </form>
       </Form>
-      <Separator className="my-2" />
       <Debug
         id={id}
         isValid={nodeValid}

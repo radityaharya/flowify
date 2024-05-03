@@ -9,21 +9,7 @@ type ReactFlowToWorkflowInput = {
   edges: Edge[];
 };
 
-function filterNodes(nodes) {
-  return nodes.filter((node) => node.type?.match(/\w+\.\w+/));
-}
-
-function removeUnnecessaryData(nodes) {
-  nodes.forEach((node) => {
-    if (node.type === "Combiner.alternate") {
-      node.params.playlists = undefined;
-      node.params.playlistIds = undefined;
-    }
-  });
-}
-
 function addNodesToWorkflow(nodes, workflow) {
-  let _hasSource = false;
 
   nodes.forEach((node) => {
     const typeWithoutPostfix = node.type!.split("-")[0];
@@ -78,7 +64,6 @@ export default async function reactFlowToWorkflow({
   if (nodes.length > 0 && edges.length > 0) {
     addNodesToWorkflow(nodes, workflowObject);
     addEdgesToWorkflow(edges, workflowObject);
-    removeUnnecessaryData(workflowObject.operations);
     const response = await validateWorkflow(workflowObject);
     valid = response.valid;
     errors = response.errors;

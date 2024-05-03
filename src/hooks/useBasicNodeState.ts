@@ -1,24 +1,16 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useHandleConnections } from "@xyflow/react";
+import { useHandleConnections, getIncomers, getOutgoers } from "@xyflow/react";
 import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { type ZodObject } from "zod";
 import { useShallow } from "zustand/react/shallow";
 import useStore from "~/app/states/store";
 
-type Playlist = {
-  playlistId?: string;
-  name?: string;
-  description?: string;
-  image?: string;
-  owner?: string;
-  total?: number;
-};
-
 const usePlaylistLogic = (id: string, formSchema?: ZodObject<any>) => {
-  const { nodes, getNode, updateNodeData } = useStore(
+  const { nodes, edges, getNode, updateNodeData } = useStore(
     useShallow((state) => ({
       nodes: state.nodes,
+      edges: state.edges,
       getNode: state.getNode,
       updateNodeData: state.updateNodeData,
     })),
@@ -32,6 +24,7 @@ const usePlaylistLogic = (id: string, formSchema?: ZodObject<any>) => {
 
   const { formState, register } = form ?? {};
 
+  const currentNode = getNode(id);
   const getNodeData = (id: string) => getNode(id)?.data;
 
   const targetConnections = useHandleConnections({
@@ -61,10 +54,11 @@ const usePlaylistLogic = (id: string, formSchema?: ZodObject<any>) => {
     }
 
     targetConnections.forEach((connection) => {
-      const target = getNodeData(connection.source);
+      const node = getNode(connection.source);
+      const target = node!.data;
       if (!target) return;
 
-      const {
+      let {
         playlistId,
         playlistIds = [],
         total,
@@ -75,13 +69,19 @@ const usePlaylistLogic = (id: string, formSchema?: ZodObject<any>) => {
         playlists = [],
       } = target as any;
 
+      
       const hasPlaylistId = Boolean(playlistId);
       const hasPlaylistIds = Boolean(playlistIds && playlistIds.length > 0);
 
       if (!(hasPlaylistId || hasPlaylistIds)) {
         invalidNodesCount++;
       }
-
+      
+      if (currentNode!.type === "Selector.recommend") {
+        playlistId = `recommend-${playlistId}`;
+        name = `[Recommended] ${name}`;
+        total = currentNode!.data.count;
+      }
       const playlist: Workflow.Playlist = {
         playlistId: playlistId as string,
         name: name as string,
@@ -103,7 +103,8 @@ const usePlaylistLogic = (id: string, formSchema?: ZodObject<any>) => {
     const combinedPlaylists = Array.from(playlistsSet)
       .filter(Boolean)
       .filter((playlist) => Object.keys(playlist).length !== 0)
-      .filter((playlist) => playlist.playlistId);
+      .filter((playlist) => playlist.playlistId)
+      .filter((playlist) => playlist.playlistId !== "recommended");
 
     return {
       playlistIds: combinedPlaylistIds,

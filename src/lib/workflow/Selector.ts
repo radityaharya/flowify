@@ -155,13 +155,22 @@ export default class Selector extends Base {
     const tracks = Selector.getTracks(sources);
 
     const seedTracks = new Array<SpotifyApi.TrackObjectFull>();
+    let maxRetry = 5;
 
     if (Array.isArray(tracks)) {
-      const res = new Set<SpotifyApi.TrackObjectFull>();
-      while (res.size < 5) {
-        // 5 is the max number of seed shared between tracks, artists, and genres
-        const randomIndex = Math.floor(Math.random() * tracks.length);
-        res.add(tracks[randomIndex]!);
+      let res = new Set<SpotifyApi.TrackObjectFull>();
+      if (tracks.length < 5) {
+        res = new Set(tracks);
+      } else {
+        while (res.size < 5) {
+          if (maxRetry === 0) {
+            throw new Error("Failed to get seed tracks");
+          }
+          // 5 is the max number of seed shared between tracks, artists, and genres
+          const randomIndex = Math.floor(Math.random() * tracks.length);
+          res.add(tracks[randomIndex]!);
+          maxRetry--;
+        }
       }
       seedTracks.push(...Array.from(res));
     } else {
