@@ -123,7 +123,9 @@ export const withUserApi = (
       const user = await getUser(request);
 
       if (!user && pathname.startsWith("/workflow")) {
-        return NextResponse.redirect(new URL("/auth/login", process.env.NEXTAUTH_URL));
+        return NextResponse.redirect(
+          new URL("/auth/login", process.env.NEXTAUTH_URL),
+        );
       }
 
       if (!user) {

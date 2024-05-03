@@ -10,7 +10,6 @@ type ReactFlowToWorkflowInput = {
 };
 
 function addNodesToWorkflow(nodes, workflow) {
-
   nodes.forEach((node) => {
     const typeWithoutPostfix = node.type!.split("-")[0];
     workflow.operations.push({

@@ -1,6 +1,4 @@
 "use client";
-
-import { SessionProvider } from "next-auth/react";
 import { type ReactNode } from "react";
 import { SWRConfig } from "swr";
 export default function SWRCacheProvider({

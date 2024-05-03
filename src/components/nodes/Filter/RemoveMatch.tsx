@@ -25,7 +25,6 @@ type PlaylistProps = {
   data: any;
 };
 
-
 const formSchema = z.object({
   filterKey: z.string().min(1, {
     message: "Playlist is required.",

@@ -1,30 +1,24 @@
 "use client";
 
-import { formatDistanceToNow } from "date-fns";
 import {
-  ArrowUpDown,
-  Calendar,
-  ChevronsUpDown,
-  Clock,
-  RefreshCcw,
-} from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import useSWR, { mutate } from "swr";
-import { Button, buttonVariants } from "~/components/ui/button";
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import { formatDistanceToNow } from "date-fns";
+import { ArrowUpDown, Calendar, ChevronsUpDown, Clock } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useState } from "react";
+import useSWR from "swr";
+import { Badge } from "~/components/ui/badge";
+import { Button, buttonVariants } from "~/components/ui/button";
 import {
   Card,
   CardContent,
@@ -34,7 +28,6 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 import { Skeleton } from "~/components/ui/skeleton";
-import { Badge } from "~/components/ui/badge";
 import { runWorkflow } from "../utils/runWorkflow";
 
 function getTargets(
@@ -512,7 +505,9 @@ export function WorkflowsGrid({ workflows }: WorkflowTableProps) {
             ) : data && data.length > 0 ? (
               data.map((d) => <WorkflowCard key={d.id} d={d} />)
             ) : (
-              <p className="text-muted-foreground">You have no workflows! Make a new one by clicking the button</p>
+              <p className="text-muted-foreground">
+                You have no workflows! Make a new one by clicking the button
+              </p>
             )}
           </div>
         </div>

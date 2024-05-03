@@ -1,29 +1,14 @@
 "use client";
 
-import { formatDistanceToNow } from "date-fns";
-import {
-  ArrowUpDown,
-  Calendar,
-  ChevronsUpDown,
-  RefreshCcw,
-} from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import useSWR from "swr";
-import { Button, buttonVariants } from "~/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import { formatDistanceToNow } from "date-fns";
+import { useState } from "react";
+import useSWR from "swr";
 import {
   Card,
   CardContent,
@@ -33,8 +18,6 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 import { Skeleton } from "~/components/ui/skeleton";
-import { like } from "drizzle-orm";
-
 
 function relativeDate(date: number) {
   const dateObj = new Date(date);
@@ -68,22 +51,15 @@ interface PlaylistCardProps {
   };
 }
 
-
 const RunCard = ({ d }) => {
   return (
     <Card>
-        <CardHeader>
-          <CardTitle className="text-base">{d.workflow.name}</CardTitle>
-          <CardDescription className="text-balance">
-            
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-
-        </CardContent>
-        <CardFooter className="text-muted-foreground text-sm flex flex-col gap-2 items-start">
-        
-        </CardFooter>
+      <CardHeader>
+        <CardTitle className="text-base">{d.workflow.name}</CardTitle>
+        <CardDescription className="text-balance"></CardDescription>
+      </CardHeader>
+      <CardContent></CardContent>
+      <CardFooter className="text-muted-foreground text-sm flex flex-col gap-2 items-start"></CardFooter>
     </Card>
   );
 };
@@ -110,7 +86,7 @@ const CardSkeleton = () => {
       </CardFooter>
     </Card>
   );
-}
+};
 
 export const fetcher = async (url: string) => {
   const res = await fetch(url);
@@ -125,7 +101,7 @@ export const fetcher = async (url: string) => {
     throw error;
   }
 
-  const data = await res.json() as Workflow.WorkflowResponse[];
+  const data = (await res.json()) as Workflow.WorkflowResponse[];
   // return data.map((workflow) => {
   //   return {
   //     id: workflow.id,

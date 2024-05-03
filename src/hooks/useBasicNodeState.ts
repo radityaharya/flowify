@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useHandleConnections, getIncomers, getOutgoers } from "@xyflow/react";
+import { useHandleConnections } from "@xyflow/react";
 import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { type ZodObject } from "zod";
@@ -69,14 +69,13 @@ const usePlaylistLogic = (id: string, formSchema?: ZodObject<any>) => {
         playlists = [],
       } = target as any;
 
-      
       const hasPlaylistId = Boolean(playlistId);
       const hasPlaylistIds = Boolean(playlistIds && playlistIds.length > 0);
 
       if (!(hasPlaylistId || hasPlaylistIds)) {
         invalidNodesCount++;
       }
-      
+
       if (currentNode?.type === "Selector.recommend") {
         playlistId = `recommend-${playlistId}`;
         name = `[Recommended] ${name}`;

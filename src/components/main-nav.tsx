@@ -6,12 +6,11 @@ import { usePathname } from "next/navigation";
 import { buttonVariants } from "~/components/ui/button";
 
 import { cn } from "@/lib/utils";
-import { useSession } from "next-auth/react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 
 import useStore from "@/app/states/store";
-import { useMemo } from "react";
 import { Session } from "next-auth";
+import { useMemo } from "react";
 
 interface NavLinkProps extends LinkProps {
   href: string;
@@ -126,7 +125,7 @@ export function SiteNav({ className, session }: SiteNavProps) {
       <MainNav />
       <div className="flex flex-row gap-6 items-center">
         <div className="hidden sm:block">
-        <SystemInfo />
+          <SystemInfo />
         </div>
         {session ? (
           <div className="flex flex-row items-center gap-4">

@@ -1,11 +1,11 @@
 import "~/styles/globals.css";
 
 import { Toaster } from "@/components/ui/sonner";
+import { getServerSession } from "next-auth";
 import { Inter } from "next/font/google";
 import { SiteNav } from "~/components/main-nav";
 import NextAuthProvider from "~/providers/NextAuthProvider";
 import SWRCacheProvider from "~/providers/SWRCacheProvider";
-import { getServerSession } from 'next-auth';
 
 const inter = Inter({
   subsets: ["latin"],
@@ -24,7 +24,6 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  
   const session = await getServerSession();
 
   return (

@@ -53,6 +53,7 @@ export async function GET(
           completedAt: true,
           error: true,
         },
+        orderBy: (workflowRuns, { desc }) => [desc(workflowRuns.startedAt)],
       },
     },
   });
@@ -68,7 +69,7 @@ export async function GET(
       workflow: workflow && JSON.parse(workflow),
       createdAt: createdAt?.getTime(),
       lastRunAt: workflowRuns[0]?.startedAt?.getTime(),
-      runs: workflowRuns
+      runs: workflowRuns,
     })),
   );
 
