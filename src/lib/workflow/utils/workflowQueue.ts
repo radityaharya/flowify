@@ -61,13 +61,25 @@ export async function updateWorkflowJob(_userId: string, job: any) {
     .update(workflowJobs)
     .set({
       workflow: JSON.stringify(job.data.workflow),
-      modifiedAt: new Date(job.timestamp as number),
+      modifiedAt: new Date(job.timestamp as number) || new Date(),
     })
     .where(eq(workflowJobs.id, job.id as string));
   const res = await db.query.workflowJobs.findFirst({
     where: (workflowJobs, { eq }) => eq(workflowJobs.id, job.id as string),
   });
   return res;
+}
+
+export async function deleteWorkflowJob(jobId: string) {
+  log.info("Deleting workflow job", jobId);
+  const deleted = await db
+    .update(workflowJobs)
+    .set({
+      deleted: true,
+      modifiedAt: new Date(),
+    })
+    .where(eq(workflowJobs.id, jobId));
+  return deleted;
 }
 
 /**

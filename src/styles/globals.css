@@ -128,9 +128,9 @@ path.react-flow__edge-path:hover {
   z-index: -1;
 }
 
-html{
+/* body{
   scrollbar-gutter: stable;
-}
+} */
 
 /* Width */
 ::-webkit-scrollbar {

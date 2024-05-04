@@ -11,6 +11,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import useStore from "@/app/states/store";
 import { Session } from "next-auth";
 import { useMemo } from "react";
+import useSWR from "swr";
+import { fetcher } from "~/app/utils/fetcher";
 
 interface NavLinkProps extends LinkProps {
   href: string;
@@ -105,6 +107,9 @@ interface SiteNavProps {
 
 export function SiteNav({ className, session }: SiteNavProps) {
   // const { data: session } = useSession();
+  const { data: sessionData } = useSWR("/api/auth/session", fetcher, {
+    fallbackData: session || undefined,
+  });
   const pathname = usePathname();
 
   const navClass = useMemo(() => {
@@ -116,7 +121,7 @@ export function SiteNav({ className, session }: SiteNavProps) {
     if (pathname.startsWith("/auth"))
       classes += " absolute bg-transparent backdrop-blur-none";
     if (pathname.startsWith("/auth/p")) classes += " hidden";
-    if (pathname.startsWith("/workflows")) classes += " border-b";
+    if (pathname.startsWith("/workflows")) classes += " border-b bg-accent/10";
     return classes;
   }, [pathname]);
 
@@ -127,19 +132,19 @@ export function SiteNav({ className, session }: SiteNavProps) {
         <div className="hidden sm:block">
           <SystemInfo />
         </div>
-        {session ? (
+        {sessionData?.user ? (
           <div className="flex flex-row items-center gap-4">
             <span className="font-medium text-foreground text-sm">
-              {`${session.user.name}`}
+              {`${sessionData.user.name}`}
             </span>
             <Avatar className="h-8 w-8">
               <AvatarImage
-                src={session?.user?.image ?? ""}
-                alt={session?.user?.name ?? ""}
+                src={sessionData?.user?.image ?? ""}
+                alt={sessionData?.user?.name ?? ""}
               />
               <AvatarFallback className="font-medium text-sm">
                 {/* biome-ignore lint/correctness/useJsxKeyInIterable: <explanation> */}
-                {session?.user?.name?.split(" ").map((n) => n[0])}
+                {sessionData?.user?.name?.split(" ").map((n) => n[0])}
               </AvatarFallback>
             </Avatar>
           </div>

@@ -6,7 +6,5 @@ export default function SWRCacheProvider({
 }: {
   children: ReactNode;
 }) {
-  return (
-    <SWRConfig value={{ provider: () => new Map() }}>{children}</SWRConfig>
-  );
+  return <SWRConfig>{children}</SWRConfig>;
 }

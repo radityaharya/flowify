@@ -1,5 +1,6 @@
 import { toast } from "sonner";
 import useStore, { workflowRunStore } from "../states/store";
+import { mutate } from "swr";
 
 export async function runWorkflow(workflow: Workflow.WorkflowResponse) {
   if (!workflow.id) {
@@ -72,6 +73,7 @@ export async function runWorkflow(workflow: Workflow.WorkflowResponse) {
       setTimeout(() => {
         workflowRun.resetWorkflowRun();
       }, 5000);
+      mutate(`/api/user/@me/workflows`, undefined, { revalidate: true });
       return "Workflow completed successfully";
     },
     error: (data) => {

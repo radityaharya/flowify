@@ -12,11 +12,19 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { formatDistanceToNow } from "date-fns";
-import { ArrowUpDown, Calendar, ChevronsUpDown, Clock } from "lucide-react";
+import {
+  ArrowUpDown,
+  Calendar,
+  ChevronsUpDown,
+  Clock,
+  MoreVertical,
+  PenBox,
+  Trash,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import useSWR from "swr";
+import useSWR, { mutate } from "swr";
 import { Badge } from "~/components/ui/badge";
 import { Button, buttonVariants } from "~/components/ui/button";
 import {
@@ -29,6 +37,15 @@ import {
 } from "~/components/ui/card";
 import { Skeleton } from "~/components/ui/skeleton";
 import { runWorkflow } from "../utils/runWorkflow";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
 
 function getTargets(
   operations: Workflow.WorkflowResponse["workflow"]["operations"],
@@ -251,13 +268,54 @@ const CardSkeleton = () => (
   </Card>
 );
 
+const WorkflowCardDropdownMenu = ({ id }) => {
+  const onDelete = () => {
+    const deletePromise = fetch(`/api/workflow/${id}/delete`, {
+      method: "POST",
+    });
+    toast.promise(deletePromise, {
+      loading: "Deleting workflow...",
+      success: (_data) => {
+        mutate(`/api/user/@me/workflows`, undefined, { revalidate: true });
+        return "Workflow deleted.";
+      },
+      error: "Failed to delete workflow.",
+    });
+  };
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" className="px-2">
+          <MoreVertical className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-56" side="right">
+        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+        <DropdownMenuItem asChild>
+          <Link href={`/workflow/${id}`}>
+            <PenBox className="h-4 w-4 mr-2" />
+            Edit
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={onDelete}
+          className="bg-red-600 focus:bg-red-500"
+        >
+          <Trash className="h-4 w-4 mr-2" />
+          Delete
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
+
 const WorkflowCard = ({ d }) => {
   const name = d.workflow.name;
   const id = d.id;
 
   const handleRunClick = (event: React.MouseEvent) => {
-    event.preventDefault();
-    runWorkflow(d.workflow);
+    runWorkflow(d.workflow)
   };
 
   return (
@@ -265,13 +323,34 @@ const WorkflowCard = ({ d }) => {
       <CardHeader className="flex flex-row justify-between w-full">
         <div>
           <CardTitle className="text-base">{d.workflow.name}</CardTitle>
-          <CardDescription className="text-balance">
-            {d.workflow.description || "No description"}
+          <CardDescription className="text-balance space-y-2">
+            <div>{d.workflow.description || "No description"}</div>
+            <div className="space-x-2">
+              <Badge
+                className="text-xs font-normal items-center gap-1 text-muted-foreground"
+                variant={"outline"}
+              >
+                <ArrowUpDown className="h-3 w-3" />
+                <span>{d.workflow.operations.length} operations</span>
+              </Badge>
+              {d.averageRunTime !== 0 && !Number.isNaN(d.averageRunTime) && (
+                <Badge
+                  className="text-xs font-normal items-center gap-1 text-muted-foreground"
+                  variant={"outline"}
+                >
+                  <Clock className="h-3 w-3" />
+                  <span>{(d.averageRunTime / 1000).toFixed(2)}s</span>
+                </Badge>
+              )}
+            </div>
           </CardDescription>
         </div>
-        <Button variant="outline" onClick={handleRunClick} className="z-[3]">
-          {"Run"}
-        </Button>
+        <div className="flex flex-row gap-1 z-[3]">
+          <Button variant="outline" onClick={handleRunClick}>
+            {"Run"}
+          </Button>
+          <WorkflowCardDropdownMenu id={id} />
+        </div>
       </CardHeader>
       <CardContent>
         <div className="flex flex-col gap-4">
@@ -295,12 +374,12 @@ const WorkflowCard = ({ d }) => {
           </div>
         </div>
       </CardContent>
-      <CardFooter className="text-muted-foreground text-sm flex flex-col sm:flex-row gap-2 items-start sm:items-center">
-        <div className="flex text-xs items-center gap-1">
+      <CardFooter className="text-muted-foreground text-sm flex flex-col xl:flex-row gap-2 items-start xl:items-center">
+        {/* <div className="flex text-xs items-center gap-1">
           <ArrowUpDown className="h-4 w-4" />
           <span>{d.workflow.operations.length} operations</span>
-        </div>
-        <div className="flex text-xs flex-row gap-2">
+        </div> */}
+        <div className="flex text-xs flex-row gap-2 flex-wrap">
           <Calendar className="h-4 w-4" />
           <div className="flex items-center gap-1">
             created
@@ -324,8 +403,19 @@ const WorkflowCard = ({ d }) => {
   );
 };
 
+const EmptyWorkflowCard = () => (
+  <Card className="flex flex-col items-center justify-center col-span-2 py-32 w-full">
+    <h1 className="text-xl font-base text-muted-foreground">
+      You have no workflows!
+    </h1>
+    <Link href="/workflow" className="mt-4">
+      <Button variant="outline">Create Workflow</Button>
+    </Link>
+  </Card>
+);
+
 const RunCardSkeleton = () => (
-  <Card className="w-full sm:w-[300px]">
+  <Card className="w-full xl:w-[300px]">
     <CardHeader className="pb-2">
       <CardTitle>
         <Skeleton className="h-5 w-20" />
@@ -341,11 +431,23 @@ const RunCardSkeleton = () => (
   </Card>
 );
 
+const EmptyRunCard = () => (
+  <Card className="w-full xl:w-[300px]">
+    <CardHeader className="pb-2">
+      <CardTitle></CardTitle>
+    </CardHeader>
+    <CardContent className="flex flex-row gap-1 pb-2">
+      <span className="text-muted-foreground">You'll find your runs here!</span>
+    </CardContent>
+    <CardFooter className="flex flex-row gap-1"></CardFooter>
+  </Card>
+);
+
 const RunCard = ({ run }) => {
   return (
-    <Card key={run.id} className="w-full sm:w-[300px]">
+    <Card key={run.id} className="w-full xl:w-[300px]">
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-normal">
+        <CardTitle className="text-sm font-medium">
           <Link href={`/workflow/${run.workflow.id}`}>
             {run.workflow.workflow.name}
           </Link>
@@ -353,15 +455,15 @@ const RunCard = ({ run }) => {
       </CardHeader>
       <CardContent className="pb-2 text-muted-foreground text-sm flex flex-row gap-2 items-start">
         {run.error ? (
-          <Badge variant="secondary" className="bg-red-500/50">
+          <Badge variant="secondary" className="bg-red-600">
             Failed
           </Badge>
         ) : run.completedAt ? (
-          <Badge variant="secondary" className="bg-green-500/50">
+          <Badge variant="secondary" className="bg-green-600">
             Completed
           </Badge>
         ) : (
-          <Badge variant="secondary" className="bg-amber-500/50">
+          <Badge variant="secondary" className="bg-amber-600">
             Pending
           </Badge>
         )}
@@ -403,6 +505,19 @@ export const fetcher = async (url: string) => {
 
   const data = (await res.json()) as Workflow.WorkflowResponse[];
   return data.map((workflow) => {
+    const runs = workflow.runs || [];
+    const runTimes = runs.map(
+      (run) =>
+        new Date(run.completedAt!).getTime() -
+        new Date(run.startedAt).getTime(),
+    );
+    let averageRunTime =
+      runTimes.reduce((a, b) => a + b, 0) / (runTimes.length || 1) || 0;
+
+    if (averageRunTime <= 0) {
+      averageRunTime = NaN;
+    }
+
     return {
       id: workflow.id,
       workflow: {
@@ -415,7 +530,8 @@ export const fetcher = async (url: string) => {
       lastRunAt: workflow.lastRunAt,
       modifiedAt: workflow.modifiedAt,
       cron: workflow.cron,
-      runs: workflow.runs,
+      runs: runs,
+      averageRunTime,
     };
   });
 };
@@ -431,6 +547,7 @@ type WorkflowTableProps = {
     lastRunAt: number;
     modifiedAt: number;
     cron: string;
+    averageRunTime: number | undefined;
   }[];
 };
 
@@ -466,10 +583,10 @@ export function WorkflowsGrid({ workflows }: WorkflowTableProps) {
       (a, b) =>
         new Date(b!.startedAt).getTime() - new Date(a!.startedAt).getTime(),
     )
-    .slice(0, 5);
+    .slice(0, 500);
 
   return (
-    <div className="pt-2 flex h-full flex-col-reverse sm:flex-row w-full gap-6">
+    <div className="pt-2 flex h-full flex-col-reverse xl:flex-row w-full gap-10">
       <div id="workflow-runs" className="flex flex-col items-start flex-shrink">
         <div className="pb-1 flex flex-row items-start">
           <h1 className="text-xl font-medium leading-9 tracking-tight">
@@ -482,7 +599,7 @@ export function WorkflowsGrid({ workflows }: WorkflowTableProps) {
           ) : runs && runs.length > 0 ? (
             runs.map((run) => (run ? <RunCard key={run.id} run={run} /> : null))
           ) : (
-            <p className="text-muted-foreground">No runs available.</p>
+            <EmptyRunCard />
           )}
         </div>
       </div>
@@ -499,15 +616,13 @@ export function WorkflowsGrid({ workflows }: WorkflowTableProps) {
           </Link>
         </div>
         <div className="py-3">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
             {isLoading ? (
               Array.from({ length: 6 }, (_, i) => <CardSkeleton key={i} />)
             ) : data && data.length > 0 ? (
               data.map((d) => <WorkflowCard key={d.id} d={d} />)
             ) : (
-              <p className="text-muted-foreground">
-                You have no workflows! Make a new one by clicking the button
-              </p>
+              <EmptyWorkflowCard />
             )}
           </div>
         </div>
