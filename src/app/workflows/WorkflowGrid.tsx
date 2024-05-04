@@ -583,7 +583,7 @@ export function WorkflowsGrid({ workflows }: WorkflowTableProps) {
       (a, b) =>
         new Date(b!.startedAt).getTime() - new Date(a!.startedAt).getTime(),
     )
-    .slice(0, 500);
+    .slice(0, 4);
 
   return (
     <div className="pt-2 flex h-full flex-col-reverse xl:flex-row w-full gap-10">

@@ -122,15 +122,15 @@ export const withUserApi = (
 
       const user = await getUser(request);
 
-      if (!user && pathname.startsWith("/workflow")) {
-        return NextResponse.redirect(
-          new URL("/auth/login", process.env.NEXTAUTH_URL),
-        );
-      }
+      // if (!user && pathname.startsWith("/workflow")) {
+      //   return NextResponse.redirect(
+      //     new URL("/auth/login", process.env.NEXTAUTH_URL),
+      //   );
+      // }
 
-      if (!user) {
-        return errorResponse("Not authenticated", 401);
-      }
+      // if (!user) {
+      //   return errorResponse("Not authenticated", 401);
+      // }
 
       // user namespace check
       if (pathname.startsWith("/api/user/")) {

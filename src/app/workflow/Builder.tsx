@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { LoadingWithText } from "~/components/LoadingSpinner";
 import { useWorkflowData } from "~/hooks/useWorkflowData";
+import useSWR from "swr";
 
 function Builder({
   params,
@@ -30,17 +31,18 @@ function Builder({
   params: { id: string };
   searchParams: any;
 }) {
-  const { data: session } = useSession();
+  const { data: session, isLoading: sessionLoading } =
+    useSWR("/api/auth/session");
 
   const flowId = params.id;
 
   const router = useRouter();
 
   useEffect(() => {
-    if (session) {
+    if (session?.user) {
       setSessionStore(session);
-    }
-  }, [session]);
+    } 
+  }, [session?.user]);
 
   const {
     rightBarSize,
@@ -178,7 +180,7 @@ function Builder({
           </ResizablePanel>
           <ResizableHandle withHandle />
           <ResizablePanel defaultSize={83}>
-            {workflowIsLoading || sessionStore === null ? (
+            {workflowIsLoading || !session?.user ? (
               <Loading />
             ) : (
               <Flow />
