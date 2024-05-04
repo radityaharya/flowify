@@ -2,7 +2,10 @@ import { env } from "~/env";
 import { Runner } from "@lib/workflow/Workflow";
 import { getAccessTokenFromUserId } from "~/server/db/helper";
 import { Worker } from "bullmq";
-import { updateWorkflowRun, updateWorkflowRunOperation } from "@lib/workflow/utils/workflowQueue";
+import {
+  updateWorkflowRun,
+  updateWorkflowRunOperation,
+} from "@lib/workflow/utils/workflowQueue";
 import Redis from "ioredis";
 import os from "os";
 import { Logger } from "@lib/log";
@@ -64,14 +67,10 @@ const worker = new Worker(
       log.info("Running workflow...");
       res = await runner.runWorkflow(workflow, 50000, operationCallback);
     } catch (e) {
-      await updateWorkflowRun(job.id!, "failed", WORKER_ID);
-      await reportIdle();
       log.error("Error running workflow", e);
       throw e;
     }
     log.info("Workflow executed successfully");
-    await updateWorkflowRun(job.id!, "completed", WORKER_ID, res);
-    await reportIdle();
     return res;
   },
   {
@@ -83,13 +82,34 @@ const worker = new Worker(
   },
 );
 
+worker.on("completed", async (job) => {
+  log.info(`Job ${job.id} completed`);
+  await updateWorkflowRun(job.id!, "completed", WORKER_ID);
+});
+
+worker.on("drained", () => {
+  log.info("Queue drained");
+  reportIdle();
+});
+
+worker.on("failed", async (job, err) => {
+  log.error(`Job ${job?.id} failed`, err);
+  if (job) {
+    await updateWorkflowRun(job.id!, "failed", WORKER_ID);
+  }
+});
+
+worker.on("active", (job) => {
+  log.info(`Job ${job.id} active`);
+  reportWorking();
+});
+
 function createOperationCallback(workflowRunId: string) {
   return async function operationCallback(id: string, data: any) {
     await updateWorkflowRunOperation(id, workflowRunId, data);
     return "ok";
   };
 }
-
 
 async function reportInit() {
   log.info("Worker started");
@@ -131,6 +151,7 @@ async function reportExit() {
       endpoint: WORKER_ENDPOINT,
     })
     .where(eq(workerPool.deviceHash, WORKER_ID));
+  log.info("Worker exited");
 }
 
 async function reportWorking() {
