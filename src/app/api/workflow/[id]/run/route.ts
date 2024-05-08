@@ -83,14 +83,14 @@ export async function POST(
       userId: session.user.id,
     } as any);
     return NextResponse.json({ job });
-  } catch (err) {
+  } catch (err: any) {
     log.error("Error adding job to queue", {
-      error: err,
+      error: err.message,
       workflowId: workflow.id,
       userId: session.user.id,
     } as any);
     return NextResponse.json(
-      { error: "Error adding job to queue" },
+      { error: "Error adding job to queue: " + err.message },
       { status: 500 },
     );
   }

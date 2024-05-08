@@ -28,12 +28,26 @@ export const users = pgTable("user", {
   email: text("email").notNull().unique(),
   emailVerified: timestamp("emailVerified", { mode: "date" }),
   image: text("image"),
+  planId: text("planId")
 });
 
-export const usersRelations = relations(users, ({ many }) => ({
+export const usersRelations = relations(users, ({ many, one }) => ({
   accounts: many(accounts),
   sessions: many(sessions),
+  plan: one(plans, { fields: [users.planId], references: [plans.id] }),
 }));
+
+export const plans = pgTable("plan", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => randomUUID()),
+  name: text("name"),
+  maxExecutionTime: integer("maxExecutionTime"),
+  maxOperations: integer("maxOperations"),
+  default: boolean("default")
+  .default(false)
+  .unique(),
+});
 
 export const accounts = pgTable(
   "account",
@@ -180,40 +194,6 @@ export const workflowRunOperationsRelations = relations(
   }),
 );
 
-// export const trackModifications = pgTable(
-//   "trackModificattion",
-//   {
-//     id: varchar("id", { length: 36 }).notNull().primaryKey(),
-//     userId: varchar("userId", { length: 36 }).notNull(),
-//     createdAt: timestamp("createdAt", { mode: "date" }).default(
-//       sql`CURRENT_TIMESTAMP`,
-//     ),
-//     workflowRunId: varchar("workflowRunId", { length: 36 }).notNull(),
-//     operationId: varchar("operationId", { length: 36 }).notNull(),
-//     before: json("before").$type<string[]>(),
-//     after: json("after").$type<string[]>(),
-//   },
-//   (trackModificattion) => ({
-//     userIdIdx: index("userId_idx").on(trackModificattion.userId),
-//     workflowRunIdIdx: index("workflowRunId_idx").on(
-//       trackModificattion.workflowRunId,
-//     ),
-//   }),
-// );
-
-// export const trackModificationsRelations = relations(
-//   trackModifications,
-//   ({ one }) => ({
-//     user: one(users, {
-//       fields: [trackModifications.userId],
-//       references: [users.id],
-//     }),
-//     workflowRun: one(workflowRuns, {
-//       fields: [trackModifications.workflowRunId],
-//       references: [workflowRuns.id],
-//     }),
-//   }),
-// );
 export const workerPool = pgTable(
   "workerPool",
   {

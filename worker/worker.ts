@@ -3,6 +3,7 @@ import { Runner } from "@lib/workflow/Workflow";
 import { getAccessTokenFromUserId } from "~/server/db/helper";
 import { Worker } from "bullmq";
 import {
+  compressReturnValues,
   updateWorkflowRun,
   updateWorkflowRunOperation,
 } from "@lib/workflow/utils/workflowQueue";
@@ -12,6 +13,7 @@ import { Logger } from "@lib/log";
 import { db } from "@/server/db";
 import { workerPool } from "~/server/db/schema";
 import { eq } from "drizzle-orm";
+import { Base } from '../src/lib/workflow/Base';
 
 const log = new Logger("worker");
 
@@ -45,6 +47,7 @@ const worker = new Worker(
   "workflowQueue",
   async (job, done) => {
     const data = job?.data;
+    const maxExecutionTime = data.maxExecutionTime || 60000;
     await reportWorking();
     await updateWorkflowRun(job.id!, "active", WORKER_ID);
     if (!data) {
@@ -64,8 +67,15 @@ const worker = new Worker(
     const operationCallback = createOperationCallback(job.id!);
     let res: any;
     try {
-      log.info("Running workflow...");
-      res = await runner.runWorkflow(workflow, 50000, operationCallback);
+      log.info("Running workflow..." , {
+        workflowId: workflow.id,
+        job: job.id,
+        userId: data.userId,
+        maxExecutionTime,
+        numOfOperations: workflow.operations.length,
+      });
+      res = await runner.runWorkflow(workflow, maxExecutionTime, operationCallback);
+      res = compressReturnValues(res);
     } catch (e) {
       log.error("Error running workflow", e);
       throw e;

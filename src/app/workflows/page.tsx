@@ -1,6 +1,14 @@
+import { getServerAuthSession } from "~/server/auth";
 import { WorkflowsGrid } from "./WorkflowGrid";
-export default function Dashboard() {
+import { redirect } from "next/navigation";
+export default async function Dashboard() {
   const workflows = undefined;
+
+  const session = await getServerAuthSession();
+
+  if (!session?.user) {
+    return redirect("/auth/login");
+  }
 
   return (
     <div className="flex w-full flex-col h-full">

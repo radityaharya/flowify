@@ -168,9 +168,38 @@ export async function createWorkflowQueue(
   workflowId: string,
 ) {
   try {
+    // TODO: cache this?
+    const userPlan = await db.query.users.findFirst({
+      where: (users, { eq }) => eq(users.id, userId),
+      columns: {
+        id: true,
+        planId: true,
+      },
+      with: {
+        plan: {
+          columns: {
+            maxExecutionTime: true,
+            maxOperations: true,
+          },
+        },
+      },
+    });
+
+    if (!userPlan) {
+      throw new Error("User has no plan");
+    }
+
+    if (userPlan.plan?.maxExecutionTime === 0) {
+      throw new Error("Plan does not allow execution");
+    }
+
+    if (workflow.operations.length > (userPlan.plan?.maxOperations || 0)) {
+      throw new Error("Plan does not allow this many operations");
+    }
+
     const job = await workflowQueue.add(
       "workflowQueue",
-      { workflow, userId },
+      { workflow, userId, maxExecutionTime: userPlan?.plan?.maxExecutionTime },
       {
         jobId: uuidv4(),
         removeOnComplete: {
@@ -297,57 +326,31 @@ export async function updateWorkflowRunOperation(
  * @param returnValues - The array of return values to be compressed.
  * @returns The compressed array of return values.
  */
-function compressReturnValues(returnValues: any[]) {
-  const compressedValues: any[] = [];
+export function compressReturnValues(returnValues: any[]) {
+  const keysToRemove = [
+    "audio_features",
+    "available_markets",
+    "preview_url",
+    "external_ids",
+    "external_urls",
+    "release_date_precision",
+    "href",
+    "uri",
+  ];
 
-  returnValues.forEach((playlist: any) => {
-    const compressedPlaylist: any = {
-      ...playlist,
-      tracks: {
-        items: playlist.tracks.map((item: any) => {
-          const compressedItem: any = {
-            ...item,
-            track: {
-              ...item.track,
-              audio_features: undefined,
-              available_markets: undefined,
-              preview_url: undefined,
-              external_ids: undefined,
-              external_urls: undefined,
-            },
-          };
+  function removeKeys(obj: any) {
+    if (Array.isArray(obj)) {
+      return obj.map(removeKeys);
+    } else if (obj !== null && typeof obj === "object") {
+      return Object.keys(obj).reduce((acc, key) => {
+        if (!keysToRemove.includes(key)) {
+          acc[key] = removeKeys(obj[key]);
+        }
+        return acc;
+      }, {} as any);
+    }
+    return obj;
+  }
 
-          if (compressedItem.track?.album) {
-            compressedItem.track.album.release_date_precision = undefined;
-            compressedItem.track.album.artists =
-              compressedItem.track.album.artists.map(
-                (artist: SpotifyApi.ArtistObjectSimplified) => ({
-                  ...artist,
-                  external_urls: undefined,
-                  href: undefined,
-                  uri: undefined,
-                }),
-              );
-          }
-
-          if (compressedItem.track?.artists) {
-            compressedItem.track.artists = compressedItem.track.artists.map(
-              (artist: SpotifyApi.ArtistObjectSimplified) => ({
-                ...artist,
-                external_urls: undefined,
-                href: undefined,
-                uri: undefined,
-              }),
-            );
-          }
-
-          return compressedItem;
-        }),
-      },
-    };
-
-    compressedValues.push(compressedPlaylist);
-  });
-
-  return compressedValues;
+  return returnValues.map(removeKeys);
 }

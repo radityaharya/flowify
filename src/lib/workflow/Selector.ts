@@ -155,11 +155,11 @@ export default class Selector extends Base {
     const tracks = Selector.getTracks(sources);
 
     const seedTracks = new Array<SpotifyApi.TrackObjectFull>();
-    let maxRetry = 5;
+    let maxRetry = 20;
 
     if (Array.isArray(tracks)) {
       let res = new Set<SpotifyApi.TrackObjectFull>();
-      if (tracks.length < 5) {
+      if (tracks.length <= 5) {
         res = new Set(tracks);
       } else {
         while (res.size < 5) {

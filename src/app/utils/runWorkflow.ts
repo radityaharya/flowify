@@ -10,6 +10,9 @@ export async function runWorkflow(workflow: Workflow.WorkflowResponse) {
   const dryrun = !useStore.getState().flowState.dryrun;
   const id = workflow.id;
   console.log("dryrun", dryrun);
+  toast.info("Requesting to run workflow", {
+    description: "Please wait...",
+  });
   const promise = fetch(
     `/api/workflow/${id}/run${dryrun ? "?dryrun=true" : ""}`,
     {
@@ -19,9 +22,12 @@ export async function runWorkflow(workflow: Workflow.WorkflowResponse) {
     .then((res) => {
       return res.json();
     })
-    .then(async (data) => {
-      if (data.errors) {
-        throw new Error("Error running workflow");
+    .then((data) => {
+      if (data.error) {
+        toast.error("Failed running workflow", {
+          duration: 5000,
+          description: data.error,
+        });
       }
       return data;
     });
@@ -31,7 +37,7 @@ export async function runWorkflow(workflow: Workflow.WorkflowResponse) {
   });
 
   if (!job.id) {
-    throw new Error("Job ID is undefined");
+    return;
   }
 
   const jobId = job.id as string;

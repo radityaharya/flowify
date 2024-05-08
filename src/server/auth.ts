@@ -12,7 +12,7 @@ import { DefaultJWT } from "next-auth/jwt";
 import SpotifyProvider from "next-auth/providers/spotify";
 import { env } from "~/env";
 import { db } from "~/server/db";
-import { accounts } from "~/server/db/schema";
+import { accounts, users } from "~/server/db/schema";
 
 const logger = new Logger("auth");
 
@@ -118,7 +118,7 @@ export const authOptions: NextAuthOptions = {
       session.user.id = userId;
       return session;
     },
-    jwt({ token, user, account, profile }) {
+    async jwt({ token, user, account, profile }) {
       if (user?.id) {
         if (account) {
           token.user = {
@@ -127,6 +127,28 @@ export const authOptions: NextAuthOptions = {
             spotify_access_token: account.access_token!,
           };
         }
+      }
+
+      // set to default plan if not set
+      const userAcc = await db.query.users.findFirst({
+        where: (users, { eq }) => eq(users.id, token.user.id),
+        with: {
+          plan: {
+            columns: {
+              id: true,
+            },
+          },
+        },
+      });
+
+      if (!userAcc?.plan?.id) {
+        const defaultPlan = await db.query.plans.findFirst({
+          where: (plans, { eq }) => eq(plans.default, true),
+        });
+        await db
+          .update(users)
+          .set({ planId: defaultPlan?.id ?? "" })
+          .where(eq(users.id, token.user.id));
       }
 
       return token;
