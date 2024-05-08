@@ -3,6 +3,7 @@ import "~/styles/globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { getServerSession } from "next-auth";
 import { Inter } from "next/font/google";
+import Footer from "~/components/main-footer";
 import { SiteNav } from "~/components/main-nav";
 import NextAuthProvider from "~/providers/NextAuthProvider";
 import SWRCacheProvider from "~/providers/SWRCacheProvider";
@@ -34,6 +35,7 @@ export default async function RootLayout({
             <SiteNav session={session} />
             {children}
             <Toaster expand={true} richColors />
+            <Footer />
           </SWRCacheProvider>
         </NextAuthProvider>
       </body>

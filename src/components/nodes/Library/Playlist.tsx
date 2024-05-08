@@ -183,7 +183,7 @@ const PlaylistComponent: React.FC<PlaylistProps> = ({ id, data }) => {
 
     // debounce({delay: 500}, setUserPlaylists)();
     setUserPlaylists();
-  }, [search, session.user.providerAccountId, setUserPlaylistsStore]);
+  }, [search, session?.user?.providerAccountId, setUserPlaylistsStore]);
 
   const handleSelect = (playlist) => {
     console.info("handle select", playlist);

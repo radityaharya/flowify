@@ -1,12 +1,6 @@
 "use client";
 
 import { SystemInfo } from "@/components/SystemInfo";
-import Link, { LinkProps } from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { Button, buttonVariants } from "~/components/ui/button";
-
-import { cn } from "@/lib/utils";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,14 +9,19 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
+import Link, { LinkProps } from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { Button, buttonVariants } from "~/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 
 import useStore from "@/app/states/store";
+import { SquareArrowOutUpRight } from "lucide-react";
 import { Session } from "next-auth";
+import { signOut } from "next-auth/react";
 import { useMemo } from "react";
 import useSWR from "swr";
 import { fetcher } from "~/app/utils/fetcher";
-import { signOut } from "next-auth/react";
-import { SquareArrowOutUpRight } from "lucide-react";
 
 interface NavLinkProps extends LinkProps {
   href: string;
@@ -185,7 +184,7 @@ export function SiteNav({ className, session }: SiteNavProps) {
                     className="flex flex-row gap-2 items-center"
                   >
                     <span>Spotify Account</span>
-                    <SquareArrowOutUpRight className="size-3"/>
+                    <SquareArrowOutUpRight className="size-3" />
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />

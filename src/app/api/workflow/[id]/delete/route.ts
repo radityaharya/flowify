@@ -1,12 +1,9 @@
 import { Logger } from "@/lib/log";
 import { authOptions } from "@/server/auth";
-import { db } from "@/server/db";
-import { eq } from "drizzle-orm";
 import { getServerSession } from "next-auth";
 import { type NextRequest, NextResponse } from "next/server";
 import { isUUID } from "validator";
 import { deleteWorkflowJob } from "~/lib/workflow/utils/workflowQueue";
-import { workflowJobs } from "~/server/db/schema";
 
 const log = new Logger("/api/workflow/[id]");
 

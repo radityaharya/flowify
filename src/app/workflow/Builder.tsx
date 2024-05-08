@@ -22,7 +22,6 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { LoadingWithText } from "~/components/LoadingSpinner";
 import { useWorkflowData } from "~/hooks/useWorkflowData";
-import useSWR from "swr";
 
 function Builder({
   params,
@@ -40,7 +39,7 @@ function Builder({
   useEffect(() => {
     if (session) {
       setSessionStore(session);
-    } 
+    }
   }, [session]);
 
   const {
@@ -179,11 +178,7 @@ function Builder({
           </ResizablePanel>
           <ResizableHandle withHandle />
           <ResizablePanel defaultSize={83}>
-            {workflowIsLoading || !session?.user ? (
-              <Loading />
-            ) : (
-              <Flow />
-            )}
+            {workflowIsLoading || !session?.user ? <Loading /> : <Flow />}
           </ResizablePanel>
           <ResizableHandle withHandle />
           <ResizablePanel defaultSize={0} minSize={0} ref={rightPanelRef}>

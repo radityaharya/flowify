@@ -3,7 +3,6 @@ import { useHandleConnections } from "@xyflow/react";
 import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { type ZodObject } from "zod";
-import { useShallow } from "zustand/react/shallow";
 import useStore from "~/app/states/store";
 
 const usePlaylistLogic = (id: string, formSchema?: ZodObject<any>) => {

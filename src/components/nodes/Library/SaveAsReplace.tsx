@@ -151,7 +151,7 @@ function SaveAsReplaceComponent({ id, data }: PlaylistProps) {
       .catch((err) => {
         console.error(err);
       });
-  }, [session.user.providerAccountId]);
+  }, [session?.user?.providerAccountId]);
 
   function getNodeData(id: string) {
     const node = nodes.find((node) => node.id === id);

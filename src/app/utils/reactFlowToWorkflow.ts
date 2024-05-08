@@ -59,6 +59,8 @@ export default async function reactFlowToWorkflow({
     connections: [],
   };
 
+  console.log({ nodes, edges });
+
   let [valid, errors] = [true, {}];
   if (nodes.length > 0 && edges.length > 0) {
     addNodesToWorkflow(nodes, workflowObject);

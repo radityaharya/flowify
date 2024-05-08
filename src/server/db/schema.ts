@@ -28,7 +28,7 @@ export const users = pgTable("user", {
   email: text("email").notNull().unique(),
   emailVerified: timestamp("emailVerified", { mode: "date" }),
   image: text("image"),
-  planId: text("planId")
+  planId: text("planId"),
 });
 
 export const usersRelations = relations(users, ({ many, one }) => ({
@@ -44,9 +44,7 @@ export const plans = pgTable("plan", {
   name: text("name"),
   maxExecutionTime: integer("maxExecutionTime"),
   maxOperations: integer("maxOperations"),
-  default: boolean("default")
-  .default(false)
-  .unique(),
+  default: boolean("default").default(false).unique(),
 });
 
 export const accounts = pgTable(

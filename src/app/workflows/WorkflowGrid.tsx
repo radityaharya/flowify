@@ -6,6 +6,13 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -24,6 +31,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { toast } from "sonner";
 import useSWR, { mutate } from "swr";
 import { Badge } from "~/components/ui/badge";
 import { Button, buttonVariants } from "~/components/ui/button";
@@ -37,15 +45,6 @@ import {
 } from "~/components/ui/card";
 import { Skeleton } from "~/components/ui/skeleton";
 import { runWorkflow } from "../utils/runWorkflow";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { toast } from "sonner";
 
 function getTargets(
   operations: Workflow.WorkflowResponse["workflow"]["operations"],
@@ -315,7 +314,7 @@ const WorkflowCard = ({ d }) => {
   const id = d.id;
 
   const handleRunClick = (event: React.MouseEvent) => {
-    runWorkflow(d.workflow)
+    runWorkflow(d.workflow);
   };
 
   return (

@@ -1,6 +1,6 @@
+import { redirect } from "next/navigation";
 import { getServerAuthSession } from "~/server/auth";
 import { WorkflowsGrid } from "./WorkflowGrid";
-import { redirect } from "next/navigation";
 export default async function Dashboard() {
   const workflows = undefined;
 

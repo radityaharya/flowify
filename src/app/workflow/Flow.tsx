@@ -9,7 +9,7 @@ import {
   ReactFlow,
   getOutgoers,
 } from "@xyflow/react";
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useRef } from "react";
 import useSWR from "swr";
 
 import useStore from "~/app/states/store";
@@ -189,6 +189,10 @@ export const Nodes = {
   },
 };
 
+export const nodeTypes = Object.fromEntries(
+  Object.entries(Nodes).map(([key, value]) => [key, value.node]),
+);
+
 export function App() {
   const reactFlowWrapper = useRef(null);
   const {
@@ -225,14 +229,6 @@ export function App() {
 
   const router = useRouter();
   const path = usePathname();
-
-  const nodeTypes = useMemo(
-    () =>
-      Object.fromEntries(
-        Object.entries(Nodes).map(([key, value]) => [key, value.node]),
-      ),
-    [],
-  );
 
   const onDragDrop = useCallback(
     (event) => {

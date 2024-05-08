@@ -1,6 +1,6 @@
 import { toast } from "sonner";
-import useStore, { workflowRunStore } from "../states/store";
 import { mutate } from "swr";
+import useStore, { workflowRunStore } from "../states/store";
 
 export async function runWorkflow(workflow: Workflow.WorkflowResponse) {
   if (!workflow.id) {

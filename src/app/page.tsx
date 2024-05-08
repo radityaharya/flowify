@@ -16,10 +16,10 @@ export default async function IndexPage() {
   const session = await getServerSession(authOptions);
 
   return (
-    <div className="relative h-[100dvh]">
+    <div className="relative h-[70dvh] md:h-[100dvh]">
       <PageHeader>
         <Announcement />
-        <PageHeaderHeading>Insert Cheesy Tagline Here</PageHeaderHeading>
+        <PageHeaderHeading>Flows For Your Playlists!</PageHeaderHeading>
         <PageHeaderDescription>
           Something something... make playlist
         </PageHeaderDescription>
