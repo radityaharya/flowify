@@ -31,18 +31,17 @@ function Builder({
   params: { id: string };
   searchParams: any;
 }) {
-  const { data: session, isLoading: sessionLoading } =
-    useSWR("/api/auth/session");
+  const { data: session } = useSession();
 
   const flowId = params.id;
 
   const router = useRouter();
 
   useEffect(() => {
-    if (session?.user) {
+    if (session) {
       setSessionStore(session);
     } 
-  }, [session?.user]);
+  }, [session]);
 
   const {
     rightBarSize,

@@ -7,14 +7,12 @@ import { useShallow } from "zustand/react/shallow";
 import useStore from "~/app/states/store";
 
 const usePlaylistLogic = (id: string, formSchema?: ZodObject<any>) => {
-  const { nodes, edges, getNode, updateNodeData } = useStore(
-    useShallow((state) => ({
-      nodes: state.nodes,
-      edges: state.edges,
-      getNode: state.getNode,
-      updateNodeData: state.updateNodeData,
-    })),
-  );
+  const { nodes, edges, getNode, updateNodeData } = useStore((state) => ({
+    nodes: state.nodes,
+    edges: state.edges,
+    getNode: state.getNode,
+    updateNodeData: state.updateNodeData,
+  }));
 
   const form = useForm({
     resolver: formSchema ? zodResolver(formSchema) : undefined,
@@ -103,7 +101,14 @@ const usePlaylistLogic = (id: string, formSchema?: ZodObject<any>) => {
       .filter(Boolean)
       .filter((playlist) => Object.keys(playlist).length !== 0)
       .filter((playlist) => playlist.playlistId)
-      .filter((playlist) => playlist.playlistId !== "recommended");
+      .filter((playlist) => playlist.playlistId !== "recommended")
+      .reduce((acc, curr) => {
+        const isDuplicate = acc.some((pl) => pl.playlistId === curr.playlistId);
+        if (!isDuplicate) {
+          acc.push(curr);
+        }
+        return acc;
+      }, [] as Workflow.Playlist[]);
 
     return {
       playlistIds: combinedPlaylistIds,
