@@ -265,6 +265,7 @@ export const WorkflowObjectSchema = z
     operations: z.array(OperationSchema),
     connections: z.array(ConnectionSchema),
     dryrun: z.optional(z.boolean()),
+    cron: z.optional(z.string()),
   })
   .superRefine((obj, ctx) => {
     validateConnectionsCount(obj, ctx);

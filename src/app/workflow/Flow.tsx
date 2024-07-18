@@ -469,7 +469,7 @@ export function App() {
               <Dialog>
                 <DialogTrigger asChild>
                   <Button className="flex flex-row gap-2 bg-card text-foreground outline outline-1 outline-slate-700 hover:bg-opacity-100 hover:text-background">
-                    <SettingsIcon size={16} className="opacity-80" />
+                    <SettingsIcon size={16}/>
                     Settings
                   </Button>
                 </DialogTrigger>
