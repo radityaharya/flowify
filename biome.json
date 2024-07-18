@@ -32,7 +32,6 @@
         "noStaticOnlyClass": "off"
       },
       "nursery": {
-        "noNodejsModules": "off",
         "noUndeclaredDependencies": "off",
         "useImportRestrictions": "off",
         "useSortedClasses": "off"
@@ -56,7 +55,7 @@
     "formatter": {
       "jsxQuoteStyle": "double",
       "quoteProperties": "asNeeded",
-      "trailingComma": "all",
+      "trailingCommas": "all",
       "semicolons": "always",
       "arrowParentheses": "always",
       "bracketSpacing": true,

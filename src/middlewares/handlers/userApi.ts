@@ -74,7 +74,7 @@ const handleUserPath = (request: NextRequest, user: any) => {
   }
   logger.info(`userParam: ${userParam}`);
 
-  if (userParam === "@me") {
+  if (userParam === "@me" && user.providerAccountId) {
     const userId = user.providerAccountId as string;
     const url = new URL(
       pathname.replace("@me", encodeURIComponent(userId)) + search,
@@ -122,15 +122,6 @@ export const withUserApi = (
 
       const user = await getUser(request);
 
-      // if (!user && pathname.startsWith("/workflow")) {
-      //   return NextResponse.redirect(
-      //     new URL("/auth/login", process.env.NEXTAUTH_URL),
-      //   );
-      // }
-
-      // if (!user) {
-      //   return errorResponse("Not authenticated", 401);
-      // }
 
       // user namespace check
       if (pathname.startsWith("/api/user/")) {
