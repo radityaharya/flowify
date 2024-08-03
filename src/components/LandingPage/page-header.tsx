@@ -30,15 +30,13 @@ function PageHeaderHeading({
   ...props
 }: React.HTMLAttributes<HTMLHeadingElement>) {
   return (
-    <Balance>
-      <h1
-        className={cn(
-          "text-center md:text-start font-bold text-3xl leading-tight tracking-tighter md:text-6xl lg:leading-[1.1]",
-          className,
-        )}
-        {...props}
-      />
-    </Balance>
+    <h1
+      className={cn(
+        "text-center md:text-start font-bold text-3xl leading-tight tracking-tighter md:text-6xl lg:leading-[1.1]",
+        className,
+      )}
+      {...props}
+    />
   );
 }
 
