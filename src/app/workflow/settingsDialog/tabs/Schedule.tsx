@@ -1,175 +1,175 @@
 "use client";
 
-import { saveWorkflow } from "@/app/utils/saveWorkflow";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
-import useStore from "~/app/states/store";
-
-import { TimePicker12 } from "@/components/ui/time-picker/time-picker-12h";
+import { Form, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-} from "@/components/ui/form";
+import { TimePicker12 } from "@/components/ui/time-picker/time-picker-12h";
+import cronstrue from "cronstrue";
+import { useEffect, useMemo, useState } from "react";
 
-const formSchema = z.object({
-  interval: z.string().default("daily"),
-  time: z.string().default("00:00"),
-  dow: z.string().default("*"),
-});
+const UNSET_SCHEDULE = "unset";
 
-const Schedule = () => {
-  const { flowState, setFlowState } = useStore((state) => ({
-    flowState: state.flowState,
-    setFlowState: state.setFlowState,
-    nodes: state.nodes,
-    edges: state.edges,
-  }));
-
-  const form = useForm({
-    resolver: zodResolver(formSchema),
-    shouldUnregister: false,
-    mode: "all",
-  });
-
-  const router = useRouter();
-
-  const onSubmit = async (data: any) => {
-    const cronExpression = getCronExpression();
-
-    setFlowState({
-      ...flowState,
-      cron: cronExpression,
-    });
-
-    try {
-      const saveResponse = await saveWorkflow();
-      const formatedName = saveResponse.workflow.name
-        .replace(/ /g, "-")
-        .toLowerCase();
-
-      router.push(`/workflow/${formatedName}_${saveResponse.id}`);
-    } catch (error) {
-      console.error("Error saving workflow", error);
-    }
-  };
-
-  const parseCronExpression = (cronExpression: string) => {
-    const [minute, hour, , , day] = cronExpression.split(" ") as [
-      string,
-      string,
-      string,
-      string,
-      string,
-    ];
-    let interval = "daily";
-    let dow = "*";
-
-    if (day === "1") {
-      interval = "monthly";
-    } else if (day === "0") {
-      interval = "weekly";
-    } else {
-      dow = day;
-    }
-
-    const time = new Date();
-    time.setHours(parseInt(hour, 10));
-    time.setMinutes(parseInt(minute, 10));
-
-    return { interval, time, dow };
-  };
-
-  const getCronExpression = () => {
-    const { interval, time } = form.getValues();
-    if (interval === "daily") {
-      return `0 ${time.getHours()} ${time.getMinutes()} * * *`;
-    } else if (interval === "weekly") {
-      return `0 ${time.getHours()} ${time.getMinutes()} * * 0`;
-    } else if (interval === "monthly") {
-      return `0 ${time.getHours()} ${time.getMinutes()} 1 * *`;
-    } else if (interval === "custom") {
-      return `0 ${time.getHours()} ${time.getMinutes()} * * ${time.getDay()}`;
-    } else if (interval === "unset") {
-      return "unset";
-    } else if (interval === "once") {
-      return `0 ${time.getHours()} ${time.getMinutes()} ${time.getDate()} ${
-        time.getMonth() + 1
-      } *`;
-    }
-    return "";
-  };
+const WorkflowScheduler = ({ form, onSubmit }) => {
+  const [cronExpression, setCronExpression] = useState("");
+  const [isScheduleLoading, setIsScheduleLoading] = useState(true);
 
   useEffect(() => {
-    const { interval, time } = parseCronExpression(flowState.cron ?? "unset");
+    const subscription = form.watch(() => {
+      if (form.formState.isValid) {
+        setCronExpression(getCronExpression());
+      }
+    });
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [form]);
 
-    if (flowState) {
-      form.reset({
-        interval,
-        time,
-        dow: time.getDay(),
-      });
+  const getCronExpression = () => {
+    const { interval, scheduleTime, dayOfWeek, dayOfMonth } = form.getValues();
+    const minutes = scheduleTime?.getMinutes() ?? 0;
+    const hours = scheduleTime?.getHours() ?? 0;
+
+    switch (interval) {
+      case "daily":
+        return `${minutes} ${hours} * * *`;
+      case "weekly":
+        return `${minutes} ${hours} * * ${dayOfWeek}`;
+      case "monthly":
+        return `${minutes} ${hours} ${dayOfMonth} * *`;
+      case "yearly":
+        return `${minutes} ${hours} 1 1 *`;
+      case UNSET_SCHEDULE:
+        return UNSET_SCHEDULE;
+      default:
+        return "";
     }
+  };
 
-  }, [flowState, form]);
+  const interval = form.watch("interval");
+  const memoizedInterval = useMemo(() => interval, [interval]);
+
+  useEffect(() => {
+    setIsScheduleLoading(false);
+    if (memoizedInterval === UNSET_SCHEDULE) {
+      setCronExpression("");
+    }
+  }, [memoizedInterval]);
 
   return (
     <Form {...form}>
-      <form
-        className="flex flex-col gap-4"
-        onSubmit={form.handleSubmit(onSubmit)}
-      >
-        <h2 className="mb-2 font-semibold text-xl leading-none tracking-tight">
-          Schedule
-        </h2>
-        <FormField
-          control={form.control}
-          name="interval"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel htmlFor="interval">Interval</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
+      {!isScheduleLoading && (
+        <form
+          className="flex flex-col gap-4"
+          onSubmit={form.handleSubmit(onSubmit)}
+        >
+          <h2 className="mb-2 font-semibold text-xl leading-none tracking-tight">
+            Work Schedule
+          </h2>
+          <FormField
+            control={form.control}
+            name="interval"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel htmlFor="interval">Interval</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select an interval" />
                   </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>Interval</SelectLabel>
-                    <SelectItem value="unset">Unset</SelectItem>
+                  <SelectContent>
                     <SelectItem value="daily">Daily</SelectItem>
                     <SelectItem value="weekly">Weekly</SelectItem>
                     <SelectItem value="monthly">Monthly</SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </FormItem>
+                    <SelectItem value={UNSET_SCHEDULE}>Unset</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormItem>
+            )}
+          />
+          {form.watch("interval") === "weekly" && (
+            <FormField
+              control={form.control}
+              name="dayOfWeek"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel htmlFor="dayOfWeek">Day of week</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a day of week" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="0">Sunday</SelectItem>
+                      <SelectItem value="1">Monday</SelectItem>
+                      <SelectItem value="2">Tuesday</SelectItem>
+                      <SelectItem value="3">Wednesday</SelectItem>
+                      <SelectItem value="4">Thursday</SelectItem>
+                      <SelectItem value="5">Friday</SelectItem>
+                      <SelectItem value="6">Saturday</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormItem>
+              )}
+            />
           )}
-        />
-        <FormLabel htmlFor="interval">Time</FormLabel>
-        <TimePicker12 date={form.getValues("time")} setDate={form.getValues} />
-        <Button size="sm" className="w-[fit-content]" type="submit">
-          {flowState.id ? "Update workflow" : "Create workflow"}
-        </Button>
-      </form>
+          {form.watch("interval") === "monthly" && (
+            <FormField
+              control={form.control}
+              name="dayOfMonth"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel htmlFor="dayOfMonth">Day of month</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a day of month" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[...Array(31)].map((_, i) => (
+                        <SelectItem key={i} value={(i + 1).toString()}>
+                          {i + 1}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormItem>
+              )}
+            />
+          )}
+          {form.watch("interval") !== UNSET_SCHEDULE && (
+            <FormField
+              control={form.control}
+              name="scheduleTime"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel htmlFor="scheduleTime">scheduleTime</FormLabel>
+                  <TimePicker12 setDate={field.onChange} date={field.value} />
+                </FormItem>
+              )}
+            />
+          )}
+          <Alert>
+            <AlertDescription>
+              {cronExpression && cronExpression !== UNSET_SCHEDULE ? (
+                <>
+                  {cronExpression} | {cronstrue.toString(cronExpression)}
+                </>
+              ) : (
+                <>No schedule set.</>
+              )}
+            </AlertDescription>
+          </Alert>
+          <Button size="sm" className="w-[fit-content]" type="submit">
+            Save schedule
+          </Button>
+        </form>
+      )}
     </Form>
   );
 };
 
-export default Schedule;
+export default WorkflowScheduler;

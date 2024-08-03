@@ -2,11 +2,11 @@
 
 "use client";
 
-import * as React from "react";
-import { TimePickerInput } from "./time-picker-input";
-import { TimePeriodSelect } from "./period-select";
-import { Period } from './time-picker-utils';
 import { Label } from "@/components/ui/label";
+import * as React from "react";
+import { TimePeriodSelect } from "./period-select";
+import { TimePickerInput } from "./time-picker-input";
+import { Period } from "./time-picker-utils";
 
 interface TimePickerProps {
   date: Date | undefined;
@@ -31,9 +31,7 @@ export function TimePicker12({ date, setDate }: TimePickerProps) {
           ref={hourRef}
           onRightFocus={() => minuteRef.current?.focus()}
         />
-        <Label className="text-muted-foreground text-xs opacity-80">
-          Hour
-        </Label>
+        <Label className="text-muted-foreground text-xs opacity-80">Hour</Label>
       </div>
       <div className="grid gap-1 text-center">
         <TimePickerInput

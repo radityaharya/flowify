@@ -23,12 +23,14 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const workflow = (await request.json()).workflow;
+  const rawWorkflowJob = await request.json();
+
+  const workflow = rawWorkflowJob.workflow;
   const workflowParsed = WorkflowObjectSchema.safeParse(workflow);
 
   if (!workflowParsed.success) {
     return NextResponse.json(
-      { error: "Invalid workflow", errors: workflow.error },
+      { error: "Invalid workflow", errors: workflowParsed.error.errors },
       { status: 400 },
     );
   }
@@ -36,7 +38,8 @@ export async function POST(request: NextRequest) {
   const job = {
     id: workflowParsed.data.id ?? uuidv4(),
     data: {
-      workflow,
+      workflow: workflowParsed.data,
+      cron: rawWorkflowJob.cron,
     },
     status: "wait",
     timestamp: Date.now(),
@@ -45,29 +48,27 @@ export async function POST(request: NextRequest) {
   log.info("Storing workflow job", {
     jobId: job.id,
     userId: session.user.id,
-  } as any);
+  });
 
-  const response = (await workflowExists(job.id))
-    ? await updateWorkflowJob(session.user.id, job)
-    : await storeWorkflowJob(session.user.id, job);
+  try {
+    const response = await ((await workflowExists(job.id))
+      ? updateWorkflowJob(session.user.id, job)
+      : storeWorkflowJob(session.user.id, job));
 
-  if (!response) {
+    if (!response) {
+      throw new Error("Error storing workflow job");
+    }
+
+    return NextResponse.json(response);
+  } catch (error) {
+    log.error("Error processing workflow job", {
+      error: error instanceof Error ? error.message : String(error),
+      jobId: job.id,
+      userId: session.user.id,
+    });
     return NextResponse.json(
-      { error: "Error storing workflow job" },
+      { error: error instanceof Error ? error.message : String(error) },
       { status: 500 },
     );
   }
-
-  if (response.workflow) {
-    try {
-      response.workflow = JSON.parse(response.workflow);
-    } catch (error) {
-      console.error("Error parsing JSON:", error);
-      return NextResponse.json(
-        { error: "Error parsing Workflow" },
-        { status: 500 },
-      );
-    }
-  }
-  return NextResponse.json(response);
 }

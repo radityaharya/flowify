@@ -1,12 +1,6 @@
-import { type Config } from "drizzle-kit";
-
-import { env } from "~/env";
-
-export default {
-  schema: "./src/server/db/schema.ts",
-  driver: "pg",
-  dbCredentials: {
-    connectionString: env.DATABASE_URL,
-  },
-  tablesFilter: ["flowify_*"],
-} satisfies Config;
+import { defineConfig } from "drizzle-kit";
+export default defineConfig({
+  dialect: "postgresql",
+  schema: "./server/db/schema.ts",
+  out: "./drizzle",
+});

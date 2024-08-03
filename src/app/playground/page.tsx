@@ -1,139 +1,140 @@
 "use client";
 
-import React from "react";
-import { TimePicker12 } from "@/components/ui/time-picker/time-picker-12h";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-} from "@/components/ui/form";
-import { useForm } from "react-hook-form";
-import cronstrue from "cronstrue";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useEffect, useState } from "react";
 
-const parseCronExpression = (cronExpression = "0 0 * * *") => {
-  const [minute, hour, , , day] = cronExpression.split(" ") as [
-    string,
-    string,
-    string,
-    string,
-    string,
-  ];
-  let interval = "daily";
-  let dow = "*";
+const CronExpressionGenerator = () => {
+  const [schedule, setSchedule] = useState("daily");
+  const [hour, setHour] = useState("0");
+  const [minute, setMinute] = useState("0");
+  const [dayOfWeek, setDayOfWeek] = useState("1");
+  const [dayOfMonth, setDayOfMonth] = useState("1");
+  const [cronExpression, setCronExpression] = useState("");
 
-  if (day === "1") {
-    interval = "monthly";
-  } else if (day === "0") {
-    interval = "weekly";
-  } else {
-    dow = day;
-  }
-
-  const time = new Date();
-  time.setHours(parseInt(hour, 10));
-  time.setMinutes(parseInt(minute, 10));
-
-  return { interval, time, dow };
-};
-
-const PlaygroundPage: React.FC<{ initialCron?: string }> = ({
-  initialCron = "0 5 * * *",
-}) => {
-  const { interval, time } = parseCronExpression(initialCron);
-
-  const form = useForm({
-    defaultValues: {
-      interval,
-      time,
-    },
-  });
-
-  const getCronExpression = () => {
-    const { interval, time } = form.getValues();
-    if (interval === "daily") {
-      return `0 ${time.getHours()} ${time.getMinutes()} * * *`;
-    } else if (interval === "weekly") {
-      return `0 ${time.getHours()} ${time.getMinutes()} * * 0`;
-    } else if (interval === "monthly") {
-      return `0 ${time.getHours()} ${time.getMinutes()} 1 * *`;
-    } else if (interval === "custom") {
-      return `0 ${time.getHours()} ${time.getMinutes()} * * ${time.getDay()}`;
-    } else if (interval === "once") {
-      return `0 ${time.getHours()} ${time.getMinutes()} ${time.getDate()} ${
-        time.getMonth() + 1
-      } *`;
+  const generateCronExpression = () => {
+    let expression = "";
+    switch (schedule) {
+      case "daily":
+        expression = `${minute} ${hour} * * *`;
+        break;
+      case "weekly":
+        expression = `${minute} ${hour} * * ${dayOfWeek}`;
+        break;
+      case "monthly":
+        expression = `${minute} ${hour} ${dayOfMonth} * *`;
+        break;
+      default:
+        expression = "* * * * *";
     }
-    return "";
+    setCronExpression(expression);
   };
 
-  const onSubmit = (data: any) => {
-    console.info(data);
-  };
+  useEffect(() => {
+    generateCronExpression();
+  }, [schedule, hour, minute, dayOfWeek, dayOfMonth]);
 
   return (
-    <div className="container mx-auto p-6 min-h-[100svh]">
-      <Form {...form}>
-        <form className="flex flex-col gap-4" onSubmit={form.handleSubmit(onSubmit)}>
-          <h2 className="text-xl font-bold">Schedule</h2>
-          <FormField
-            control={form.control}
-            name="interval"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Interval</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Select an interval" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectLabel>Interval</SelectLabel>
-                      <SelectItem value="daily">Daily</SelectItem>
-                      <SelectItem value="weekly">Weekly</SelectItem>
-                      <SelectItem value="monthly">Monthly</SelectItem>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="time"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Time</FormLabel>
-                <FormControl>
-                  <TimePicker12 date={field.value} setDate={field.onChange} />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-          <Button type="submit" className="w-[180px]">Submit</Button>
+    <Card className="w-full max-w-md mx-auto">
+      <CardHeader>
+        <CardTitle>Cron Expression Generator</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
           <div>
-            <p>Cron Expression: {getCronExpression()}</p>
+            <Label htmlFor="schedule">Schedule Type</Label>
+            <select
+              id="schedule"
+              value={schedule}
+              onChange={(e) => setSchedule(e.target.value)}
+              className="w-full mt-1"
+            >
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+            </select>
           </div>
-        </form>
-      </Form>
-    </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="hour">Hour (0-23)</Label>
+              <Input
+                type="number"
+                id="hour"
+                min="0"
+                max="23"
+                value={hour}
+                onChange={(e) => setHour(e.target.value)}
+                className="w-full mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="minute">Minute (0-59)</Label>
+              <Input
+                type="number"
+                id="minute"
+                min="0"
+                max="59"
+                value={minute}
+                onChange={(e) => setMinute(e.target.value)}
+                className="w-full mt-1"
+              />
+            </div>
+          </div>
+
+          {schedule === "weekly" && (
+            <div>
+              <Label htmlFor="dayOfWeek">Day of Week (0-6, Sunday = 0)</Label>
+              <Input
+                type="number"
+                id="dayOfWeek"
+                min="0"
+                max="6"
+                value={dayOfWeek}
+                onChange={(e) => setDayOfWeek(e.target.value)}
+                className="w-full mt-1"
+              />
+            </div>
+          )}
+
+          {schedule === "monthly" && (
+            <div>
+              <Label htmlFor="dayOfMonth">Day of Month (1-31)</Label>
+              <Input
+                type="number"
+                id="dayOfMonth"
+                min="1"
+                max="31"
+                value={dayOfMonth}
+                onChange={(e) => setDayOfMonth(e.target.value)}
+                className="w-full mt-1"
+              />
+            </div>
+          )}
+        </div>
+      </CardContent>
+      <CardFooter className="flex flex-col items-start">
+        <Label htmlFor="cronExpression">Generated Cron Expression:</Label>
+        <Input
+          id="cronExpression"
+          value={cronExpression}
+          readOnly
+          className="w-full mt-1"
+        />
+        <Button onClick={generateCronExpression} className="mt-4">
+          Generate Cron Expression
+        </Button>
+      </CardFooter>
+    </Card>
   );
 };
 
-export default PlaygroundPage;
+export default CronExpressionGenerator;

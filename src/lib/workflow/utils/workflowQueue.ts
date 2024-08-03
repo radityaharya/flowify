@@ -42,6 +42,7 @@ export async function storeWorkflowJob(userId: string, job: any) {
     workflow: JSON.stringify(job.data.workflow),
     userId,
     createdAt: new Date(job.timestamp as number),
+    cron: job.data.cron,
   });
   const res = await db.query.workflowJobs.findFirst({
     where: (workflowJobs, { eq }) => eq(workflowJobs.id, job.id as string),
@@ -56,12 +57,13 @@ export async function storeWorkflowJob(userId: string, job: any) {
  * @returns A Promise that resolves to the updated workflow job.
  */
 export async function updateWorkflowJob(_userId: string, job: any) {
-  log.info("Updating workflow job", job.id);
+  log.info("Updating workflow job", job);
   await db
     .update(workflowJobs)
     .set({
       workflow: JSON.stringify(job.data.workflow),
       modifiedAt: new Date(job.timestamp as number) || new Date(),
+      cron: job.data.cron,
     })
     .where(eq(workflowJobs.id, job.id as string));
   const res = await db.query.workflowJobs.findFirst({

@@ -122,7 +122,6 @@ export const withUserApi = (
 
       const user = await getUser(request);
 
-
       // user namespace check
       if (pathname.startsWith("/api/user/")) {
         const newRequest = handleUserPath(request, user);

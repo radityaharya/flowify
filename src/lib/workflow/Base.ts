@@ -217,7 +217,9 @@ export class Base {
       ) {
         _.forEach(trackSource, (track) => {
           if (_.get(track, "track.type") === "track") {
-            tracks.push(_.get(track, "track") as SpotifyApi.TrackObjectFull);
+            tracks.push(
+              _.get(track, "track") as unknown as SpotifyApi.TrackObjectFull,
+            );
           } else if (_.get(track, "type") === "track") {
             tracks.push(track as SpotifyApi.TrackObjectFull);
           } else {

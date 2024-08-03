@@ -1,23 +1,43 @@
 import { toast } from "sonner";
 import useStore from "~/app/states/store";
 import reactFlowToWorkflow from "./reactFlowToWorkflow";
-export async function saveWorkflow() {
-  const nodes = useStore.getState().nodes;
-  const edges = useStore.getState().edges;
+
+async function fetchWorkflow(workflow: any): Promise<Response> {
+  return fetch("/api/workflow", {
+    method: "POST",
+    body: JSON.stringify(workflow),
+  });
+}
+
+function handleErrors(errors: any[]): void {
+  if (errors.length > 0) {
+    console.error("Errors in workflow", errors);
+    throw new Error("Error saving workflow");
+  }
+}
+
+function updateStore(data: any): void {
+  useStore.setState((state) => ({
+    ...state,
+    flowState: {
+      ...state.flowState,
+      description: data.workflow.description,
+      name: data.workflow.name,
+      id: data.id,
+    },
+  }));
+}
+
+export async function saveWorkflow(): Promise<Workflow.WorkflowResponse> {
+  const { nodes, edges } = useStore.getState();
   const { workflowResponse: workflow, errors } = await reactFlowToWorkflow({
     nodes,
     edges,
   });
 
-  if (errors.length > 0) {
-    console.error("Errors in workflow", errors);
-    return;
-  }
+  handleErrors(errors);
 
-  const responsePromise = fetch("/api/workflow", {
-    method: "POST",
-    body: JSON.stringify(workflow),
-  });
+  const responsePromise = fetchWorkflow(workflow);
 
   toast.promise(responsePromise, {
     loading: "Saving workflow...",
@@ -32,15 +52,9 @@ export async function saveWorkflow() {
     throw new Error("Error saving workflow");
   }
 
-  useStore.setState((state) => ({
-    ...state,
-    flowState: {
-      ...state.flowState,
-      description: data.workflow.description,
-      name: data.workflow.name,
-      id: data.id,
-    },
-  }));
+  console.log("save data", data);
+
+  updateStore(data);
 
   return data;
 }

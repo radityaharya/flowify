@@ -76,8 +76,9 @@ function Builder({
     mutate: workflowMutate,
   } = useWorkflowData(flowId);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   const handleWorkflowData = useCallback(() => {
+    console.log("handleWorkflowData called");
+
     if (workflowData === undefined && workflowError !== undefined) {
       toast.error(workflowError.info);
       router.push("/workflow");
@@ -117,6 +118,7 @@ function Builder({
           description: description ?? "",
           workflow: workflowData.workflow,
           dryrun: true,
+          cron: workflowData.cron,
         });
         reactFlowInstance?.fitView();
         toast.success(
@@ -148,14 +150,22 @@ function Builder({
     setEdges,
     setFlowState,
     setNodes,
+    params.id,
+    router,
+    workflowMutate,
+    resetReactFlow,
   ]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
-  useEffect(handleWorkflowData, [handleWorkflowData]);
+  useEffect(() => {
+    if (!flowId) {
+      handleWorkflowData();
+    } else if (workflowData !== undefined) {
+      handleWorkflowData();
+    }
+  }, [flowId, workflowData, handleWorkflowData]);
 
   const rightPanelRef = useRef<ImperativePanelHandle>(null);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   const resizePanel = useCallback(
     (size: number) => {
       if (rightPanelRef.current) {

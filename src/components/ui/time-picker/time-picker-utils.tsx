@@ -32,7 +32,8 @@ export function getValidNumber(
   }
 
   if (loop) {
-    numericValue = ((numericValue - min + max - min + 1) % (max - min + 1)) + min;
+    numericValue =
+      ((numericValue - min + max - min + 1) % (max - min + 1)) + min;
   } else {
     numericValue = Math.max(min, Math.min(max, numericValue));
   }
