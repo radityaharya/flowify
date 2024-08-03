@@ -5,7 +5,7 @@ import { withSentryConfig } from "@sentry/nextjs";
 
 const config = {
   experimental: {
-    instrumentationHook: process.env.NO_WORKER ? false : true,
+    instrumentationHook: true
   },
   output: process.env.STANDALONE_OUTPUT ? "standalone" : undefined,
   images: {

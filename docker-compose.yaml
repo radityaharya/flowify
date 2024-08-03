@@ -1,0 +1,33 @@
+services:
+  flowify:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL}
+      - SPOTIFY_CLIENT_ID=${SPOTIFY_CLIENT_ID}
+      - SPOTIFY_CLIENT_SECRET=${SPOTIFY_CLIENT_SECRET}
+      - SKIP_ENV_VALIDATION=true
+      - NEXT_AUTH_SECRET=${NEXT_AUTH_SECRET}
+      - NEXTAUTH_URL=${NEXTAUTH_URL}
+      - TZ=Asia/Jakarta
+    env_file:
+      - .env
+
+  flowify-worker:
+    build:
+      context: .
+      dockerfile: worker/Dockerfile
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL}
+      - SPOTIFY_CLIENT_ID=${SPOTIFY_CLIENT_ID}
+      - SPOTIFY_CLIENT_SECRET=${SPOTIFY_CLIENT_SECRET}
+      - TZ=Asia/Jakarta
+    env_file:
+      - .env

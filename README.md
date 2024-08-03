@@ -114,7 +114,6 @@ To get started with Flowify, follow these steps:
    | SPOTIFY_CLIENT_ID     | Spotify API client ID              |
    | SPOTIFY_CLIENT_SECRET | Spotify API client secret          |
    | REDIS_URL             | Redis connection URL               |
-   | NO_WORKER             | Disables built-in workflow runner  |
 
 6. **Push the schema to your database:**
 

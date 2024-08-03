@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import Redis from "ioredis";
 import { v4 as uuidv4 } from "uuid";
 import { env } from "~/env";
+import { getNextRunInfo } from "~/lib/cron";
 import { db } from "~/server/db";
 import {
   workflowJobs,
@@ -29,6 +30,79 @@ export const workflowQueue = new Queue("workflowQueue", {
   },
 });
 
+async function syncRepeatable(job: any, userId: string) {
+  const workflow = job.data.workflow;
+
+  const userPlan = await db.query.users.findFirst({
+    where: (users, { eq }) => eq(users.id, userId),
+    columns: {
+      id: true,
+      planId: true,
+    },
+    with: {
+      plan: {
+        columns: {
+          maxExecutionTime: true,
+          maxOperations: true,
+        },
+      },
+    },
+  });
+
+  if (!userPlan) {
+    throw new Error("User has no plan");
+  }
+
+  if (userPlan.plan?.maxExecutionTime === 0) {
+    throw new Error("Plan does not allow execution");
+  }
+
+  if (workflow.operations.length > (userPlan.plan?.maxOperations || 0)) {
+    throw new Error("Plan does not allow this many operations");
+  }
+
+  try {
+    await workflowQueue.removeRepeatableByKey(job.data.workflow.id);
+    log.info("Deleted repeatable job", job.data.workflow.id);
+  } catch (err) {
+    log.info("Error deleting repeatable job", err);
+  }
+
+  try {
+    const newJob = await workflowQueue.add(
+      "workflowQueue",
+      { workflow, userId, maxExecutionTime: userPlan?.plan?.maxExecutionTime },
+      {
+        jobId: job.data.workflow.id,
+        repeat: {
+          pattern: job.data.cron,
+          key: job.data.workflow.id,
+        },
+      },
+    );
+
+    const runInfo = getNextRunInfo(job.data.cron);
+    if (runInfo) {
+      const { nextRun, minutesUntilNextRun } = runInfo;
+      log.info("Created repeatable job", {
+        jobId: newJob.id,
+        cron: job.data.cron,
+        nextRun,
+        now: new Date(),
+        minutesUntilNextRun,
+      });
+    } else {
+      log.info("Created repeatable job", {
+        jobId: newJob.id,
+        cron: job.data.cron,
+      });
+    }
+  } catch (error) {
+    log.error("Error creating repeatable job", error);
+    throw error;
+  }
+}
+
 /**
  * Stores a workflow job in the database.
  * @param userId - The ID of the user associated with the job.
@@ -47,6 +121,9 @@ export async function storeWorkflowJob(userId: string, job: any) {
   const res = await db.query.workflowJobs.findFirst({
     where: (workflowJobs, { eq }) => eq(workflowJobs.id, job.id as string),
   });
+  if (job.data.cron && job.data.cron !== "unset") {
+    await syncRepeatable(job, userId);
+  }
   return res;
 }
 
@@ -56,7 +133,7 @@ export async function storeWorkflowJob(userId: string, job: any) {
  * @param job - The job object containing the updated workflow job information.
  * @returns A Promise that resolves to the updated workflow job.
  */
-export async function updateWorkflowJob(_userId: string, job: any) {
+export async function updateWorkflowJob(userId: string, job: any) {
   log.info("Updating workflow job", job);
   await db
     .update(workflowJobs)
@@ -69,6 +146,9 @@ export async function updateWorkflowJob(_userId: string, job: any) {
   const res = await db.query.workflowJobs.findFirst({
     where: (workflowJobs, { eq }) => eq(workflowJobs.id, job.id as string),
   });
+  if (job.data.cron && job.data.cron !== "unset") {
+    await syncRepeatable(job, userId);
+  }
   return res;
 }
 
@@ -256,39 +336,43 @@ export async function updateWorkflowRun(
       throw new Error("Job not found");
     }
 
+    // Determine status if not provided
     if (!status) {
-      if (job.finishedOn) {
-        status = "completed";
-      } else if (job.stacktrace) {
-        status = "failed";
-      } else if (job.processedOn) {
-        status = "active";
-      } else if (job.delay) {
-        status = "delayed";
-      }
+      status = job.finishedOn
+        ? "completed"
+        : job.stacktrace
+          ? "failed"
+          : job.processedOn
+            ? "active"
+            : job.delay
+              ? "delayed"
+              : status;
     }
 
-    const finished = ["completed", "failed", "cancelled"].includes(status!);
+    const finished = ["completed", "failed", "cancelled"].includes(
+      status ?? "",
+    );
+    const completedAt = finished ? new Date() : null;
 
-    let completedAt;
-    if (finished) {
-      completedAt = new Date();
-    }
-
+    // Compress return values if present
     if (returnValues?.length > 0) {
       returnValues = compressReturnValues(returnValues);
     }
 
+    const updateData = {
+      status: status ?? null,
+      error: job.failedReason ?? null,
+      completedAt,
+      workerId: workerId ?? null,
+      prevState: prevState ? JSON.stringify(prevState) : null,
+      returnValues: returnValues ? JSON.stringify(returnValues) : null,
+    };
+
+    log.info("Updating workflow run with data:", updateData);
+
     await db
       .update(workflowRuns)
-      .set({
-        status: status,
-        error: job.failedReason,
-        completedAt: completedAt,
-        workerId: workerId,
-        prevState: JSON.stringify(prevState),
-        returnValues: JSON.stringify(returnValues),
-      })
+      .set(updateData)
       .where(eq(workflowRuns.id, jobId));
     return "updated";
   } catch (err) {
