@@ -52,7 +52,7 @@ export async function saveWorkflow(): Promise<Workflow.WorkflowResponse> {
     throw new Error("Error saving workflow");
   }
 
-  console.log("save data", data);
+  data.workflow = JSON.parse(data.workflow);
 
   updateStore(data);
 

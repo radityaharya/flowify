@@ -360,7 +360,7 @@ export function App() {
           "redirecting to",
           `/workflow/${formattedName}_${saveResponse.id}`,
         );
-        router.push(`/workflow/${formattedName}_${saveResponse.id}`);
+        router.replace(`/workflow/${formattedName}_${saveResponse.id}`);
       }
     } catch (error) {
       console.error("Error saving workflow", error);
