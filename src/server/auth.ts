@@ -8,7 +8,7 @@ import {
   type NextAuthOptions,
   getServerSession,
 } from "next-auth";
-import { DefaultJWT } from "next-auth/jwt";
+import { type DefaultJWT } from "next-auth/jwt";
 import SpotifyProvider from "next-auth/providers/spotify";
 import { env } from "~/env";
 import { db } from "~/server/db";
@@ -62,43 +62,75 @@ declare module "next-auth/jwt" {
   }
 }
 
-async function refreshAccessToken(userId, spotify) {
-  if (spotify?.expires_at! * 1000 < Date.now()) {
-    logger.info("Refreshing access token for user", userId);
-    try {
-      const response = await fetch("https://accounts.spotify.com/api/token", {
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-          client_id: env.SPOTIFY_CLIENT_ID,
-          client_secret: env.SPOTIFY_CLIENT_SECRET,
-          grant_type: "refresh_token",
-          refresh_token: spotify!.refresh_token ?? "",
-        }),
-        method: "POST",
-      });
+async function fetchNewTokens(refreshToken: string): Promise<TokenSet> {
+  const response = await fetch("https://accounts.spotify.com/api/token", {
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      client_id: env.SPOTIFY_CLIENT_ID,
+      client_secret: env.SPOTIFY_CLIENT_SECRET,
+      grant_type: "refresh_token",
+      refresh_token: refreshToken,
+    }),
+    method: "POST",
+  });
 
-      const tokens: TokenSet = await response.json();
+  const tokens: TokenSet = await response.json();
 
-      if (!response.ok) throw tokens;
+  if (!response.ok) throw tokens;
 
-      await db
-        .update(accounts)
-        .set({
-          access_token: tokens.access_token,
-          expires_at: Math.floor(Date.now() / 1000 + tokens?.expires_in!),
-          refresh_token: tokens.refresh_token ?? spotify!.refresh_token,
-        })
-        .where(
-          and(
-            eq(accounts.provider, "spotify"),
-            eq(accounts.providerAccountId, spotify!.providerAccountId),
-          ),
-        );
-    } catch (error) {
-      logger.error("Error refreshing access token", error);
-      return "RefreshAccessTokenError";
+  return tokens;
+}
+
+async function updateTokensInDB(
+  userId: string,
+  tokens: TokenSet,
+  spotify: any,
+) {
+  const updateResult = await db
+    .update(accounts)
+    .set({
+      access_token: tokens.access_token,
+      expires_at: Math.floor(Date.now() / 1000 + (tokens?.expires_in ?? 0)),
+      refresh_token: tokens.refresh_token ?? spotify!.refresh_token,
+    })
+    .where(
+      and(
+        eq(accounts.provider, "spotify"),
+        eq(accounts.providerAccountId, spotify?.providerAccountId),
+      ),
+    );
+
+  logger.info(`Token update result for user ${userId}`, updateResult);
+}
+
+async function refreshAccessToken(userId: string, spotify: any) {
+  if (spotify?.expires_at) {
+    const expiryTime = spotify.expires_at * 1000;
+    const currentTime = Date.now();
+    const timeUntilExpiry = expiryTime - currentTime;
+
+    logger.info(
+      `Token expiry time for user ${userId}: ${new Date(expiryTime).toISOString()}, current time: ${new Date(currentTime).toISOString()}, time until expiry: ${timeUntilExpiry}ms`,
+    );
+
+    // Force refresh if the token is about to expire within the next 10 minutes
+    if (timeUntilExpiry < 10 * 60 * 1000) {
+      logger.info(`Refreshing access token for user ${userId}`);
+      try {
+        const tokens = await fetchNewTokens(spotify?.refresh_token ?? "");
+        logger.info(`New tokens received for user ${userId}`, tokens);
+
+        await updateTokensInDB(userId, tokens, spotify);
+
+        // Return the new tokens
+        return tokens;
+      } catch (error) {
+        logger.error(`Error refreshing access token for user ${userId}`, error);
+        return "RefreshAccessTokenError";
+      }
     }
   }
+  return null;
 }
 
 export const authOptions: NextAuthOptions = {
@@ -109,12 +141,15 @@ export const authOptions: NextAuthOptions = {
         where: (accounts, { eq }) => eq(accounts.userId, userId),
       });
 
-      const error = await refreshAccessToken(userId, spotify);
-      if (error) {
-        session.error = error;
+      const errorOrTokens = await refreshAccessToken(userId, spotify);
+      if (errorOrTokens === "RefreshAccessTokenError") {
+        session.error = errorOrTokens;
+      } else if (errorOrTokens) {
+        // Update session with new tokens
+        session.user.spotify_access_token = errorOrTokens.access_token ?? "";
       }
 
-      session.user.providerAccountId = spotify?.providerAccountId!;
+      session.user.providerAccountId = spotify?.providerAccountId ?? "";
       session.user.id = userId;
       return session;
     },
@@ -124,7 +159,7 @@ export const authOptions: NextAuthOptions = {
           token.user = {
             ...user,
             providerAccountId: account.providerAccountId,
-            spotify_access_token: account.access_token!,
+            spotify_access_token: account?.access_token ?? "",
           };
         }
       }
@@ -154,7 +189,7 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
   },
-  // @ts-expect-error, the DrizzleAdapter type is not compatible with the NextAuthOptions type
+  // @ts-expect-error next-auth types
   adapter: DrizzleAdapter(db),
   providers: [
     SpotifyProvider({
@@ -162,20 +197,11 @@ export const authOptions: NextAuthOptions = {
       clientSecret: env.SPOTIFY_CLIENT_SECRET,
       authorization: { params: { scope: spotifyScopes.join(" ") } },
     }),
-    /**
-     * ...add more providers here.
-     *
-     * Most other providers require a bit more work than the Discord provider. For example, the
-     * GitHub provider requires you to add the `refresh_token_expires_in` field to the Account
-     * model. Refer to the NextAuth.js docs for the provider you want to use. Example:
-     *
-     * @see https://next-auth.js.org/providers/github
-     */
   ],
   session: {
     strategy: "jwt",
     maxAge:
-      process.env.NODE_ENV === "development" ? 30 * 24 * 60 * 60 : 3 * 60 * 60, // 30 days in development, 3 hours otherwise
+      process.env.NODE_ENV === "development" ? 30 * 24 * 60 * 60 : 3 * 60 * 60,
   },
   pages: {
     signIn: "/auth/login",
@@ -183,9 +209,4 @@ export const authOptions: NextAuthOptions = {
   secret: env.NEXTAUTH_SECRET,
 };
 
-/**
- * Wrapper for `getServerSession` so that you don't need to import the `authOptions` in every file.
- *
- * @see https://next-auth.js.org/configuration/nextjs
- */
 export const getServerAuthSession = () => getServerSession(authOptions);
