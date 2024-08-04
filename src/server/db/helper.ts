@@ -6,7 +6,11 @@ import { db } from ".";
 async function getAccessToken(whereClause: any) {
   const user = await db.query.accounts.findFirst({ where: whereClause });
 
-  if (user && user.expires_at! * 1000 < Date.now()) {
+  if (!(user?.access_token && user.refresh_token && user.expires_at)) {
+    throw new Error("No access token");
+  }
+
+  if (user.expires_at * 1000 < Date.now()) {
     console.debug("Refreshing access token for user", user.userId);
     try {
       const response = await fetch("https://accounts.spotify.com/api/token", {
@@ -23,7 +27,12 @@ async function getAccessToken(whereClause: any) {
         }),
       });
 
-      const refreshedTokens = await response.json();
+      const refreshedTokens = (await response.json()) as {
+        access_token: string;
+        expires_in: number;
+        refresh_token: string;
+        token_type: string;
+      };
 
       if (!response.ok) {
         throw refreshedTokens;
@@ -37,23 +46,29 @@ async function getAccessToken(whereClause: any) {
         refresh_token: refreshedTokens.refresh_token ?? user.refresh_token,
       });
 
-      return refreshedTokens.access_token;
+      return refreshedTokens;
     } catch (error) {
       console.error("Error refreshing access token", error);
       return null;
     }
   }
 
-  // console.info("Returning access token from user", user?.userId);
-  return user?.access_token;
+  return {
+    access_token: user.access_token,
+    expires_in: (user.expires_at ?? 0) - Date.now() / 1000,
+    refresh_token: user.refresh_token,
+    token_type: "Bearer",
+  };
 }
 
 async function getAccessTokenFromUserId(userId: string) {
-  return getAccessToken(eq(accounts.userId, userId));
+  return await getAccessToken(eq(accounts.userId, userId));
 }
 
 async function getAccessTokenFromProviderAccountId(providerAccountId: string) {
-  return getAccessToken(eq(accounts.providerAccountId, providerAccountId));
+  return await getAccessToken(
+    eq(accounts.providerAccountId, providerAccountId),
+  );
 }
 
 export { getAccessTokenFromUserId, getAccessTokenFromProviderAccountId };

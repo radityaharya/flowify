@@ -1,10 +1,10 @@
-import type SpotifyWebApi from "spotify-web-api-node";
+import { type SpotifyApi } from "@spotify/web-api-ts-sdk";
+
 import { Logger } from "../log";
-/* eslint-disable @typescript-eslint/ban-types */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Base } from "./Base";
 
 const log = new Logger("Workflow");
+
 export default class Selector extends Base {
   /**
    * Returns the first `count` tracks from the given sources.
@@ -16,7 +16,7 @@ export default class Selector extends Base {
    * @throws Error if the source type is invalid.
    */
   static first(
-    _spClient: SpotifyWebApi,
+    _spClient: SpotifyApi,
     sources: any[],
     params: { count: number },
   ) {
@@ -42,7 +42,7 @@ export default class Selector extends Base {
    * @throws Error if the source type is invalid.
    */
   static last(
-    _spClient: SpotifyWebApi,
+    _spClient: SpotifyApi,
     sources: any[],
     params: { count: number },
   ) {
@@ -68,7 +68,11 @@ export default class Selector extends Base {
    * @returns An array of tracks excluding the first track.
    * @throws Error if the source type is invalid.
    */
-  static allButFirst(_spClient: SpotifyWebApi, sources: any[], _params: {}) {
+  static allButFirst(
+    _spClient: SpotifyApi,
+    sources: any[],
+    _params: NonNullable<unknown>,
+  ) {
     log.info("All But First Selection...");
     log.debug("All But First Sources:", sources);
 
@@ -91,7 +95,11 @@ export default class Selector extends Base {
    * @returns An array containing all but the last element from the sources array.
    * @throws An error if the source type is invalid.
    */
-  static allButLast(_spClient: SpotifyWebApi, sources: any[], _params: {}) {
+  static allButLast(
+    _spClient: SpotifyApi,
+    sources: any[],
+    _params: NonNullable<unknown>,
+  ) {
     log.info("All But Last Selection...");
     log.debug("All But Last Sources:", sources);
 
@@ -112,7 +120,7 @@ export default class Selector extends Base {
    * @param params.count - The number of elements to select.
    */
   static random(
-    _spClient: SpotifyWebApi,
+    _spClient: SpotifyApi,
     sources: any[],
     params: { count: number },
   ) {
@@ -125,7 +133,12 @@ export default class Selector extends Base {
       const res = new Set();
       while (res.size < params.count) {
         const randomIndex = Math.floor(Math.random() * tracks.length);
-        res.add(tracks[randomIndex]);
+        if (tracks[randomIndex]) {
+          const track = tracks[randomIndex];
+          if (track) {
+            res.add(track);
+          }
+        }
       }
       return Array.from(res);
     } else {
@@ -142,16 +155,15 @@ export default class Selector extends Base {
    * @param params - The parameters for the recommendation.
    * @param params.count - The number of items to recommend.
    */
-  static recommend(
-    spClient: SpotifyWebApi,
+  static async recommend(
+    spClient: SpotifyApi,
     sources: any[],
-    params: { count: number; seedType: "tracks" | "artists" } = {
+    params: { count: number; seedType?: "tracks" | "artists" } = {
       count: 20,
       seedType: "tracks",
     },
   ) {
     log.info("Recommendation...");
-    log.debug("Recommendation Sources:", sources);
     const tracks = Selector.getTracks(sources);
 
     const seedTracks = new Array<SpotifyApi.TrackObjectFull>();
@@ -168,7 +180,10 @@ export default class Selector extends Base {
           }
           // 5 is the max number of seed shared between tracks, artists, and genres
           const randomIndex = Math.floor(Math.random() * tracks.length);
-          res.add(tracks[randomIndex]!);
+          const track = tracks[randomIndex];
+          if (track) {
+            res.add(track);
+          }
           maxRetry--;
         }
       }
@@ -181,15 +196,30 @@ export default class Selector extends Base {
     const seedArtists = Array.from(seedTracks).map(
       (track) => track.artists[0]!.id,
     );
-    if (Array.isArray(seedTracks)) {
-      const rec = spClient.getRecommendations({
+
+    // Validate seed IDs
+    if (seedTrackIds.length === 0 && seedArtists.length === 0) {
+      throw new Error("No valid seed tracks or artists found");
+    }
+
+    // Validate params.seedType
+    if (params.seedType === undefined) {
+      params.seedType = "tracks";
+    }
+
+    try {
+      const request = {
+        limit: params.count,
         seed_tracks: params.seedType === "tracks" ? seedTrackIds : undefined,
         seed_artists: params.seedType === "artists" ? seedArtists : undefined,
-        limit: params.count,
-      });
-      return rec.then((res) => res.body);
-    } else {
-      throw new Error(`Invalid source type: ${typeof seedTracks}`);
+      };
+
+      log.info("Recommendation Request:", request);
+      const rec = await spClient.recommendations.get(request);
+      return rec;
+    } catch (error) {
+      log.error("Error fetching recommendations:", error);
+      throw error;
     }
   }
 }

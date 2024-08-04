@@ -65,15 +65,15 @@ const worker = new Worker(
 
     await updateWorkflowRun(job.id, "active", WORKER_ID);
 
-    const accessToken = await getAccessTokenFromUserId(data.userId as string);
-    if (!accessToken) {
+    const userToken = await getAccessTokenFromUserId(data.userId as string);
+    if (!userToken) {
       await reportIdle();
       throw new Error("No access token");
     }
 
     const runner = new Runner({
       slug: data.userId,
-      access_token: accessToken,
+      token: userToken,
     });
 
     const workflow = data.workflow as Workflow.WorkflowObject;

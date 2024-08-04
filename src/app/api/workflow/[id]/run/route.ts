@@ -50,7 +50,7 @@ export async function POST(
 
   const runner = new Runner({
     slug: session.user.id,
-    access_token: accessToken,
+    token: accessToken,
   });
   const workflowParsed = WorkflowObjectSchema.safeParse(
     (await JSON.parse(workflow.workflow)) as any,

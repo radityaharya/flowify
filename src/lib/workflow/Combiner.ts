@@ -1,4 +1,5 @@
-import type SpotifyWebApi from "spotify-web-api-node";
+import { type SpotifyApi } from "@spotify/web-api-ts-sdk";
+
 import { Logger } from "../log";
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/ban-types */
@@ -6,6 +7,7 @@ import { Logger } from "../log";
 import { Base } from "./Base";
 
 const log = new Logger("Combiner");
+
 export default class Combiner extends Base {
   /**
    * Pushes the tracks from the given sources into a single array.
@@ -15,11 +17,11 @@ export default class Combiner extends Base {
    * @param _params - Additional parameters (currently unused).
    * @returns An array of PlaylistTrackObject containing the combined tracks from all sources.
    */
-  static push(_spClient: SpotifyWebApi, sources: any[], _params: {}) {
+  static push(_spClient: SpotifyApi, sources: any[], _params: {}) {
     log.debug("Push Sources:", sources);
     log.info("Pushing...");
-    const result = [] as SpotifyApi.PlaylistTrackObject[];
-    sources.forEach((source) => {
+    const result: SpotifyApi.PlaylistTrackObject[] = [];
+    for (const source of sources) {
       if (source.tracks) {
         result.push(...source.tracks);
       } else if (Array.isArray(source)) {
@@ -27,15 +29,15 @@ export default class Combiner extends Base {
       } else {
         log.error("Invalid source type:", typeof source);
       }
-    });
+    }
     return result;
   }
 
-  static isPlaylistTrackObject(
+  static isPlaylistTrackObject = (
     obj: any,
-  ): obj is SpotifyApi.PlaylistTrackObject {
+  ): obj is SpotifyApi.PlaylistTrackObject => {
     return obj?.hasOwnProperty("track");
-  }
+  };
 
   /**
    * Combines the tracks from multiple sources in an alternating manner.
@@ -46,23 +48,23 @@ export default class Combiner extends Base {
    * @returns An array of PlaylistTrackObject representing the combined tracks.
    * @throws Error if the source type is invalid.
    */
-  static alternate(_spClient: SpotifyWebApi, sources: any[], _params: {}) {
+  static alternate(_spClient: SpotifyApi, sources: any[], _params: {}) {
     log.debug("Alternate Sources:", sources);
     log.info("Alternating...");
-    const result = [] as SpotifyApi.PlaylistTrackObject[];
+    const result: SpotifyApi.PlaylistTrackObject[] = [];
     let longestSourceLength = 0;
 
     const sourcesTracks = sources.map((source) => {
       let tracks: SpotifyApi.PlaylistTrackObject[];
       if (
         Array.isArray(source) &&
-        source.every((item) => Combiner.isPlaylistTrackObject(item))
+        source.every(Combiner.isPlaylistTrackObject)
       ) {
         tracks = source;
       } else if (source.tracks && Array.isArray(source.tracks)) {
         tracks = source.tracks;
       } else {
-        console.log(source);
+        log.error("Invalid source type:", typeof source);
         throw new Error("Invalid source type");
       }
       if (tracks.length > longestSourceLength) {
@@ -71,13 +73,13 @@ export default class Combiner extends Base {
       return tracks;
     });
 
-    // interleave the tracks from each source
+    // Interleave the tracks from each source
     for (let i = 0; i < longestSourceLength; i++) {
-      sourcesTracks.forEach((source) => {
-        if (source[i]) {
+      for (const source of sourcesTracks) {
+        if (source[i] !== undefined) {
           result.push(source[i]!);
         }
-      });
+      }
     }
     return result;
   }
@@ -90,12 +92,11 @@ export default class Combiner extends Base {
    * @param _params - Additional parameters.
    * @returns An array of SpotifyApi.PlaylistTrackObject representing the selected random stream.
    */
-  static randomStream(_spClient: SpotifyWebApi, sources: any[], _params: {}) {
+  static randomStream(_spClient: SpotifyApi, sources: any[], _params: {}) {
     log.debug("RandomStream Sources:", sources);
     log.info("Selecting a random stream...");
 
-    const result = [] as SpotifyApi.PlaylistTrackObject[];
-
+    const result: SpotifyApi.PlaylistTrackObject[] = [];
     const randomSource = sources[Math.floor(Math.random() * sources.length)];
 
     if (randomSource.tracks) {

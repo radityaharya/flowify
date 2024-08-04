@@ -44,6 +44,7 @@
     "@radix-ui/react-tooltip": "^1.1.2",
     "@sentry/nextjs": "^8.22.0",
     "@sentry/react": "^8.22.0",
+    "@spotify/web-api-ts-sdk": "^1.2.0",
     "@t3-oss/env-nextjs": "^0.10.1",
     "@tanstack/react-table": "^8.19.2",
     "@types/lodash": "^4.17.7",

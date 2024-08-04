@@ -100,7 +100,7 @@ async function updateTokensInDB(
       ),
     );
 
-  logger.info(`Token update result for user ${userId}`, updateResult);
+  // logger.info(`Token update result for user ${userId}`, updateResult);
 }
 
 async function refreshAccessToken(userId: string, spotify: any) {
@@ -113,7 +113,6 @@ async function refreshAccessToken(userId: string, spotify: any) {
       `Token expiry time for user ${userId}: ${new Date(expiryTime).toISOString()}, current time: ${new Date(currentTime).toISOString()}, time until expiry: ${timeUntilExpiry}ms`,
     );
 
-    // Force refresh if the token is about to expire within the next 10 minutes
     if (timeUntilExpiry < 10 * 60 * 1000) {
       logger.info(`Refreshing access token for user ${userId}`);
       try {
@@ -122,7 +121,6 @@ async function refreshAccessToken(userId: string, spotify: any) {
 
         await updateTokensInDB(userId, tokens, spotify);
 
-        // Return the new tokens
         return tokens;
       } catch (error) {
         logger.error(`Error refreshing access token for user ${userId}`, error);

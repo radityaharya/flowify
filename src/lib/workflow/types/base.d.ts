@@ -8,7 +8,7 @@ type Operations = {
 };
 
 type OperationArgs = {
-  spClient: SpotifyWebApi;
+  spClient: SpotifyApi;
   sources: any[];
   params: any;
 };

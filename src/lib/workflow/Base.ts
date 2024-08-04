@@ -1,47 +1,40 @@
+import { SpotifyApi } from "@spotify/web-api-ts-sdk";
 import _ from "lodash";
-import SpotifyWebApi from "spotify-web-api-node";
 import { env } from "~/env";
 import { Logger } from "../log";
 
-export interface AccessToken {
+export interface UserCredential {
   slug: string;
-  access_token: string;
+  token: {
+    access_token: string;
+    token_type: string;
+    expires_in: number;
+    refresh_token: string;
+  };
 }
 
 const log = new Logger("Base");
 
 export class Base {
-  public spClient: SpotifyWebApi;
+  public spClient: SpotifyApi;
   public operationValues: Map<string, any> = new Map();
 
   constructor(
-    public accessToken: AccessToken,
-    _spClient?: SpotifyWebApi,
+    public userCredential: UserCredential,
+    _spClient?: SpotifyApi,
   ) {
-    this.spClient = new SpotifyWebApi({
-      clientId: env.SPOTIFY_CLIENT_ID,
-      clientSecret: env.SPOTIFY_CLIENT_SECRET,
-    });
-    this.spClient.setAccessToken(accessToken.access_token);
+    this.spClient = SpotifyApi.withAccessToken(
+      env.SPOTIFY_CLIENT_ID,
+      userCredential.token,
+    );
   }
 
   authedSpotifyApi() {
     return this.spClient;
   }
 
-  // Users
-  async getUsername() {
-    const data = await this.spClient.getMe();
-    return data.body.display_name;
-  }
-
-  async getUserPlaylists() {
-    const data = await this.spClient.getUserPlaylists();
-    return data.body;
-  }
-
   static async addTracksBatch(
-    spClient: SpotifyWebApi,
+    spClient: SpotifyApi,
     playlistId: string,
     trackUris: string[],
   ) {
@@ -49,13 +42,13 @@ export class Base {
       const chunkSize = 50;
       let retryAfter = 0;
 
-      function chunk<T>(array: T[], size: number): T[][] {
-        const result = [] as T[][];
+      const chunk = <T>(array: T[], size: number): T[][] => {
+        const result: T[][] = [];
         for (let i = 0; i < array.length; i += size) {
           result.push(array.slice(i, i + size));
         }
         return result;
-      }
+      };
 
       const trackChunks = chunk(trackUris, chunkSize);
 
@@ -68,11 +61,7 @@ export class Base {
             await new Promise((resolve) =>
               setTimeout(resolve, retryAfter * 1000),
             );
-            const snapshot = await spClient.addTracksToPlaylist(
-              playlistId,
-              trackChunk,
-            );
-            log.debug("Add Track Snapshot", snapshot.body.snapshot_id);
+            await spClient.playlists.addItemsToPlaylist(playlistId, trackChunk);
             break;
           } catch (error: any) {
             if (error.statusCode === 429) {
@@ -93,7 +82,7 @@ export class Base {
   }
 
   static async removeTracksBatch(
-    spClient: SpotifyWebApi,
+    spClient: SpotifyApi,
     playlistId: string,
     trackUris: string[],
   ) {
@@ -101,13 +90,13 @@ export class Base {
       const chunkSize = 50;
       let retryAfter = 0;
 
-      function chunk<T>(array: T[], size: number): T[][] {
-        const result = [] as T[][];
+      const chunk = <T>(array: T[], size: number): T[][] => {
+        const result: T[][] = [];
         for (let i = 0; i < array.length; i += size) {
           result.push(array.slice(i, i + size));
         }
         return result;
-      }
+      };
 
       const trackChunks = chunk(trackUris, chunkSize);
 
@@ -122,11 +111,9 @@ export class Base {
             );
             const trackObjects = trackChunk.map((uri) => ({ uri }));
             log.info("Removing tracks", trackObjects);
-            const snapshot = await spClient.removeTracksFromPlaylist(
-              playlistId,
-              trackObjects,
-            );
-            log.debug("Remove Track Snapshot", snapshot.body.snapshot_id);
+            await spClient.playlists.removeItemsFromPlaylist(playlistId, {
+              tracks: trackObjects,
+            });
             break;
           } catch (error: any) {
             if (error.statusCode === 429) {
@@ -139,21 +126,46 @@ export class Base {
         }
       }
     } catch (err) {
-      console.error("Error adding tracks to playlist", err);
+      console.error("Error removing tracks from playlist", err);
       throw new Error(
-        "Error adding tracks to playlist " + (err as Error).message,
+        "Error removing tracks from playlist " + (err as Error).message,
       );
     }
   }
 
   static async replaceTracksBatch(
-    spClient: SpotifyWebApi,
+    spClient: SpotifyApi,
     id: string,
-    trackUris: string[],
+    newTrackUris: string[],
   ) {
     try {
-      await Base.removeTracksBatch(spClient, id, trackUris);
-      await Base.addTracksBatch(spClient, id, trackUris);
+      let offset = 0;
+      const limit = 50;
+      let existingTrackUris: string[] = [];
+
+      // Fetch all existing tracks with pagination
+      while (true) {
+        const existingTracks = await spClient.playlists.getPlaylistItems(
+          id,
+          undefined,
+          undefined,
+          limit,
+          offset,
+        );
+        const trackUris = existingTracks.items.map((track) => track.track.uri);
+        existingTrackUris = existingTrackUris.concat(trackUris);
+
+        if (existingTracks.items.length < limit) {
+          break; // No more items to fetch
+        }
+
+        offset += limit;
+      }
+
+      // Remove all existing tracks
+      await Base.removeTracksBatch(spClient, id, existingTrackUris);
+
+      await Base.addTracksBatch(spClient, id, newTrackUris);
     } catch (err) {
       console.error("Error replacing tracks in playlist", err);
       throw new Error(
@@ -187,50 +199,42 @@ export class Base {
   static getTracks(sources: any[]) {
     const tracks: SpotifyApi.TrackObjectFull[] = [];
 
-    _.forEach(sources, (source) => {
+    for (const source of sources) {
       let trackSource;
 
-      if (_.has(source, "tracks")) {
-        trackSource = _.get(source, "tracks");
-      } else if (_.has(source, "items")) {
-        trackSource = _.get(source, "items");
-      } else if (
-        _.has(source, "track") &&
-        !_.isObject(_.get(source, "track"))
-      ) {
-        trackSource = _.get(source, "track") ? [_.get(source, "track")] : [];
-      } else if (_.isArray(source)) {
+      if (source.tracks) {
+        trackSource = source.tracks;
+      } else if (source.items) {
+        trackSource = source.items;
+      } else if (source.track && !_.isObject(source.track)) {
+        trackSource = source.track ? [source.track] : [];
+      } else if (Array.isArray(source)) {
         trackSource = source;
       }
 
-      if (!trackSource) return;
+      if (!trackSource) continue;
 
-      if (_.has(trackSource, "tracks")) {
-        _.forEach(trackSource, (track) => {
-          if (_.get(track, "track.type") === "track") {
-            tracks.push(_.get(track, "track") as SpotifyApi.TrackObjectFull);
+      if (trackSource.tracks) {
+        for (const track of trackSource) {
+          if (track.track?.type === "track") {
+            tracks.push(track.track as SpotifyApi.TrackObjectFull);
           }
-        });
-      } else if (
-        _.isArray(trackSource) &&
-        _.isObject(_.get(trackSource, [0]))
-      ) {
-        _.forEach(trackSource, (track) => {
-          if (_.get(track, "track.type") === "track") {
-            tracks.push(
-              _.get(track, "track") as unknown as SpotifyApi.TrackObjectFull,
-            );
-          } else if (_.get(track, "type") === "track") {
+        }
+      } else if (Array.isArray(trackSource) && _.isObject(trackSource[0])) {
+        for (const track of trackSource) {
+          if (track.track?.type === "track") {
+            tracks.push(track.track as SpotifyApi.TrackObjectFull);
+          } else if (track.type === "track") {
             tracks.push(track as SpotifyApi.TrackObjectFull);
           } else {
             tracks.push(track as SpotifyApi.TrackObjectFull);
           }
-        });
+        }
       } else {
         log.error("ERROR2", trackSource);
         throw new Error("Invalid source type");
       }
-    });
+    }
 
     return tracks;
   }

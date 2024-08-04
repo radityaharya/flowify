@@ -1,14 +1,14 @@
+import { type SpotifyApi } from "@spotify/web-api-ts-sdk";
 import _ from "lodash";
-import type SpotifyWebApi from "spotify-web-api-node";
+
 import { Logger } from "../log";
-/* eslint-disable @typescript-eslint/ban-types */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Base } from "./Base";
 
 const log = new Logger("Workflow");
+
 export default class Filter extends Base {
   static filter(
-    _spClient: SpotifyWebApi,
+    _spClient: SpotifyApi,
     sources: any[],
     params: { filterKey: string; filterValue: string },
   ) {
@@ -17,26 +17,23 @@ export default class Filter extends Base {
 
     const tracks = Filter.getTracks(sources);
 
-    if (_.isArray(tracks)) {
-      const res = _.filter(tracks, (track: any) => {
+    if (Array.isArray(tracks)) {
+      const res = tracks.filter((track: any) => {
         if (params.filterKey && params.filterValue) {
-          const [operator, value] = params.filterValue.split(" ") as [
-            string,
-            string,
-          ];
+          const [operator, value] = params.filterValue.split(" ");
           const trackValue = _.get(track, params.filterKey);
 
           let filterValue: string | number | Date | boolean | object;
 
-          if (!_.isNaN(_.toNumber(value))) {
-            filterValue = _.toNumber(value);
-          } else if (!_.isNaN(Date.parse(value))) {
-            filterValue = new Date(value);
+          if (!Number.isNaN(Number(value))) {
+            filterValue = Number(value);
+          } else if (!Number.isNaN(Date.parse(value ?? ""))) {
+            filterValue = value ? new Date(value) : new Date();
           } else {
-            filterValue = value;
+            filterValue = value ?? "";
           }
 
-          if (_.isNumber(filterValue)) {
+          if (typeof filterValue === "number") {
             switch (operator) {
               case ">":
                 return trackValue > filterValue;
@@ -51,11 +48,11 @@ export default class Filter extends Base {
               default:
                 throw new Error(`Invalid operator: ${operator}`);
             }
-          } else if (_.isString(filterValue)) {
-            return _.includes(trackValue, filterValue);
-          } else if (_.isBoolean(filterValue)) {
-            return trackValue === Boolean(filterValue);
-          } else if (_.isObject(filterValue) && _.isDate(filterValue)) {
+          } else if (typeof filterValue === "string") {
+            return trackValue.includes(filterValue);
+          } else if (typeof filterValue === "boolean") {
+            return trackValue === filterValue;
+          } else if (filterValue instanceof Date) {
             const trackDateValue = new Date(trackValue);
             switch (operator) {
               case ">":
@@ -85,7 +82,11 @@ export default class Filter extends Base {
     }
   }
 
-  static dedupeTracks(_spClient: SpotifyWebApi, sources: any[], _params: {}) {
+  static dedupeTracks(
+    _spClient: SpotifyApi,
+    sources: any[],
+    _params: NonNullable<unknown>,
+  ) {
     log.info("Deduping tracks...");
     log.debug("DedupeTracks Sources:", sources);
 
@@ -97,13 +98,17 @@ export default class Filter extends Base {
     return [];
   }
 
-  static dedupeArtists(_spClient: SpotifyWebApi, sources: any[], _params: {}) {
+  static dedupeArtists(
+    _spClient: SpotifyApi,
+    sources: any[],
+    _params: NonNullable<unknown>,
+  ) {
     log.info("Deduping artists...");
     log.debug("DedupeArtists Sources:", sources);
     const tracks = Filter.getTracks(sources);
 
-    if (_.isArray(tracks)) {
-      const uniqueTracks = _.uniqBy(tracks, (track): string | number | symbol =>
+    if (Array.isArray(tracks)) {
+      const uniqueTracks = _.uniqBy(tracks, (track) =>
         _.get(track, "artists[0].id", ""),
       );
       return uniqueTracks;
@@ -112,7 +117,7 @@ export default class Filter extends Base {
   }
 
   static match(
-    _spClient: SpotifyWebApi,
+    _spClient: SpotifyApi,
     sources: any[],
     params: { matchKey: string; matchValue: string },
   ) {
@@ -121,26 +126,23 @@ export default class Filter extends Base {
 
     const tracks = Filter.getTracks(sources);
 
-    if (_.isArray(tracks)) {
-      const res = _.filter(tracks, (track: any) => {
+    if (Array.isArray(tracks)) {
+      const res = tracks.filter((track: any) => {
         if (params.matchKey && params.matchValue) {
-          const [operator, value] = params.matchValue.split(" ") as [
-            string,
-            string,
-          ];
+          const [operator, value] = params.matchValue.split(" ");
           const trackValue = _.get(track, params.matchKey);
 
-          let matchValue: string | number | Date | boolean | object;
+          let matchValue: string | number | Date | boolean | object = "";
 
-          if (!_.isNaN(_.toNumber(value))) {
-            matchValue = _.toNumber(value);
-          } else if (!_.isNaN(Date.parse(value))) {
-            matchValue = new Date(value);
+          if (!Number.isNaN(Number(value))) {
+            matchValue = Number(value);
+          } else if (!Number.isNaN(Date.parse(value ?? ""))) {
+            matchValue = value ? new Date(value) : new Date();
           } else {
-            matchValue = value;
+            matchValue = value ?? "";
           }
 
-          if (_.isNumber(matchValue)) {
+          if (typeof matchValue === "number") {
             switch (operator) {
               case ">":
                 return trackValue > matchValue;
@@ -155,11 +157,11 @@ export default class Filter extends Base {
               default:
                 throw new Error(`Invalid operator: ${operator}`);
             }
-          } else if (_.isString(matchValue)) {
-            return _.includes(trackValue, matchValue);
-          } else if (_.isBoolean(matchValue)) {
-            return trackValue === Boolean(matchValue);
-          } else if (_.isObject(matchValue) && _.isDate(matchValue)) {
+          } else if (typeof matchValue === "string") {
+            return trackValue.includes(matchValue);
+          } else if (typeof matchValue === "boolean") {
+            return trackValue === matchValue;
+          } else if (matchValue instanceof Date) {
             const trackDateValue = new Date(trackValue);
             switch (operator) {
               case ">":
@@ -190,7 +192,7 @@ export default class Filter extends Base {
   }
 
   static limit(
-    _spClient: SpotifyWebApi,
+    _spClient: SpotifyApi,
     sources: any[],
     params: { limit?: number },
   ) {
@@ -204,27 +206,4 @@ export default class Filter extends Base {
     }
     return [];
   }
-
-  // static trackFilter(
-  //   _spClient: SpotifyWebApi,
-  //   sources: any[],
-  //   params: { filterOperationId: string | undefined },
-  // ) {
-  //   log.info("Filtering tracks...");
-  //   log.debug("Filter Sources:", sources);
-
-  //   const tracks = Filter.getTracks(sources);
-  //   if (!params.filterOperationId) {
-  //     return tracks;
-  //   }
-  //   const filterTracks = Filter.getTracks(
-  //     this.operationValues.get(params.filterOperationId),
-  //   );
-
-  //   if (_.isArray(tracks) && _.isArray(filterTracks)) {
-  //     return _.differenceBy(tracks, filterTracks, "id");
-  //   }
-
-  //   return [];
-  // }
 }

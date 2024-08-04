@@ -1,5 +1,6 @@
+import { type SpotifyApi } from "@spotify/web-api-ts-sdk";
 import * as _ from "radash";
-import type SpotifyWebApi from "spotify-web-api-node";
+
 import { Logger } from "../log";
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/ban-types */
@@ -9,7 +10,7 @@ import { Base } from "./Base";
 const log = new Logger("Utility");
 export default class Utility extends Base {
   static removeKeys(
-    _spClient: SpotifyWebApi,
+    _spClient: SpotifyApi,
     sources: any[],
     params: { keys: string[] },
   ) {
@@ -23,7 +24,7 @@ export default class Utility extends Base {
   }
 
   static includeOnlyKeys(
-    _spClient: SpotifyWebApi,
+    _spClient: SpotifyApi,
     sources: any[],
     params: { keys: string[] },
   ) {

@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-import { Base } from "./Base";
+import { Base, type UserCredential } from "./Base";
 import Combiner from "./Combiner";
 import Filter from "./Filter";
 import Library from "./Library";
@@ -11,9 +11,9 @@ import Playlist from "./Playlist";
 import Selector from "./Selector";
 import Utility from "./Utility";
 
-import { Logger } from "../log";
-
 import { WorkflowObjectSchema } from "@schema";
+import { type SpotifyApi } from "@spotify/web-api-ts-sdk";
+import { Logger } from "../log";
 
 const log = new Logger("workflow");
 
@@ -28,62 +28,79 @@ export const operations: WorkflowType.Operations = {
   Library,
   Selector,
 };
+
 export class Runner extends Base {
+  private sourceValues: Map<string, WeakRef<any>>;
+  private operationResults: WeakMap<object, any>;
+
+  constructor(userCredential: UserCredential, spClient?: SpotifyApi) {
+    super(userCredential, spClient);
+    this.sourceValues = new Map();
+    this.operationResults = new WeakMap();
+  }
+
+  private disposeOperationResult(result: any) {
+    if (result && typeof result === "object") {
+      for (const key in result) {
+        if (Object.prototype.hasOwnProperty.call(result, key)) {
+          result[key] = null;
+        }
+      }
+    }
+  }
+
+  private cleanup() {
+    for (const [, value] of this.sourceValues) {
+      this.disposeOperationResult(value);
+    }
+    for (const [, value] of this.operationValues) {
+      this.disposeOperationResult(value);
+    }
+    this.sourceValues.clear();
+    this.operationValues.clear();
+  }
+
   async fetchSources(
     operation: Workflow.Operation,
-    sourceValues: Map<string, any>,
     workflow: Workflow.WorkflowObject,
     controller: AbortController,
     operationCallback?: (operationId: string, data: any) => Promise<string>,
   ) {
     const sources = [] as SpotifyApi.PlaylistTrackObject[];
     for (const source of operation.sources) {
-      if (sourceValues.has(source)) {
-        log.debug(`FOUND CACHED SOURCE`);
-        sources.push(
-          sourceValues.get(source) as SpotifyApi.PlaylistTrackObject,
-        );
-      } else if (sourceValues.has(`${source}.tracks`)) {
-        log.debug(`FOUND CACHED SOURCE`);
-        sources.push(
-          sourceValues.get(
-            `${source}.tracks`,
-          ) as SpotifyApi.PlaylistTrackObject,
-        );
-      } else {
-        log.debug(`RUNNING SOURCE ${source}`);
-        const sourceOperation = workflow.operations.find(
-          (op) => op.id === source,
-        );
-        if (sourceOperation) {
-          const result = await this.runOperation(
-            source,
-            sourceValues,
-            workflow,
-            controller,
-            operationCallback,
-          );
-          sources.push(result as SpotifyApi.PlaylistTrackObject);
-        } else {
-          log.error(
-            `Source ${source} not found in sourceValues or operations.`,
-          );
+      const weakRef =
+        this.sourceValues.get(source) ||
+        this.sourceValues.get(`${source}.tracks`);
+      if (weakRef) {
+        const cachedSource = weakRef.deref();
+        if (cachedSource) {
+          log.debug(`FOUND CACHED SOURCE`);
+          sources.push(cachedSource as SpotifyApi.PlaylistTrackObject);
+          continue;
         }
+      }
+
+      log.debug(`RUNNING SOURCE ${source}`);
+      const sourceOperation = workflow.operations.find(
+        (op) => op.id === source,
+      );
+      if (sourceOperation) {
+        const result = await this.runOperation(
+          source,
+          workflow,
+          controller,
+          operationCallback,
+        );
+        sources.push(result as SpotifyApi.PlaylistTrackObject);
+      } else {
+        log.error(`Source ${source} not found in sourceValues or operations.`);
       }
     }
     return sources;
   }
 
-  /**
-   * Runs the specified operation in the workflow.
-   * @param operationId - The ID of the operation to run.
-   * @param sourceValues - A map of source values.
-   * @param workflow - The workflow object.
-   * @returns A Promise that resolves to the result of the operation.
-   */
   async runOperation(
     operationId: string,
-    sourceValues: Map<string, any>,
     workflow: Workflow.WorkflowObject,
     controller: AbortController,
     operationCallback?: (operationId: string, data: any) => Promise<string>,
@@ -100,13 +117,11 @@ export class Runner extends Base {
 
     const sources = await this.fetchSources(
       operation,
-      sourceValues,
       workflow,
       controller,
       operationCallback,
     );
 
-    // Split the operation type into class name and method name
     const [className, methodName] = operation.type.split(".") as [
       keyof WorkflowType.Operations,
       keyof WorkflowType.Operations[keyof WorkflowType.Operations],
@@ -126,7 +141,7 @@ export class Runner extends Base {
       operation.params,
     );
 
-    sourceValues.set(operationId, result);
+    this.sourceValues.set(operationId, new WeakRef(result));
     const finishTime = new Date();
     if (operationCallback) {
       const res = await operationCallback(operationId, {
@@ -141,9 +156,13 @@ export class Runner extends Base {
       log.info(`${operation.type} completed`);
     }
     this.operationValues.set(operation.id, result);
+    this.operationResults.set(operation, result);
+
+    // Clear sources array to help with garbage collection
+    sources.length = 0;
+
     return result;
   }
-
   /**
    * Sorts the operations in the workflow based on their dependencies.
    *
@@ -225,13 +244,6 @@ export class Runner extends Base {
     return sortedOperations;
   }
 
-  /**
-   * Runs the given workflow.
-   *
-   * @param workflow - The workflow to be executed.
-   * @returns The result of the workflow execution.
-   * @throws Error if the workflow is invalid.
-   */
   async runWorkflow(
     workflow: Workflow.WorkflowObject,
     timeoutAfter = 20000,
@@ -257,6 +269,8 @@ export class Runner extends Base {
         throw new Error(`Workflow timed out`);
       }
       throw error;
+    } finally {
+      this.cleanup();
     }
   }
 
@@ -275,7 +289,6 @@ export class Runner extends Base {
 
     workflow = WorkflowObjectSchema.parse(workflow);
 
-    const sourceValues = new Map();
     const runOperations = new Set();
     const final: any[] = [];
 
@@ -287,7 +300,6 @@ export class Runner extends Base {
       if (!runOperations.has(operation.id)) {
         const res = await this.runOperation(
           operation.id,
-          sourceValues,
           workflow,
           controller,
           operationCallback,

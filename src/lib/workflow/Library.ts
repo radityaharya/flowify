@@ -1,4 +1,5 @@
-import type SpotifyWebApi from "spotify-web-api-node";
+import { type MaxInt, type SpotifyApi } from "@spotify/web-api-ts-sdk";
+
 import { Logger } from "../log";
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/ban-types */
@@ -19,7 +20,7 @@ export default class Library extends Base {
   }
 
   static async _getPlaylistWithTracks(
-    spClient: SpotifyWebApi,
+    spClient: SpotifyApi,
     playlistId: string,
     limit: number | null = null,
   ) {
@@ -32,11 +33,14 @@ export default class Library extends Base {
       try {
         await new Promise((resolve) => setTimeout(resolve, retryAfter * 1000));
         log.debug("Getting playlist tracks...", { playlistId, offset });
-        result = await spClient.getPlaylistTracks(playlistId, {
-          limit: 20,
+        result = await spClient.playlists.getPlaylistItems(
+          playlistId,
+          undefined,
+          undefined,
+          20,
           offset,
-        });
-        tracks = [...tracks, ...result.body.items];
+        );
+        tracks = [...tracks, ...result.items];
         offset += 20;
         retryAfter = 0;
       } catch (error: any) {
@@ -52,7 +56,7 @@ export default class Library extends Base {
         }
       }
 
-      if (!result.body.next) {
+      if (!result.next) {
         break;
       }
     }
@@ -73,7 +77,7 @@ export default class Library extends Base {
    * @returns the playlist with the added tracks.
    */
   static async saveAsAppend(
-    spClient: SpotifyWebApi,
+    spClient: SpotifyApi,
     sources: any[],
     params: { playlistId: string; dryrun?: boolean },
   ) {
@@ -101,7 +105,7 @@ export default class Library extends Base {
   }
 
   static async saveAsNew(
-    spClient: SpotifyWebApi,
+    spClient: SpotifyApi,
     sources: any[],
     params: {
       name: string;
@@ -120,15 +124,18 @@ export default class Library extends Base {
 
     const trackUris = tracks.map((track: any) => `spotify:track:${track.id}`);
 
-    const response = await spClient.createPlaylist(playlistName, {
+    const user_id = (await spClient.currentUser.profile()).id;
+
+    const response = await spClient.playlists.createPlaylist(user_id, {
+      name: playlistName,
       public: params.isPublic ?? false,
       collaborative: params.collaborative ?? false,
       description: params.description ?? "",
     });
 
-    await Library.addTracksBatch(spClient, response.body.id, trackUris);
+    await Library.addTracksBatch(spClient, response.id, trackUris);
 
-    return Library._getPlaylistWithTracks(spClient, response.body.id);
+    return Library._getPlaylistWithTracks(spClient, response.id);
   }
 
   /**
@@ -143,7 +150,7 @@ export default class Library extends Base {
    * `id` as arguments.
    */
   static async saveAsReplace(
-    spClient: SpotifyWebApi,
+    spClient: SpotifyApi,
     sources: any[],
     params: { playlistId: string; dryrun?: boolean },
   ) {
@@ -172,7 +179,7 @@ export default class Library extends Base {
   }
 
   static async likedTracks(
-    spClient: SpotifyWebApi,
+    spClient: SpotifyApi,
     _sources: any[],
     params: { limit?: number; offset?: number },
   ) {
@@ -194,14 +201,17 @@ export default class Library extends Base {
     while (true) {
       try {
         await new Promise((resolve) => setTimeout(resolve, retryAfter * 1000));
-        result = await spClient.getMySavedTracks({
-          limit: Math.min(params.limit - tracks.length, params.limit),
-          offset: params.offset + tracks.length,
-        });
-        tracks.push(...result.body.items);
+
+        const limit = Math.max(
+          1,
+          Math.min(params.limit - tracks.length, 50),
+        ) as MaxInt<50>;
+        const offset = params.offset + tracks.length;
+        result = await spClient.currentUser.tracks.savedTracks(limit, offset);
+        tracks.push(...result.items);
         if (
           tracks.length >= params.limit ||
-          result.body.items.length < params.limit
+          result.items.length < params.limit
         ) {
           break;
         }
@@ -219,7 +229,7 @@ export default class Library extends Base {
   }
 
   static async playlistTracks(
-    spClient: SpotifyWebApi,
+    spClient: SpotifyApi,
     _sources: any[],
     params: {
       playlistId: string;
@@ -235,7 +245,7 @@ export default class Library extends Base {
   }
 
   static async albumTracks(
-    spClient: SpotifyWebApi,
+    spClient: SpotifyApi,
     _sources: any[],
     params: {
       albumId: string;
@@ -260,14 +270,23 @@ export default class Library extends Base {
     while (true) {
       try {
         await new Promise((resolve) => setTimeout(resolve, retryAfter * 1000));
-        result = await spClient.getAlbumTracks(params.albumId, {
-          limit: Math.min(params.limit - tracks.length, params.limit),
-          offset: params.offset + tracks.length,
-        });
-        tracks.push(...result.body.items);
+        const limit = Math.max(
+          1,
+          Math.min(params.limit - tracks.length, 50),
+        ) as MaxInt<50>;
+        const offset = params.offset + tracks.length;
+
+        result = await spClient.albums.tracks(
+          params.albumId,
+          undefined,
+          limit,
+          offset,
+        );
+
+        tracks.push(...result.items);
         if (
           tracks.length >= params.limit ||
-          result.body.items.length < params.limit
+          result.items.length < params.limit
         ) {
           break;
         }
@@ -285,7 +304,7 @@ export default class Library extends Base {
   }
 
   static async artistTopTracks(
-    spClient: SpotifyWebApi,
+    spClient: SpotifyApi,
     _sources: any[],
     params: {
       artistId: string;
@@ -310,11 +329,11 @@ export default class Library extends Base {
     while (true) {
       try {
         await new Promise((resolve) => setTimeout(resolve, retryAfter * 1000));
-        result = await spClient.getArtistTopTracks(params.artistId, "US");
-        tracks.push(...result.body.tracks);
+        result = await spClient.artists.topTracks(params.artistId, "US");
+        tracks.push(...result.tracks);
         if (
           tracks.length >= params.limit ||
-          result.body.tracks.length < params.limit
+          result.tracks.length < params.limit
         ) {
           break;
         }

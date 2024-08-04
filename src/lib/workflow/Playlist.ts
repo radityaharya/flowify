@@ -1,8 +1,10 @@
-import type SpotifyWebApi from "spotify-web-api-node";
+import { type SpotifyApi } from "@spotify/web-api-ts-sdk";
+
 import { Logger } from "../log";
 import { Base } from "./Base";
 
 const log = new Logger("Playlist");
+
 type getTracksRecomendationParams = {
   seed_tracks?: string[];
   seed_artists?: string[];
@@ -40,17 +42,6 @@ type getTracksRecomendationParams = {
 
 export default class Playlist extends Base {
   /**
-   * The function `getPlaylistTracks` retrieves the tracks of a playlist using the Spotify Web API.
-   * @param {SpotifyWebApi} spClient - The `spClient` parameter is an instance of the `SpotifyWebApi`
-   * class, which is used to make requests to the Spotify Web API.
-   * @param {any[]} sources - The `sources` parameter is an array that contains the sources from which
-   * the playlist tracks will be retrieved. It can be any type of source that is supported by the
-   * SpotifyWebApi client.
-   * @param params - The `params` parameter is an object that contains the following property:
-   * @returns the result of calling the `_getPlaylistWithTracks` method of the `Playlist` class with
-   * the `spClient` and `playlistId` parameters.
-   */
-  /**
    * The function `getRecommendedTracks` retrieves recommended tracks from Spotify based on given
    * sources and parameters.
    * @param {SpotifyWebApi} spClient - The `spClient` parameter is an instance of the SpotifyWebApi
@@ -62,7 +53,7 @@ export default class Playlist extends Base {
    * @returns the recommended tracks as an array.
    */
   static async getRecommendedTracks(
-    spClient: SpotifyWebApi,
+    spClient: SpotifyApi,
     sources: any[],
     params: getTracksRecomendationParams,
   ) {
@@ -89,7 +80,7 @@ export default class Playlist extends Base {
         (track: any) => track.track.id,
       ) as string[];
       const sample: string[] = [];
-      const seeds = tracks.length < 5 ? tracks.length : MAX_SEEDS;
+      const seeds = Math.min(tracks.length, MAX_SEEDS);
       for (let i = 0; i < seeds; i++) {
         const random = Math.floor(Math.random() * seed_tracks.length);
         sample.push(seed_tracks[random]!);
@@ -97,23 +88,19 @@ export default class Playlist extends Base {
       options.seed_tracks = sample;
     }
 
-    const response = await spClient.getRecommendations(options);
+    const response = await spClient.recommendations.get(options);
 
-    return response.body.tracks;
+    return response.tracks;
   }
 
   static async albumTracks(
-    spClient: SpotifyWebApi,
+    spClient: SpotifyApi,
     _sources: any[],
-    params: {
-      albumId: string;
-    },
+    params: { albumId: string },
   ): Promise<SpotifyApi.TrackObjectFull[]> {
-    const tracks: SpotifyApi.TrackObjectFull[] = [];
-    const tracksResponse = await spClient.getAlbumTracks(params.albumId);
-    const trackIds = tracksResponse.body.items.map((track) => track.id);
-    const trackObjects = await spClient.getTracks(trackIds);
-    tracks.push(...trackObjects.body.tracks);
-    return tracks;
+    const tracksResponse = await spClient.albums.tracks(params.albumId);
+    const trackIds = tracksResponse.items.map((track) => track.id);
+    const trackObjects = await spClient.tracks.get(trackIds);
+    return trackObjects as SpotifyApi.TrackObjectFull[];
   }
 }

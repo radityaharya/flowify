@@ -34,7 +34,7 @@ export async function GET(
     clientSecret: env.SPOTIFY_CLIENT_SECRET,
   });
 
-  spClient.setAccessToken(accessToken as string);
+  spClient.setAccessToken(accessToken.access_token);
 
   const q = request.nextUrl.searchParams.get("q");
 
