@@ -67,6 +67,10 @@ const errorResponse = (message: string, status: number) => {
 };
 
 const handleUserPath = (request: NextRequest, user: any) => {
+  if (!user) {
+    return errorResponse("User not authenticated", 401);
+  }
+
   const { pathname, search } = request.nextUrl;
   const userParam = pathname.split("/")[3];
   if (typeof userParam !== "string" || userParam.length > 100) {
@@ -74,7 +78,7 @@ const handleUserPath = (request: NextRequest, user: any) => {
   }
   logger.info(`userParam: ${userParam}`);
 
-  if (userParam === "@me" && user.providerAccountId) {
+  if (userParam === "@me" && user?.providerAccountId) {
     const userId = user.providerAccountId as string;
     const url = new URL(
       pathname.replace("@me", encodeURIComponent(userId)) + search,
@@ -93,7 +97,7 @@ const handleUserPath = (request: NextRequest, user: any) => {
       });
     }
   } else if (
-    user.providerAccountId &&
+    user?.providerAccountId &&
     userParam &&
     user.providerAccountId !== userParam
   ) {
