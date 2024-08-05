@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { Position, useHandleConnections } from "@xyflow/react";
-import React from "react";
+import { Position } from "@xyflow/react";
 import NodeHandle from "../Primitives/NodeHandle";
 
 import { ChevronsUpDown } from "lucide-react";
@@ -25,17 +24,14 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 import Image from "next/image";
-import useStore from "~/app/states/store";
 
+import * as z from "zod";
 import { CardWithHeader } from "../Primitives/Card";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
-
 import { Form, FormField, FormItem, FormLabel } from "@/components/ui/form";
+import { usePlaylistState } from "~/hooks/usePlaylistState";
 import Debug from "../Primitives/Debug";
-import { PlaylistItem as PlaylistItemPrimitive } from "../Primitives/PlaylistItem";
+import PlaylistCommand from "../Primitives/PlaylistCommand";
 
 type PlaylistProps = {
   id: string;
@@ -48,132 +44,35 @@ const formSchema = z.object({
   }),
 });
 
-const PlaylistItem = ({
-  playlist,
-  onSelect,
-}: {
-  playlist: Workflow.Playlist;
-  onSelect: () => void;
-}) => (
-  <CommandItem
-    key={playlist.playlistId}
-    value={playlist.name}
-    onSelect={onSelect}
-  >
-    <PlaylistItemPrimitive playlist={playlist} />
-  </CommandItem>
-);
-
 function SaveAsAppendComponent({ id, data }: PlaylistProps) {
-  const [open, setOpen] = React.useState(false);
-  const [selectedPlaylist, setSelectedPlaylist] =
-    React.useState<Workflow.Playlist>(data);
-  const [search, setSearch] = React.useState("");
-
-  const { session, updateNodeData, userPlaylists, nodes } = useStore(
-    (state) => ({
-      session: state.session,
-      updateNodeData: state.updateNodeData,
-      userPlaylists: state.userPlaylists,
-      nodes: state.nodes,
-    }),
-  );
-
-  const form = useForm({
-    resolver: zodResolver(formSchema),
-    mode: "all",
-    shouldUnregister: false,
-  });
-  const { formState, register } = form;
-
-  const TargetConnections = useHandleConnections({
-    type: "target",
-  });
-  const SourceConnections = useHandleConnections({
-    type: "source",
-  });
-
-  const watch = form.watch();
-  const prevWatchRef = React.useRef(watch);
-  const prevSelectedPlaylistRef = React.useRef(selectedPlaylist);
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
-  React.useEffect(() => {
-    if (data) {
-      form?.setValue("playlistId", data.playlistId);
-      updateNodeData(id, data);
-      form?.trigger("playlistId");
-
-      // Fetch playlist info
-      fetch(`/api/user/@me/playlist/${data.playlistId}`)
-        .then((response) => response.json())
-        .then((playlist: Workflow.Playlist) => {
-          setSelectedPlaylist(playlist);
-        })
-        .catch((error) => console.error("Error:", error));
-    }
-  }, []);
-
-  React.useEffect(() => {
-    if (
-      JSON.stringify(prevWatchRef.current) !== JSON.stringify(watch) ||
-      JSON.stringify(prevSelectedPlaylistRef.current) !==
-        JSON.stringify(selectedPlaylist)
-    ) {
-      updateNodeData(id, {
-        id: watch.playlistId,
-        ...watch,
-        ...selectedPlaylist,
-      });
-    }
-    prevWatchRef.current = watch;
-    prevSelectedPlaylistRef.current = selectedPlaylist;
-  }, [id, watch, selectedPlaylist, updateNodeData]);
-
-  React.useEffect(() => {
-    const userPlaylists = async () => {
-      try {
-        const response = await fetch(
-          `/api/user/${session.user.providerAccountId}/playlists`,
-        );
-        const data = await response.json();
-        useStore.setState({ userPlaylists: data });
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
-    // debounce({delay: 500}, setUserPlaylists)();
-    userPlaylists()
-      .then(() => {
-        console.info("user playlists updated");
-      })
-      .catch((err) => {
-        console.error(err);
-      });
-  }, [session.user.providerAccountId]);
-
-  function getNodeData(id: string) {
-    const node = nodes.find((node) => node.id === id);
-    return node?.data;
-  }
-
-  const handleSelect = (playlist) => {
-    console.info("handle select", playlist);
-    form.setValue("playlistId", playlist.playlistId, {
-      shouldValidate: true,
-    });
-    console.info("data after update", getNodeData(id));
-    setSelectedPlaylist(playlist as Workflow.Playlist);
-    setOpen(false);
-  };
+  const {
+    open,
+    setOpen,
+    selectedPlaylist,
+    setSelectedPlaylist,
+    search,
+    setSearch,
+    state,
+    isValid,
+    targetConnections,
+    sourceConnections,
+    form,
+    formState,
+    register,
+    getNodeData,
+    updateNodeData,
+    session,
+    userPlaylists,
+    setUserPlaylistsStore,
+    handleSelect,
+  } = usePlaylistState(id, data);
 
   return (
     <CardWithHeader
       title={`Save as Append`}
       id={id}
       type="Library"
-      status={formState.isValid ? "success" : "error"}
+      status={formState!.isValid ? "success" : "error"}
       info="Append tracks to a playlist."
     >
       <NodeHandle
@@ -186,11 +85,11 @@ function SaveAsAppendComponent({ id, data }: PlaylistProps) {
         position={Position.Left}
         style={{ background: "#555" }}
       />
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit((data) => console.info(data))}>
+      <Form {...form!}>
+        <form onSubmit={form!.handleSubmit((data) => console.info(data))}>
           <div className="flex flex-col gap-4">
             <FormField
-              control={form.control}
+              control={form!.control}
               name="playlistId"
               render={({ field, formState }) => (
                 <FormItem className="flex flex-col">
@@ -243,7 +142,7 @@ function SaveAsAppendComponent({ id, data }: PlaylistProps) {
                             <ScrollArea className="h-[200px] w-full rounded-md">
                               {userPlaylists.length > 0
                                 ? userPlaylists.map((playlist) => (
-                                    <PlaylistItem
+                                    <PlaylistCommand
                                       key={playlist.playlistId}
                                       playlist={playlist}
                                       onSelect={() => handleSelect(playlist)}
@@ -293,9 +192,9 @@ function SaveAsAppendComponent({ id, data }: PlaylistProps) {
       </Form>
       <Debug
         id={id}
-        isValid={formState.isValid}
-        TargetConnections={TargetConnections}
-        SourceConnections={SourceConnections}
+        isValid={formState!.isValid}
+        TargetConnections={targetConnections}
+        SourceConnections={sourceConnections}
       />
     </CardWithHeader>
   );
