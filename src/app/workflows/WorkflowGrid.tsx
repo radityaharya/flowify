@@ -315,6 +315,7 @@ const WorkflowCard = ({ d }) => {
 
   const handleRunClick = (event: React.MouseEvent) => {
     runWorkflow(d.workflow);
+    mutate(`/api/user/@me/workflows`);
   };
 
   return (
@@ -430,65 +431,6 @@ const RunCardSkeleton = () => (
   </Card>
 );
 
-const EmptyRunCard = () => (
-  <Card className="w-full xl:w-[300px]">
-    <CardHeader className="pb-2">
-      <CardTitle></CardTitle>
-    </CardHeader>
-    <CardContent className="flex flex-row gap-1 pb-2">
-      <span className="text-muted-foreground">You'll find your runs here!</span>
-    </CardContent>
-    <CardFooter className="flex flex-row gap-1"></CardFooter>
-  </Card>
-);
-
-const RunCard = ({ run }) => {
-  return (
-    <Card key={run.id} className="w-full xl:w-[300px]">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium">
-          <Link href={`/workflow/${run.workflow.id}`}>
-            {run.workflow.workflow.name}
-          </Link>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="pb-2 text-muted-foreground text-sm flex flex-row gap-2 items-start">
-        {run.error ? (
-          <Badge variant="secondary" className="bg-red-600">
-            Failed
-          </Badge>
-        ) : run.completedAt ? (
-          <Badge variant="secondary" className="bg-green-600">
-            Completed
-          </Badge>
-        ) : (
-          <Badge variant="secondary" className="bg-amber-600">
-            Pending
-          </Badge>
-        )}
-        <span>
-          {run.completedAt
-            ? relativeDate(run.completedAt)
-            : relativeDate(run.startedAt)}
-        </span>
-      </CardContent>
-      <CardFooter className="text-sm text-muted-foreground">
-        {run.error ? (
-          <span>Error: {run.error}</span>
-        ) : run.startedAt && run.completedAt ? (
-          <span className="flex flex-row items-center gap-1">
-            <Clock className="h-3 w-3" />
-            {(new Date(run.completedAt).getTime() -
-              new Date(run.startedAt).getTime()) /
-              1000}{" "}
-            seconds
-          </span>
-        ) : null}
-      </CardFooter>
-    </Card>
-  );
-};
-
 export const fetcher = async (url: string) => {
   const res = await fetch(url);
   if (!res.ok) {
@@ -585,23 +527,7 @@ export function WorkflowsGrid({ workflows }: WorkflowTableProps) {
     .slice(0, 4);
 
   return (
-    <div className="pt-2 flex h-full flex-col-reverse xl:flex-row w-full gap-10">
-      <div id="workflow-runs" className="flex flex-col items-start flex-shrink">
-        <div className="pb-1 flex flex-row items-start">
-          <h1 className="text-xl font-medium leading-9 tracking-tight">
-            Latest Runs
-          </h1>
-        </div>
-        <div className="py-3 flex flex-col gap-2 w-full">
-          {isLoading ? (
-            Array.from({ length: 6 }, (_, i) => <RunCardSkeleton key={i} />)
-          ) : runs && runs.length > 0 ? (
-            runs.map((run) => (run ? <RunCard key={run.id} run={run} /> : null))
-          ) : (
-            <EmptyRunCard />
-          )}
-        </div>
-      </div>
+    <div className="pt-2 w-full">
       <div id="workflows" className="flex-grow">
         <div className="pb-1 flex flex-row items-center justify-between">
           <h1 className="text-xl font-medium leading-9 tracking-tight">
