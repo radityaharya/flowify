@@ -33,14 +33,12 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 import Image from "next/image";
-import useStore from "~/app/states/store";
 import { Separator } from "~/components/ui/separator";
 
 import { CardWithHeader } from "../Primitives/Card";
 import InputPrimitive from "../Primitives/Input";
 
 import { Form, FormField, FormItem, FormLabel } from "@/components/ui/form";
-import useBasicNodeState from "~/hooks/useBasicNodeState";
 import { usePlaylistState } from "~/hooks/usePlaylistState";
 import Debug from "../Primitives/Debug";
 import PlaylistCommand from "../Primitives/PlaylistCommand";

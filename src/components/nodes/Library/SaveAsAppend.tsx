@@ -24,8 +24,6 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 import Image from "next/image";
-
-import * as z from "zod";
 import { CardWithHeader } from "../Primitives/Card";
 
 import { Form, FormField, FormItem, FormLabel } from "@/components/ui/form";
@@ -38,12 +36,6 @@ type PlaylistProps = {
   data: Workflow.Playlist;
 };
 
-const formSchema = z.object({
-  playlistId: z.string().min(1, {
-    message: "Playlist is required.",
-  }),
-});
-
 function SaveAsAppendComponent({ id, data }: PlaylistProps) {
   const {
     open,
@@ -52,18 +44,11 @@ function SaveAsAppendComponent({ id, data }: PlaylistProps) {
     setSelectedPlaylist,
     search,
     setSearch,
-    state,
-    isValid,
     targetConnections,
     sourceConnections,
     form,
     formState,
-    register,
-    getNodeData,
-    updateNodeData,
-    session,
     userPlaylists,
-    setUserPlaylistsStore,
     handleSelect,
   } = usePlaylistState(id, data);
 

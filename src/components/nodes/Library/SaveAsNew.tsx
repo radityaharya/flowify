@@ -16,6 +16,7 @@ import * as z from "zod";
 import { Form } from "@/components/ui/form";
 import useBasicNodeState from "~/hooks/useBasicNodeState";
 import Debug from "../Primitives/Debug";
+
 type PlaylistProps = {
   id: string;
   data: any;
@@ -32,15 +33,12 @@ const formSchema = z.object({
 
 const saveAsNewComponent: React.FC<PlaylistProps> = ({ id, data }) => {
   const {
-    state,
     isValid,
     targetConnections,
     sourceConnections,
     form,
-    nodeData,
     formState,
     register,
-    getNodeData,
     updateNodeData,
   } = useBasicNodeState(id, formSchema);
 

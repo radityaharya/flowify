@@ -33,6 +33,7 @@ type InputPrimitiveProps = {
   name: string;
   placeholder: string;
   description: string;
+  defaultValue?: any;
   register: UseFormRegister<any>;
   selectOptions?: {
     label: string;

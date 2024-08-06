@@ -1,15 +1,23 @@
 import { PlaylistItem as PlaylistItemPrimitive } from "../Primitives/PlaylistItem";
 import { AlertComponent } from "./Alert";
 
-export function SourceList({
-  state,
-  isValid,
-  operationType,
-}: {
+interface SourceListProps {
   state: any;
   isValid: boolean;
   operationType: string;
-}) {
+}
+
+export function SourceList({ state, isValid, operationType }: SourceListProps) {
+  if (!(state?.playlistIds && state.playlists)) {
+    return (
+      <AlertComponent
+        variant="destructive"
+        title="Error"
+        description="No track source set as input"
+      />
+    );
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col text-sm font-medium">
@@ -37,11 +45,11 @@ export function SourceList({
         )}
       </div>
       <div className="flex flex-col gap-2">
-        {state.playlists
-          ? state.playlists?.map((playlist) =>
+        {state.playlists.length > 0
+          ? state.playlists.map((playlist) =>
               playlist && isValid ? (
                 <PlaylistItemPrimitive
-                  key={playlist.id || playlist.name || 1}
+                  key={playlist.id || playlist.name}
                   playlist={playlist}
                 />
               ) : null,
