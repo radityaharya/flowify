@@ -104,7 +104,7 @@
     "dotenv-cli": "^7.4.2",
     "drizzle-kit": "^0.23.1",
     "eslint": "^8.57.0",
-    "express": "^4.19.2",
+    "express": "^4.21.0",
     "postcss": "^8.4.39",
     "prettier": "^3.3.2",
     "prettier-plugin-tailwindcss": "^0.6.5",
