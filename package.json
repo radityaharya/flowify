@@ -22,7 +22,7 @@
     "dev:worker": "bun run --watch ./worker/worker.ts"
   },
   "dependencies": {
-    "@auth/drizzle-adapter": "^1.4.1",
+    "@auth/drizzle-adapter": "^1.6.0",
     "@bitpatty/imgproxy-url-builder": "^1.7.0",
     "@hookform/resolvers": "^3.9.0",
     "@neondatabase/serverless": "^0.9.4",
