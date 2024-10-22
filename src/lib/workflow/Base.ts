@@ -29,10 +29,6 @@ export class Base {
     );
   }
 
-  authedSpotifyApi() {
-    return this.spClient;
-  }
-
   static async addTracksBatch(
     spClient: SpotifyApi,
     playlistId: string,

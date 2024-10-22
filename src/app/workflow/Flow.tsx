@@ -24,10 +24,12 @@ import RandomStream from "@nodes/Combiner/RandomStream";
 import AlbumTracks from "@nodes/Library/AlbumTracks";
 import ArtistsTopTracks from "@nodes/Library/ArtistsTopTracks";
 import LikedTracks from "@nodes/Library/LikedTracks";
+import MyTopTracks from "@nodes/Library/MyTopTracks";
 import Playlist from "@nodes/Library/Playlist";
 import SaveAsAppend from "@nodes/Library/SaveAsAppend";
 import SaveAsNew from "@nodes/Library/SaveAsNew";
 import SaveAsReplace from "@nodes/Library/SaveAsReplace";
+
 import Last from "@nodes/Selectors/Last";
 
 import DedupeArtists from "@nodes/Filter/DedupeArtists";
@@ -136,6 +138,11 @@ export const Nodes = {
     title: "Artists Top Tracks",
     node: ArtistsTopTracks,
     description: "Top tracks of artists",
+  },
+  "Library.myTopTracks": {
+    title: "My Top Tracks",
+    node: MyTopTracks,
+    description: "Your top tracks",
   },
   "Order.shuffle": {
     title: "Shuffle",

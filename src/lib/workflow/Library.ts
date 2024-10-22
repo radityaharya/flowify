@@ -282,7 +282,6 @@ export default class Library extends Base {
           limit,
           offset,
         );
-
         tracks.push(...result.items);
         if (
           tracks.length >= params.limit ||
@@ -334,6 +333,69 @@ export default class Library extends Base {
         if (
           tracks.length >= params.limit ||
           result.tracks.length < params.limit
+        ) {
+          break;
+        }
+      } catch (error: any) {
+        if (error.statusCode === 429) {
+          retryAfter = error.headers["retry-after"];
+          log.warn(`Rate limited. Retrying after ${retryAfter} seconds.`);
+        } else {
+          throw error;
+        }
+      }
+    }
+
+    return tracks;
+  }
+
+  static async myTopTracks(
+    spClient: SpotifyApi,
+    _sources: any[],
+    params: {
+      timeRange?: "long_term" | "medium_term" | "short_term";
+      limit?: number;
+      offset?: number;
+    },
+  ) {
+    const tracks: SpotifyApi.TrackObjectFull[] = [];
+    let result;
+    let retryAfter = 0;
+    if (!params.timeRange) {
+      params.timeRange = "long_term";
+    }
+
+    if (!params.limit) {
+      params.limit = 50;
+    }
+
+    if (!params.offset) {
+      params.offset = 0;
+    }
+
+    log.info("Getting top tracks...");
+    log.info("Limit:", params.limit);
+
+    while (true) {
+      log.info("chunk: " + tracks.length);
+      try {
+        await new Promise((resolve) => setTimeout(resolve, retryAfter * 1000));
+        // const limit = Math.max(
+        //   1,
+        //   Math.min(params.limit - tracks.length, 50),
+        // ) as MaxInt<50>;
+        const limit = 50;
+        const offset = params.offset + tracks.length;
+        result = await spClient.currentUser.topItems(
+          "tracks",
+          params.timeRange,
+          limit,
+          offset,
+        );
+        tracks.push(...result.items);
+        if (
+          tracks.length >= params.limit ||
+          result.items.length < params.limit
         ) {
           break;
         }

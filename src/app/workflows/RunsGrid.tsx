@@ -7,8 +7,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { formatDistanceToNow } from "date-fns";
-import { ArrowUpDown, Clock } from "lucide-react";
-import Link from "next/link";
+import { Clock } from "lucide-react";
 import { useState } from "react";
 import useSWR from "swr";
 import { mutate } from "swr";
@@ -16,7 +15,6 @@ import { Badge } from "~/components/ui/badge";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,

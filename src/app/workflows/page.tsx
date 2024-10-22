@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getServerAuthSession } from "~/server/auth";
-import { WorkflowsGrid } from "./WorkflowGrid";
 import { RunsGrid } from "./RunsGrid";
+import { WorkflowsGrid } from "./WorkflowGrid";
 export default async function Dashboard() {
   const workflows = undefined;
 
@@ -16,7 +16,7 @@ export default async function Dashboard() {
       <div className="flex flex-col sm:gap-4 sm:py-4">
         <main className="gap-4 p-4 md:gap-8 sm:px-6 sm:py-0">
           <div className="items-start w-full flex flex-col-reverse xl:flex-row gap-4 md:gap-8">
-            <RunsGrid/>
+            <RunsGrid />
             <WorkflowsGrid workflows={workflows} />
           </div>
         </main>

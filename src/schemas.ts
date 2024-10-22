@@ -66,6 +66,17 @@ export const operationParamsTypesMap = {
     limit: z.number().optional(),
     offset: z.number().optional(),
   }),
+  "Library.myTopTracks": z.object({
+    timeRange: z
+      .union([
+        z.literal("short_term"),
+        z.literal("medium_term"),
+        z.literal("long_term"),
+      ])
+      .optional(),
+    limit: z.number().optional(),
+    offset: z.number().optional(),
+  }),
   "Selector.first": z.object({
     count: z.number().optional(),
   }),

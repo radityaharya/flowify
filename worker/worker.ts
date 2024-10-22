@@ -8,12 +8,11 @@ import {
   updateWorkflowRunOperation,
 } from "@lib/workflow/utils/workflowQueue";
 import Redis from "ioredis";
-import os from "os";
+import os from "node:os";
 import { Logger } from "@lib/log";
 import { db } from "@/server/db";
 import { workerPool } from "~/server/db/schema";
 import { eq } from "drizzle-orm";
-import { Base } from "../src/lib/workflow/Base";
 
 const log = new Logger("worker");
 
