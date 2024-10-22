@@ -109,7 +109,7 @@ async function refreshAccessToken(userId: string, spotify: any) {
     const currentTime = Date.now();
     const timeUntilExpiry = expiryTime - currentTime;
 
-    logger.info(
+    logger.debug(
       `Token expiry time for user ${userId}: ${new Date(expiryTime).toISOString()}, current time: ${new Date(currentTime).toISOString()}, time until expiry: ${timeUntilExpiry}ms`,
     );
 
@@ -117,7 +117,7 @@ async function refreshAccessToken(userId: string, spotify: any) {
       logger.info(`Refreshing access token for user ${userId}`);
       try {
         const tokens = await fetchNewTokens(spotify?.refresh_token ?? "");
-        logger.info(`New tokens received for user ${userId}`, tokens);
+        logger.info(`New tokens received for user ${userId}`);
 
         await updateTokensInDB(userId, tokens, spotify);
 
