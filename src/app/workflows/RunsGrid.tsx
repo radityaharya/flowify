@@ -92,7 +92,7 @@ function RunProgress({ runId }: { runId: string }) {
 }
 
 const EmptyRunCard = () => (
-  <Card className="w-full xl:w-[300px]">
+  <Card className="w-full">
     <CardHeader className="pb-2">
       <CardTitle></CardTitle>
     </CardHeader>

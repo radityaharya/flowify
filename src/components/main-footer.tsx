@@ -108,6 +108,7 @@ export default function Footer() {
         className={cn(
           "z-[20] flex w-full flex-col border-t bg-accent/10 items-start justify-between px-4 md:px-10 py-6 backdrop-blur-md",
           /\/workflow(?!s)/.test(pathname) ? "hidden" : "",
+          /\/auth/.test(pathname) ? "hidden" : "",
         )}
       >
         <div className="flex flex-col gap-6 w-full mb-4">
