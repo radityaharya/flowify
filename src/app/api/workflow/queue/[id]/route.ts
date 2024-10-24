@@ -1,7 +1,6 @@
-import { authOptions } from "@/server/auth";
+import { auth } from "@/server/auth";
 import { db } from "@/server/db";
 import { eq } from "drizzle-orm";
-import { getServerSession } from "next-auth";
 import { type NextRequest, NextResponse } from "next/server";
 import { workflowRuns } from "~/server/db/schema";
 export async function GET(
@@ -12,7 +11,7 @@ export async function GET(
     params: { id: string };
   },
 ) {
-  const session = await getServerSession({ req: request, ...authOptions });
+  const session = await auth();
   const id = params.id;
   if (!id) {
     return NextResponse.json(
@@ -77,7 +76,7 @@ export async function GET(
     return NextResponse.json({ job: null });
   }
 
-  if (workflowQuery.workflow.userId !== session.user.id) {
+  if (!session.user || workflowQuery.workflow.userId !== session.user.id) {
     return NextResponse.json(
       {
         error: "Unauthorized",

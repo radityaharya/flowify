@@ -1,9 +1,8 @@
 import { Logger } from "@/lib/log";
 import { Runner } from "@/lib/workflow/Workflow";
-import { authOptions } from "@/server/auth";
+import { auth } from "@/server/auth";
 import { db } from "@/server/db";
 import { getAccessTokenFromUserId } from "@/server/db/helper";
-import { getServerSession } from "next-auth";
 import { type NextRequest, NextResponse } from "next/server";
 import { createWorkflowQueue } from "~/lib/workflow/utils/workflowQueue";
 import { WorkflowObjectSchema } from "~/schemas";
@@ -18,13 +17,23 @@ export async function POST(
   },
 ) {
   log.info("running workflow");
-  const session = await getServerSession({ req: request, ...authOptions });
+  const session = await auth();
   if (!session) {
     log.error("Not authenticated");
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  const accessToken = await getAccessTokenFromUserId(session.user.id);
+  if (!session.user) {
+    log.error("Not authenticated");
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+
+  const userId = session.user.id;
+  if (!userId) {
+    log.error("User ID is undefined");
+    return NextResponse.json({ error: "User ID is undefined" }, { status: 400 });
+  }
+  const accessToken = await getAccessTokenFromUserId(userId);
   if (!accessToken) {
     log.error("Unable to get access token");
     return NextResponse.json(

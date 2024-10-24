@@ -1,7 +1,6 @@
 import { Logger } from "@/lib/log";
-import { authOptions } from "@/server/auth";
+import { auth } from "@/server/auth";
 import { db } from "@/server/db";
-import { getServerSession } from "next-auth";
 import { type NextRequest, NextResponse } from "next/server";
 import { isUUID } from "validator";
 
@@ -16,7 +15,7 @@ export async function GET(
   },
 ) {
   try {
-    const session = await getServerSession({ req: request, ...authOptions });
+    const session = await auth();
 
     if (!(params.id && isUUID(params.id))) {
       log.error("No id provided");
@@ -51,7 +50,7 @@ export async function GET(
       throw new Error("Workflow not found");
     }
 
-    if (workflow.userId !== session.user.id) {
+    if (!session.user || workflow.userId !== session.user.id) {
       return NextResponse.json(
         {
           error: "Unauthorized",
@@ -71,7 +70,7 @@ export async function GET(
       })),
     };
 
-    log.info(`Returning workflow ${params.id} for user ${session.user.id}`);
+    log.info(`Returning workflow ${params.id} for user ${session.user?.id}`);
     return NextResponse.json(res);
   } catch (error) {
     log.error("Error getting workflow", error);

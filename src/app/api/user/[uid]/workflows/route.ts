@@ -1,22 +1,23 @@
 import { Logger } from "@/lib/log";
-import { authOptions } from "@/server/auth";
 import { db } from "@/server/db";
 import Redis from "ioredis";
-import { getServerSession } from "next-auth";
-import { type NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { env } from "~/env";
+import { auth } from "~/server/auth";
 
 const log = new Logger("/api/workflow/[id]");
 
-export async function GET(
-  request: NextRequest,
-  {
-    params,
-  }: {
-    params: { uid: string };
-  },
-) {
-  const session = (await getServerSession({ req: request, ...authOptions }))!;
+export async function GET(request: NextRequest, response: NextResponse) {
+  const session = await auth();
+
+  if (!session?.user) {
+    return NextResponse.json(
+      { error: "Not authenticated" },
+      { status: 401 },
+    );
+  }
+
+  const userId = session.user.id
 
   let redis: Redis | null = null;
   try {

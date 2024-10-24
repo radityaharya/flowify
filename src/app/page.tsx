@@ -9,11 +9,10 @@ import {
 } from "@/components/LandingPage/page-header";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { getServerSession } from "next-auth";
-import { authOptions } from "~/server/auth";
+import { auth } from "~/server/auth";
 
 export default async function IndexPage() {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
 
   return (
     <div className="relative h-[70dvh] md:h-[100dvh]">

@@ -1,11 +1,11 @@
 import { Logger } from "@/lib/log";
-import { authOptions } from "@/server/auth";
+import { auth } from "@/server/auth";
 import { db } from "@/server/db";
-import { getServerSession } from "next-auth";
 import { type NextRequest, NextResponse } from "next/server";
 import { isUUID } from "validator";
 
 const log = new Logger("/api/workflow/[id]");
+
 export async function GET(
   request: NextRequest,
   {
@@ -14,7 +14,7 @@ export async function GET(
     params: { id: string };
   },
 ) {
-  const session = await getServerSession({ req: request, ...authOptions });
+  const session = await auth();
 
   if (!(params.id && isUUID(params.id))) {
     log.error("No id provided", params.id);
@@ -26,7 +26,7 @@ export async function GET(
     );
   }
 
-  if (!session) {
+  if (!session || !session.user) {
     log.error("Not authenticated");
     return NextResponse.json(
       {

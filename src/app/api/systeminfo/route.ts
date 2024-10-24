@@ -1,7 +1,5 @@
-import { authOptions } from "@/server/auth";
 import { db } from "@/server/db";
 import Redis from "ioredis";
-import { getServerSession } from "next-auth";
 import { type NextRequest, NextResponse } from "next/server";
 import { env } from "~/env";
 import { Logger } from "~/lib/log";
@@ -9,7 +7,6 @@ import { Logger } from "~/lib/log";
 const log = new Logger("/api/");
 
 export async function GET(request: NextRequest) {
-  const session = await getServerSession({ req: request, ...authOptions });
   let redis: Redis | null = null;
   try {
     redis = new Redis(env.REDIS_URL, {

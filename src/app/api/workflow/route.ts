@@ -1,11 +1,10 @@
 import { Logger } from "@/lib/log";
-import { authOptions } from "@/server/auth";
+import { auth } from "@/server/auth";
 import {
   storeWorkflowJob,
   updateWorkflowJob,
   workflowExists,
 } from "@lib/workflow/utils/workflowQueue";
-import { getServerSession } from "next-auth";
 import { type NextRequest, NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 import { WorkflowObjectSchema } from "~/schemas";
@@ -13,8 +12,8 @@ import { WorkflowObjectSchema } from "~/schemas";
 const log = new Logger("/api/workflow");
 
 export async function POST(request: NextRequest) {
-  const session = await getServerSession({ req: request, ...authOptions });
-  if (!session) {
+  const session = await auth();
+  if (!session || !session.user) {
     return NextResponse.json(
       {
         error: "Not authenticated",
@@ -51,6 +50,13 @@ export async function POST(request: NextRequest) {
   });
 
   try {
+    if (!session.user.id) {
+      return NextResponse.json(
+        { error: "User ID is missing" },
+        { status: 400 },
+      );
+    }
+
     const response = await ((await workflowExists(job.id))
       ? updateWorkflowJob(session.user.id, job)
       : storeWorkflowJob(session.user.id, job));

@@ -1,11 +1,11 @@
 import { redirect } from "next/navigation";
-import { getServerAuthSession } from "~/server/auth";
 import { RunsGrid } from "./RunsGrid";
 import { WorkflowsGrid } from "./WorkflowGrid";
+import { auth } from "~/server/auth";
 export default async function Dashboard() {
   const workflows = undefined;
 
-  const session = await getServerAuthSession();
+  const session = await auth();
 
   if (!session?.user) {
     return redirect("/auth/login");

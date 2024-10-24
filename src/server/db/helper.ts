@@ -6,6 +6,8 @@ import { db } from ".";
 async function getAccessToken(whereClause: any) {
   const user = await db.query.accounts.findFirst({ where: whereClause });
 
+  console.log("user", user);
+
   if (!(user?.access_token && user.refresh_token && user.expires_at)) {
     throw new Error("No access token");
   }

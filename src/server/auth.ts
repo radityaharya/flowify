@@ -3,11 +3,7 @@ import { type TokenSet } from "@auth/core/types";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { Logger } from "@lib/log";
 import { and, eq } from "drizzle-orm";
-import {
-  type DefaultSession,
-  type NextAuthOptions,
-  getServerSession,
-} from "next-auth";
+import NextAuth, { type DefaultSession } from "next-auth";
 import { type DefaultJWT } from "next-auth/jwt";
 import SpotifyProvider from "next-auth/providers/spotify";
 import { env } from "~/env";
@@ -45,7 +41,6 @@ declare module "next-auth" {
       id: string;
       providerAccountId: string;
       spotify_access_token: string;
-      // role: UserRole;
     } & DefaultSession["user"];
   }
 }
@@ -57,7 +52,6 @@ declare module "next-auth/jwt" {
       id: string;
       providerAccountId: string;
       spotify_access_token: string;
-      // role: UserRole;
     } & DefaultJWT["user"];
   }
 }
@@ -131,7 +125,7 @@ async function refreshAccessToken(userId: string, spotify: any) {
   return null;
 }
 
-export const authOptions: NextAuthOptions = {
+export const { auth, handlers, signIn, signOut } = NextAuth({
   callbacks: {
     async session({ session, user, token }) {
       const userId = user?.id || session?.user?.id || token?.user?.id;
@@ -155,7 +149,7 @@ export const authOptions: NextAuthOptions = {
       if (user?.id) {
         if (account) {
           token.user = {
-            ...user,
+            id: user.id,
             providerAccountId: account.providerAccountId,
             spotify_access_token: account?.access_token ?? "",
           };
@@ -187,7 +181,6 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
   },
-  // @ts-expect-error next-auth types
   adapter: DrizzleAdapter(db),
   providers: [
     SpotifyProvider({
@@ -205,6 +198,4 @@ export const authOptions: NextAuthOptions = {
     signIn: "/auth/login",
   },
   secret: env.NEXTAUTH_SECRET,
-};
-
-export const getServerAuthSession = () => getServerSession(authOptions);
+});
