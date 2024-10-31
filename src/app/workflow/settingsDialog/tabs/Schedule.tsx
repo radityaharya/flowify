@@ -13,25 +13,28 @@ import {
 import { TimePicker12 } from "@/components/ui/time-picker/time-picker-12h";
 import cronstrue from "cronstrue";
 import { useEffect, useMemo, useState } from "react";
+import { UseFormReturn } from "react-hook-form";
+import type { SubmitHandler } from "react-hook-form";
+
+interface FormValues {
+  interval: string;
+  scheduleTime: Date;
+  dayOfWeek?: string;
+  dayOfMonth?: string;
+}
 
 const UNSET_SCHEDULE = "unset";
 
-const WorkflowScheduler = ({ form, onSubmit }) => {
+interface WorkflowSchedulerProps {
+  form: UseFormReturn<FormValues>;
+  onSubmit: SubmitHandler<FormValues>;
+}
+
+const WorkflowScheduler: React.FC<WorkflowSchedulerProps> = ({ form, onSubmit }) => {
   const [cronExpression, setCronExpression] = useState("");
   const [isScheduleLoading, setIsScheduleLoading] = useState(true);
 
-  useEffect(() => {
-    const subscription = form.watch(() => {
-      if (form.formState.isValid) {
-        setCronExpression(getCronExpression());
-      }
-    });
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [form]);
-
-  const getCronExpression = () => {
+  const getCronExpression = useMemo(() => {
     const { interval, scheduleTime, dayOfWeek, dayOfMonth } = form.getValues();
     const minutes = scheduleTime?.getMinutes() ?? 0;
     const hours = scheduleTime?.getHours() ?? 0;
@@ -50,7 +53,27 @@ const WorkflowScheduler = ({ form, onSubmit }) => {
       default:
         return "";
     }
-  };
+  }, [form, form.watch("interval"), form.watch("scheduleTime"), form.watch("dayOfWeek"), form.watch("dayOfMonth")]);
+
+  useEffect(() => {
+    if (getCronExpression === UNSET_SCHEDULE) {
+      setCronExpression("");
+    } else {
+      setCronExpression(getCronExpression);
+    }
+    setIsScheduleLoading(false);
+  }, [getCronExpression]);
+
+  useEffect(() => {
+    const subscription = form.watch(() => {
+      if (form.formState.isValid) {
+        setCronExpression(getCronExpression);
+      }
+    });
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [form, getCronExpression]);
 
   const interval = form.watch("interval");
   const memoizedInterval = useMemo(() => interval, [interval]);
@@ -146,7 +169,7 @@ const WorkflowScheduler = ({ form, onSubmit }) => {
               name="scheduleTime"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel htmlFor="scheduleTime">scheduleTime</FormLabel>
+                  <FormLabel htmlFor="scheduleTime">Schedule Time</FormLabel>
                   <TimePicker12 setDate={field.onChange} date={field.value} />
                 </FormItem>
               )}
