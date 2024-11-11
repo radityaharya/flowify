@@ -1,26 +1,14 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 "use client";
 
-import { fetcher } from "@/app/utils/fetcher";
-import {
-  Background,
-  Controls,
-  Panel,
-  ReactFlow,
-  getOutgoers,
-} from "@xyflow/react";
-import { useCallback, useRef } from "react";
-import useSWR from "swr";
-
-import useStore from "~/app/states/store";
-
 import "@xyflow/react/dist/style.css";
-import { useShallow } from "zustand/react/shallow";
 
 import Alternate from "@nodes/Combiner/Alternate";
 import Push from "@nodes/Combiner/Push";
 import RandomStream from "@nodes/Combiner/RandomStream";
-
+import DedupeArtists from "@nodes/Filter/DedupeArtists";
+import DedupeTracks from "@nodes/Filter/DedupeTracks";
+import Limit from "@nodes/Filter/Limit";
+import RemoveMatch from "@nodes/Filter/RemoveMatch";
 import AlbumTracks from "@nodes/Library/AlbumTracks";
 import ArtistsTopTracks from "@nodes/Library/ArtistsTopTracks";
 import LikedTracks from "@nodes/Library/LikedTracks";
@@ -29,43 +17,46 @@ import Playlist from "@nodes/Library/Playlist";
 import SaveAsAppend from "@nodes/Library/SaveAsAppend";
 import SaveAsNew from "@nodes/Library/SaveAsNew";
 import SaveAsReplace from "@nodes/Library/SaveAsReplace";
-
-import Last from "@nodes/Selectors/Last";
-
-import DedupeArtists from "@nodes/Filter/DedupeArtists";
-import DedupeTracks from "@nodes/Filter/DedupeTracks";
-import Limit from "@nodes/Filter/Limit";
-import RemoveMatch from "@nodes/Filter/RemoveMatch";
-
 import Reverse from "@nodes/Order/Reverse";
 import SeparateArtists from "@nodes/Order/SeparateArtists";
 import Shuffle from "@nodes/Order/Shuffle";
 import Sort from "@nodes/Order/Sort";
 import SortPopularity from "@nodes/Order/SortPopularity";
-
 import AllButFirst from "@nodes/Selectors/AllButFirst";
 import AllButLast from "@nodes/Selectors/AllButLast";
 import First from "@nodes/Selectors/First";
+import Last from "@nodes/Selectors/Last";
 import Recommend from "@nodes/Selectors/Recommend";
+import {
+  Background,
+  Controls,
+  getOutgoers,
+  Panel,
+  ReactFlow,
+} from "@xyflow/react";
+import { PlayIcon, SaveIcon, Settings as SettingsIcon } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { useCallback, useRef } from "react";
+import { toast } from "sonner";
+import useSWR from "swr";
+import { useShallow } from "zustand/react/shallow";
 
+import { fetcher } from "@/app/utils/fetcher";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { PlayIcon, SaveIcon, Settings as SettingsIcon } from "lucide-react";
-import { SettingsDialog } from "./settingsDialog/Settings";
-
-import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import useStore from "~/app/states/store";
 import reactFlowToWorkflow from "~/app/utils/reactFlowToWorkflow";
+import { runWorkflow } from "~/app/utils/runWorkflow";
 import { saveWorkflow } from "~/app/utils/saveWorkflow";
 
-import { usePathname, useRouter } from "next/navigation";
-import { toast } from "sonner";
-import { runWorkflow } from "~/app/utils/runWorkflow";
+import { SettingsDialog } from "./settingsDialog/Settings";
 
 export const Nodes = {
   "Combiner.alternate": {
@@ -360,7 +351,8 @@ export function App() {
         .replace(/ /g, "-")
         .toLowerCase();
 
-      const curName = path.match(/\/workflow\/(.*?)_/)?.[1];
+      const match = /\/workflow\/(.*?)_/.exec(path);
+      const curName = match?.[1];
 
       if (formattedName !== curName) {
         console.log(
@@ -392,8 +384,8 @@ export function App() {
   );
 
   return (
-    <div className="dndflow h-full w-full">
-      <div className="reactflow-wrapper h-full w-full" ref={reactFlowWrapper}>
+    <div className="dndflow size-full">
+      <div className="reactflow-wrapper size-full" ref={reactFlowWrapper}>
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -417,18 +409,18 @@ export function App() {
           defaultEdgeOptions={edgeOptions}
         >
           <Controls />
-          <Panel position="top-right" className="pt-20 select-none">
+          <Panel position="top-right" className="select-none pt-20">
             <div className="flex flex-row items-center gap-4">
-              <Button className="flex-grow space-x-2" onClick={handleSave}>
+              <Button className="grow space-x-2" onClick={handleSave}>
                 <SaveIcon size={16} />
                 <span>Save</span>
               </Button>
-              <div className="flex flex-row gap-4 pr-4 items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none bg-card text-foreground outline outline-1 outline-slate-700">
+              <div className="flex flex-row items-center justify-center gap-4 whitespace-nowrap rounded-md bg-card pr-4 text-sm font-medium text-foreground outline outline-1 outline-slate-700 ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none">
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
-                        className="flex-grow space-x-2"
+                        className="grow space-x-2"
                         onClick={handleRun}
                         disabled={
                           workerLoading ||
@@ -467,7 +459,7 @@ export function App() {
                   />
                   <label
                     htmlFor="dryrun"
-                    className="text-sm font-base leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    className="font-base text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                   >
                     Save to Spotify
                   </label>
@@ -485,10 +477,10 @@ export function App() {
             </div>
           </Panel>
           <Panel position="top-left" className="pt-20">
-            <p className="font-medium text-lg drop-shadow-lg">
+            <p className="text-lg font-medium drop-shadow-lg">
               {flowState.name}
             </p>
-            <p className="font-medium text-xs opacity-80">
+            <p className="text-xs font-medium opacity-80">
               {" "}
               {flowState.description}
             </p>

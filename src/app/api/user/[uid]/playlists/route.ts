@@ -1,6 +1,7 @@
 import Redis from "ioredis";
 import { type NextRequest, NextResponse } from "next/server";
 import SpotifyWebApi from "spotify-web-api-node";
+
 import { env } from "~/env";
 import { Logger } from "~/lib/log";
 import { getAccessTokenFromProviderAccountId } from "~/server/db/helper";
@@ -12,10 +13,11 @@ export async function GET(
   {
     params,
   }: {
-    params: { uid: string };
+    params: Promise<{ uid: string }>;
   },
 ) {
-  const accessToken = await getAccessTokenFromProviderAccountId(params.uid);
+  const { uid } = await params;
+  const accessToken = await getAccessTokenFromProviderAccountId(uid);
   if (!accessToken) {
     return NextResponse.json("No access token found", { status: 500 });
   }
@@ -36,9 +38,10 @@ export async function GET(
 
   spClient.setAccessToken(accessToken.access_token);
 
-  const q = request.nextUrl.searchParams.get("q");
+  const searchParams = request.nextUrl.searchParams;
+  const q = searchParams.get("q");
 
-  const cacheKey = q ? `search:${q}` : `user:${params.uid}`;
+  const cacheKey = q ? `search:${q}` : `user:${uid}`;
   let cachedData;
   if (redis) {
     cachedData = await redis.get(cacheKey);
@@ -69,7 +72,7 @@ export async function GET(
       owner: playlist.owner.display_name,
     }));
   } else {
-    data = await spClient.getUserPlaylists(params.uid, {
+    data = await spClient.getUserPlaylists(uid, {
       limit: 50,
     });
     playlists = data.body.items.map((playlist) => ({

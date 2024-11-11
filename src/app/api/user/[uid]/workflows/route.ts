@@ -1,23 +1,21 @@
+import Redis from "ioredis";
+import { NextResponse } from "next/server";
+
 import { Logger } from "@/lib/log";
 import { db } from "@/server/db";
-import Redis from "ioredis";
-import { NextRequest, NextResponse } from "next/server";
 import { env } from "~/env";
 import { auth } from "~/server/auth";
 
 const log = new Logger("/api/workflow/[id]");
 
-export async function GET(request: NextRequest, response: NextResponse) {
+export async function GET() {
   const session = await auth();
 
   if (!session?.user) {
-    return NextResponse.json(
-      { error: "Not authenticated" },
-      { status: 401 },
-    );
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  const userId = session.user.id
+  const userId = session.user.id;
 
   let redis: Redis | null = null;
   try {
@@ -30,7 +28,7 @@ export async function GET(request: NextRequest, response: NextResponse) {
 
   let cachedData;
   if (redis) {
-    cachedData = await redis.get(`api:workflows:${session.user.id}`);
+    cachedData = await redis.get(`api:workflows:${userId}`);
     if (cachedData) {
       return NextResponse.json(JSON.parse(cachedData), {
         headers: {
@@ -43,7 +41,7 @@ export async function GET(request: NextRequest, response: NextResponse) {
   const workflows = await db.query.workflowJobs.findMany({
     where: (workflowJobs, { eq, and, or, isNull }) =>
       and(
-        eq(workflowJobs.userId, session.user.id),
+        eq(workflowJobs.userId, userId),
         or(isNull(workflowJobs.deleted), eq(workflowJobs.deleted, false)),
       ),
     with: {
@@ -77,15 +75,10 @@ export async function GET(request: NextRequest, response: NextResponse) {
   );
 
   if (redis) {
-    await redis.set(
-      `api:workflows:${session.user.id}`,
-      JSON.stringify(res),
-      "EX",
-      5,
-    );
+    await redis.set(`api:workflows:${userId}`, JSON.stringify(res), "EX", 5);
   }
 
-  log.info(`Returning workflows for user ${session.user.id}`);
+  log.info(`Returning workflows for user ${userId}`);
   return NextResponse.json(res, {
     headers: {
       "X-Cache": "MISS",

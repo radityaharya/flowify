@@ -1,7 +1,7 @@
-/* eslint-disable @typescript-eslint/no-misused-promises */
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
-/* eslint-disable @typescript-eslint/no-floating-promises */
+import { WorkflowObjectSchema } from "@schema";
+import { type SpotifyApi } from "@spotify/web-api-ts-sdk";
 
+import { Logger } from "../log";
 import { Base, type UserCredential } from "./Base";
 import Combiner from "./Combiner";
 import Filter from "./Filter";
@@ -10,10 +10,6 @@ import Order from "./Order";
 import Playlist from "./Playlist";
 import Selector from "./Selector";
 import Utility from "./Utility";
-
-import { WorkflowObjectSchema } from "@schema";
-import { type SpotifyApi } from "@spotify/web-api-ts-sdk";
-import { Logger } from "../log";
 
 const log = new Logger("workflow");
 
@@ -41,11 +37,11 @@ export class Runner extends Base {
 
   private disposeOperationResult(result: any) {
     if (result && typeof result === "object") {
-      for (const key in result) {
+      Object.keys(result).forEach((key) => {
         if (Object.prototype.hasOwnProperty.call(result, key)) {
           result[key] = null;
         }
-      }
+      });
     }
   }
 

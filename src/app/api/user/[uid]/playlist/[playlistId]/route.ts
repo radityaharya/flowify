@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import SpotifyWebApi from "spotify-web-api-node";
+
 import { env } from "~/env";
 import { getAccessTokenFromProviderAccountId } from "~/server/db/helper";
 export async function GET(
@@ -7,13 +8,11 @@ export async function GET(
   {
     params,
   }: {
-    params: {
-      uid: string;
-      playlistId: string;
-    };
+    params: Promise<{ uid: string; playlistId: string }>;
   },
 ) {
-  const accessToken = await getAccessTokenFromProviderAccountId(params.uid);
+  const { uid, playlistId } = await params;
+  const accessToken = await getAccessTokenFromProviderAccountId(uid);
   if (!accessToken) {
     return NextResponse.json("No access token found", { status: 500 });
   }
@@ -25,7 +24,7 @@ export async function GET(
 
   spClient.setAccessToken(accessToken.access_token);
 
-  const response = await spClient.getPlaylist(params.playlistId);
+  const response = await spClient.getPlaylist(playlistId);
 
   const playlist = {
     id: response.body.id,

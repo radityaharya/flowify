@@ -1,12 +1,12 @@
 import { eq } from "drizzle-orm";
+
 import { env } from "~/env";
 import { accounts } from "~/server/db/schema";
+
 import { db } from ".";
 
 async function getAccessToken(whereClause: any) {
   const user = await db.query.accounts.findFirst({ where: whereClause });
-
-  console.log("user", user);
 
   if (!(user?.access_token && user.refresh_token && user.expires_at)) {
     throw new Error("No access token");
@@ -25,7 +25,7 @@ async function getAccessToken(whereClause: any) {
         },
         body: new URLSearchParams({
           grant_type: "refresh_token",
-          refresh_token: user.refresh_token!,
+          refresh_token: user.refresh_token,
         }),
       });
 
@@ -37,7 +37,7 @@ async function getAccessToken(whereClause: any) {
       };
 
       if (!response.ok) {
-        throw refreshedTokens;
+        throw new Error(JSON.stringify(refreshedTokens));
       }
 
       await db.update(accounts).set({

@@ -1,18 +1,20 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
+import router from "next/router";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+
 import {
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { zodResolver } from "@hookform/resolvers/zod";
-import router from "next/router";
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
 import useStore from "~/app/states/store";
 import { saveWorkflow } from "~/app/utils/saveWorkflow";
+
 import { Separator } from "../../../components/ui/separator";
 import General from "./tabs/General";
 import History from "./tabs/History";
@@ -130,7 +132,7 @@ export function SettingsDialog() {
         ? getScheduleFromCronExpression(flowState.cron).dayOfMonth
         : "*",
     });
-  }, [flowState, reset]);
+  }, [flowState, reset]); // Add dependencies array
 
   const onSubmit = async (data) => {
     const cron = getCronExpression(form);
@@ -150,27 +152,24 @@ export function SettingsDialog() {
   return (
     <DialogContent className="h-[90svh] w-[90svw]">
       <DialogHeader className="gap-1">
-        <DialogTitle className="mb-4 font-bold text-xl">
+        <DialogTitle className="mb-4 text-xl font-bold">
           Workflow Settings
         </DialogTitle>
         <Separator />
       </DialogHeader>
-      <Tabs
-        defaultValue="general"
-        className="flex h-full w-full flex-row gap-6"
-      >
+      <Tabs defaultValue="general" className="flex size-full flex-row gap-6">
         <TabsList className="flex w-[15%] flex-col gap-4">
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="schedule">Schedule</TabsTrigger>
           <TabsTrigger value="history">History</TabsTrigger>
         </TabsList>
-        <TabsContent value="general" className="h-full w-full">
+        <TabsContent value="general" className="size-full">
           <General form={form} onSubmit={handleSubmit(onSubmit)} />
         </TabsContent>
-        <TabsContent value="schedule" className="h-full w-full">
+        <TabsContent value="schedule" className="size-full">
           <Schedule form={form} onSubmit={handleSubmit(onSubmit)} />
         </TabsContent>
-        <TabsContent value="history" className="h-full w-full">
+        <TabsContent value="history" className="size-full">
           <History />
         </TabsContent>
       </Tabs>

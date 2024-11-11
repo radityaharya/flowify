@@ -1,3 +1,6 @@
+import { GripVertical } from "lucide-react";
+import { useShallow } from "zustand/react/shallow";
+
 import useStore from "@/app/states/store";
 import {
   Tooltip,
@@ -5,8 +8,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { GripVertical } from "lucide-react";
-import { useShallow } from "zustand/react/shallow";
 
 type DragableNodeProps = {
   nodeType: string;
@@ -58,16 +59,16 @@ export const DragableNode = ({
   return (
     <TooltipProvider>
       <Tooltip>
-        <div className="group h-min-content w-full">
+        <div className="h-min-content group w-full">
           <div
-            className="flex w-full flex-row text-start items-start justify-between gap-2 rounded-md p-2 dark:bg-accent"
+            className="flex w-full flex-row items-start justify-between gap-2 rounded-md p-2 text-start dark:bg-accent"
             onDragStart={onDragStart}
             onClick={onClick}
             onKeyDown={onClick}
             draggable
           >
             <div className="flex flex-row gap-2">
-              <TooltipTrigger className="flex flex-row gap-2 font-medium text-sm text-start">
+              <TooltipTrigger className="flex flex-row gap-2 text-start text-sm font-medium">
                 {title}
               </TooltipTrigger>
             </div>

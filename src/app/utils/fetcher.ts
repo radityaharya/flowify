@@ -8,7 +8,7 @@ export const fetcher = async (url: string) => {
     const json = await res.json();
     error.info = json.error;
     console.info(error);
-    throw error;
+    throw new Error(error.info);
   }
 
   return res.json();

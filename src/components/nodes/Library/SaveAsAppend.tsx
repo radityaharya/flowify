@@ -1,10 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { Position } from "@xyflow/react";
-import NodeHandle from "../Primitives/NodeHandle";
-
 import { ChevronsUpDown } from "lucide-react";
+import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -15,20 +13,18 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { Form, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-
 import { ScrollArea } from "@/components/ui/scroll-area";
-
-import Image from "next/image";
-import { CardWithHeader } from "../Primitives/Card";
-
-import { Form, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { usePlaylistState } from "~/hooks/usePlaylistState";
+
+import { CardWithHeader } from "../Primitives/Card";
 import Debug from "../Primitives/Debug";
+import NodeHandle from "../Primitives/NodeHandle";
 import PlaylistCommand from "../Primitives/PlaylistCommand";
 
 type PlaylistProps = {
@@ -85,12 +81,12 @@ function SaveAsAppendComponent({ id, data }: PlaylistProps) {
                         variant="outline"
                         role="combobox"
                         aria-expanded={open}
-                        className="h-[min-content] w-full justify-between"
+                        className="h-min w-full justify-between"
                       >
                         {selectedPlaylist.image ? (
                           <div className="flex max-w-full items-center gap-4">
                             <Image
-                              className="h-10 w-10 rounded-sm"
+                              className="size-10 rounded-sm"
                               src={selectedPlaylist.image}
                               alt=""
                               width={40}
@@ -98,7 +94,7 @@ function SaveAsAppendComponent({ id, data }: PlaylistProps) {
                               unoptimized
                             />
                             <div className="flex w-[160px] flex-col items-start">
-                              <div className="max-w-full overflow-hidden overflow-ellipsis whitespace-nowrap font-medium text-sm">
+                              <div className="max-w-full truncate text-sm font-medium">
                                 {selectedPlaylist.name}
                               </div>
                               <div className="text-xs opacity-80">
@@ -110,7 +106,7 @@ function SaveAsAppendComponent({ id, data }: PlaylistProps) {
                         ) : (
                           "Select playlist..."
                         )}
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
                       </Button>
                     </PopoverTrigger>
 
@@ -151,9 +147,9 @@ function SaveAsAppendComponent({ id, data }: PlaylistProps) {
                                       }}
                                     >
                                       <div className="flex items-center gap-2">
-                                        <div className="h-8 w-8 animate-pulse rounded-md bg-gray-700"></div>
+                                        <div className="size-8 animate-pulse rounded-md bg-gray-700"></div>
                                         <div className="flex animate-pulse flex-col">
-                                          <div className="animate-pulse font-medium text-sm">
+                                          <div className="animate-pulse text-sm font-medium">
                                             loading...
                                           </div>
                                           <div className="animate-pulse text-xs opacity-80">

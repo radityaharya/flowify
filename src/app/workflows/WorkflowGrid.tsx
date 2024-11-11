@@ -1,5 +1,21 @@
 "use client";
 
+import { formatDistanceToNow } from "date-fns";
+import {
+  ArrowUpDown,
+  Calendar,
+  ChevronsUpDown,
+  Clock,
+  MoreVertical,
+  PenBox,
+  Trash,
+} from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useState } from "react";
+import { toast } from "sonner";
+import useSWR, { mutate } from "swr";
+
 import {
   Collapsible,
   CollapsibleContent,
@@ -18,21 +34,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { formatDistanceToNow } from "date-fns";
-import {
-  ArrowUpDown,
-  Calendar,
-  ChevronsUpDown,
-  Clock,
-  MoreVertical,
-  PenBox,
-  Trash,
-} from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { useState } from "react";
-import { toast } from "sonner";
-import useSWR, { mutate } from "swr";
 import { Badge } from "~/components/ui/badge";
 import { Button, buttonVariants } from "~/components/ui/button";
 import {
@@ -44,6 +45,7 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 import { Skeleton } from "~/components/ui/skeleton";
+
 import { runWorkflow } from "../utils/runWorkflow";
 
 function getTargets(
@@ -126,7 +128,7 @@ function PlaylistCard({ source }: PlaylistCardProps) {
   return (
     <Card className="flex items-center gap-2 p-2" key={source.id}>
       <Image
-        className="h-8 w-8 rounded-sm"
+        className="size-8 rounded-sm"
         src={source.params.image}
         alt=""
         width={32}
@@ -135,7 +137,7 @@ function PlaylistCard({ source }: PlaylistCardProps) {
       />
       <div className="flex w-full flex-col items-start">
         <Link
-          className="max-w-[160px] overflow-hidden overflow-ellipsis whitespace-nowrap font-medium text-sm"
+          className="max-w-[160px] truncate text-sm font-medium"
           href={
             ["likedTracks", "recommended"].includes(source.params.playlistId)
               ? "#"
@@ -157,7 +159,7 @@ function PlaylistCard({ source }: PlaylistCardProps) {
 function PlaylistCardSkeleton() {
   return (
     <Card className="flex items-center gap-2 p-2">
-      <Skeleton className="h-8 w-8 rounded-sm" />
+      <Skeleton className="size-8 rounded-sm" />
       <div className="flex w-full flex-col items-start gap-1">
         <Skeleton className="h-4 w-24 rounded-full" />
         <Skeleton className="h-3 w-16 rounded-full" />
@@ -170,7 +172,7 @@ function PlaylistCardTrigger({ source, setIsOpen }) {
   return (
     <Card className="flex items-center gap-2 p-2" key={source.id}>
       <Image
-        className="h-8 w-8 rounded-sm"
+        className="size-8 rounded-sm"
         src={source.params.image}
         alt=""
         width={32}
@@ -178,7 +180,7 @@ function PlaylistCardTrigger({ source, setIsOpen }) {
         unoptimized
       />
       <div className="flex w-full flex-col items-start">
-        <div className="max-w-full overflow-hidden overflow-ellipsis whitespace-nowrap font-medium text-sm">
+        <div className="max-w-full truncate text-sm font-medium">
           {source.params.name}
         </div>
         <div className="text-xs opacity-80">
@@ -190,7 +192,7 @@ function PlaylistCardTrigger({ source, setIsOpen }) {
         onClick={() => setIsOpen((prev) => !prev)}
         size={"sm"}
       >
-        <ChevronsUpDown className="h-4 w-4" />
+        <ChevronsUpDown className="size-4" />
       </Button>
     </Card>
   );
@@ -219,7 +221,7 @@ const ColapsiblePlaylists = ({ sources }: { sources: any[] }) => {
             setIsOpen={setIsOpen}
           />
         </CollapsibleTrigger>
-        <CollapsibleContent className="space-y-2 CollapsibleContent">
+        <CollapsibleContent className="CollapsibleContent space-y-2">
           {sources.map((source, _index) => (
             <PlaylistCard source={source} key={source.id} />
           ))}
@@ -257,7 +259,7 @@ const CardSkeleton = () => (
         </div>
       </div>
     </CardContent>
-    <CardFooter className="text-muted-foreground text-sm flex flex-col gap-2 items-start">
+    <CardFooter className="flex flex-col items-start gap-2 text-sm text-muted-foreground">
       <div className="flex flex-row gap-2">
         <div className="flex items-center gap-1">
           <Skeleton className="h-4 w-52" />
@@ -286,14 +288,14 @@ const WorkflowCardDropdownMenu = ({ id }) => {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" className="px-2">
-          <MoreVertical className="h-4 w-4" />
+          <MoreVertical className="size-4" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" side="right">
         <DropdownMenuLabel>Actions</DropdownMenuLabel>
         <DropdownMenuItem asChild>
           <Link href={`/workflow/${id}`}>
-            <PenBox className="h-4 w-4 mr-2" />
+            <PenBox className="mr-2 size-4" />
             Edit
           </Link>
         </DropdownMenuItem>
@@ -301,7 +303,7 @@ const WorkflowCardDropdownMenu = ({ id }) => {
           onClick={onDelete}
           className="bg-red-600 focus:bg-red-500"
         >
-          <Trash className="h-4 w-4 mr-2" />
+          <Trash className="mr-2 size-4" />
           Delete
         </DropdownMenuItem>
       </DropdownMenuContent>
@@ -320,32 +322,32 @@ const WorkflowCard = ({ d }) => {
 
   return (
     <Card className="relative hover:border-white">
-      <CardHeader className="flex flex-row justify-between w-full">
+      <CardHeader className="flex w-full flex-row justify-between">
         <div>
           <CardTitle className="text-base">{d.workflow.name}</CardTitle>
-          <CardDescription className="text-balance space-y-2">
+          <CardDescription className="space-y-2 text-balance">
             <div>{d.workflow.description || "No description"}</div>
             <div className="space-x-2">
               <Badge
-                className="text-xs font-normal items-center gap-1 text-muted-foreground"
+                className="items-center gap-1 text-xs font-normal text-muted-foreground"
                 variant={"outline"}
               >
-                <ArrowUpDown className="h-3 w-3" />
+                <ArrowUpDown className="size-3" />
                 <span>{d.workflow.operations.length} operations</span>
               </Badge>
               {d.averageRunTime !== 0 && !Number.isNaN(d.averageRunTime) && (
                 <Badge
-                  className="text-xs font-normal items-center gap-1 text-muted-foreground"
+                  className="items-center gap-1 text-xs font-normal text-muted-foreground"
                   variant={"outline"}
                 >
-                  <Clock className="h-3 w-3" />
+                  <Clock className="size-3" />
                   <span>{(d.averageRunTime / 1000).toFixed(2)}s</span>
                 </Badge>
               )}
             </div>
           </CardDescription>
         </div>
-        <div className="flex flex-row gap-1 z-[3]">
+        <div className="z-[3] flex flex-row gap-1">
           <Button variant="outline" onClick={handleRunClick}>
             {"Run"}
           </Button>
@@ -354,7 +356,7 @@ const WorkflowCard = ({ d }) => {
       </CardHeader>
       <CardContent>
         <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1 z-[3]">
+          <div className="z-[3] flex flex-col gap-1">
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium">Sources</span>
               <span className="text-xs opacity-80">
@@ -363,7 +365,7 @@ const WorkflowCard = ({ d }) => {
             </div>
             <ColapsiblePlaylists sources={d.workflow.sources} />
           </div>
-          <div className="flex flex-col gap-1 z-[3]">
+          <div className="z-[3] flex flex-col gap-1">
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium">Targets</span>
               <span className="text-xs opacity-80">
@@ -374,13 +376,13 @@ const WorkflowCard = ({ d }) => {
           </div>
         </div>
       </CardContent>
-      <CardFooter className="text-muted-foreground text-sm flex flex-col xl:flex-row gap-2 items-start xl:items-center">
+      <CardFooter className="flex flex-col items-start gap-2 text-sm text-muted-foreground xl:flex-row xl:items-center">
         {/* <div className="flex text-xs items-center gap-1">
           <ArrowUpDown className="h-4 w-4" />
           <span>{d.workflow.operations.length} operations</span>
         </div> */}
-        <div className="flex text-xs flex-row gap-2 flex-wrap">
-          <Calendar className="h-4 w-4" />
+        <div className="flex flex-row flex-wrap gap-2 text-xs">
+          <Calendar className="size-4" />
           <div className="flex items-center gap-1">
             created
             <span className="z-[3]">{relativeDate(d.createdAt)}</span>
@@ -404,8 +406,8 @@ const WorkflowCard = ({ d }) => {
 };
 
 const EmptyWorkflowCard = () => (
-  <Card className="flex flex-col items-center justify-center col-span-2 py-32 w-full">
-    <h1 className="text-xl font-base text-muted-foreground">
+  <Card className="col-span-2 flex w-full flex-col items-center justify-center py-32">
+    <h1 className="font-base text-xl text-muted-foreground">
       You have no workflows!
     </h1>
     <Link href="/workflow" className="mt-4">
@@ -441,7 +443,7 @@ export const fetcher = async (url: string) => {
     const json = await res.json();
     error.info = json.error;
     console.info(error);
-    throw error;
+    throw new Error(error.info);
   }
 
   const data = (await res.json()) as Workflow.WorkflowResponse[];
@@ -527,9 +529,9 @@ export function WorkflowsGrid({ workflows }: WorkflowTableProps) {
     .slice(0, 4);
 
   return (
-    <div className="pt-2 w-full">
-      <div id="workflows" className="flex-grow">
-        <div className="pb-1 flex flex-row items-center justify-between">
+    <div className="w-full pt-2">
+      <div id="workflows" className="grow">
+        <div className="flex flex-row items-center justify-between pb-1">
           <h1 className="text-xl font-medium leading-9 tracking-tight">
             Your Workflows
           </h1>
@@ -541,7 +543,7 @@ export function WorkflowsGrid({ workflows }: WorkflowTableProps) {
           </Link>
         </div>
         <div className="py-3">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+          <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-2">
             {isLoading ? (
               Array.from({ length: 6 }, (_, i) => <CardSkeleton key={i} />)
             ) : data && data.length > 0 ? (

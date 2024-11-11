@@ -1,24 +1,19 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { Position } from "@xyflow/react";
-import NodeHandle from "../Primitives/NodeHandle";
-
-import React from "react";
-
 import { InfoIcon } from "lucide-react";
-
-import { Separator } from "~/components/ui/separator";
-
-import { CardWithHeader } from "../Primitives/Card";
-import InputPrimitive from "../Primitives/Input";
-
+import Link from "next/link";
+import React from "react";
 import * as z from "zod";
 
 import { Form } from "@/components/ui/form";
-import Link from "next/link";
+import { Separator } from "~/components/ui/separator";
 import useBasicNodeState from "~/hooks/useBasicNodeState";
+
+import { CardWithHeader } from "../Primitives/Card";
 import Debug from "../Primitives/Debug";
+import InputPrimitive from "../Primitives/Input";
+import NodeHandle from "../Primitives/NodeHandle";
 
 type PlaylistProps = {
   id: string;

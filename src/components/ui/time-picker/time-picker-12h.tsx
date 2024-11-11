@@ -2,11 +2,13 @@
 
 "use client";
 
-import { Label } from "@/components/ui/label";
 import * as React from "react";
+
+import { Label } from "@/components/ui/label";
+
 import { TimePeriodSelect } from "./period-select";
 import { TimePickerInput } from "./time-picker-input";
-import { Period } from "./time-picker-utils";
+import type { Period } from "./time-picker-utils";
 
 interface TimePickerProps {
   date: Date | undefined;
@@ -31,7 +33,7 @@ export function TimePicker12({ date, setDate }: TimePickerProps) {
           ref={hourRef}
           onRightFocus={() => minuteRef.current?.focus()}
         />
-        <Label className="text-muted-foreground text-xs opacity-80">Hour</Label>
+        <Label className="text-xs text-muted-foreground opacity-80">Hour</Label>
       </div>
       <div className="grid gap-1 text-center">
         <TimePickerInput
@@ -43,7 +45,7 @@ export function TimePicker12({ date, setDate }: TimePickerProps) {
           onLeftFocus={() => hourRef.current?.focus()}
           onRightFocus={() => periodRef.current?.focus()}
         />
-        <Label className="text-muted-foreground text-xs opacity-80">
+        <Label className="text-xs text-muted-foreground opacity-80">
           Minute
         </Label>
       </div>
@@ -56,7 +58,7 @@ export function TimePicker12({ date, setDate }: TimePickerProps) {
           ref={periodRef}
           onLeftFocus={() => minuteRef.current?.focus()}
         />
-        <Label className="text-muted-foreground text-xs opacity-80">
+        <Label className="text-xs text-muted-foreground opacity-80">
           Period
         </Label>
       </div>

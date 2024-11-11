@@ -25,7 +25,7 @@
     --ring: 240 5.9% 10%;
     --radius: 0.5rem;
   }
- 
+
   .dark {
     --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;
@@ -139,18 +139,18 @@ path.react-flow__edge-path:hover {
 
 /* Track */
 ::-webkit-scrollbar-track {
-  background: var(--background); 
+  background: var(--background);
 }
- 
+
 /* Handle */
 ::-webkit-scrollbar-thumb {
-  background: var(--primary); 
+  background: var(--primary);
   border-radius: var(--radius);
 }
 
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--primary-foreground); 
+  background: var(--primary-foreground);
 }
 
 .sonner-loading-wrapper {
@@ -162,7 +162,7 @@ path.react-flow__edge-path:hover {
   z-index: 10;
 }
 
-.sonner-loading-wrapper[data-visible='false'] {
+.sonner-loading-wrapper[data-visible="false"] {
   transform-origin: center;
   animation: sonner-fade-out 0.2s ease forwards;
 }
@@ -295,7 +295,7 @@ path.react-flow__edge-path:hover {
   transition: opacity 200ms, transform 200ms;
 }
 
-.sonner-loader[data-visible='false'] {
+.sonner-loader[data-visible="false"] {
   opacity: 0;
   transform: scale(0.8) translate(-50%, -50%);
 }

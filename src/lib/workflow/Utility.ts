@@ -2,9 +2,6 @@ import { type SpotifyApi } from "@spotify/web-api-ts-sdk";
 import * as _ from "radash";
 
 import { Logger } from "../log";
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/ban-types */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Base } from "./Base";
 
 const log = new Logger("Utility");

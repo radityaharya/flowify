@@ -1,10 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { Position } from "@xyflow/react";
-import NodeHandle from "../Primitives/NodeHandle";
-
 import React from "react";
+import * as z from "zod";
 
 import {
   Accordion,
@@ -12,17 +10,14 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-
+import { Form } from "@/components/ui/form";
 import useStore from "~/app/states/store";
+import useBasicNodeState from "~/hooks/useBasicNodeState";
 
 import { CardWithHeader } from "../Primitives/Card";
-import InputPrimitive from "../Primitives/Input";
-
-import * as z from "zod";
-
-import { Form } from "@/components/ui/form";
-import useBasicNodeState from "~/hooks/useBasicNodeState";
 import Debug from "../Primitives/Debug";
+import InputPrimitive from "../Primitives/Input";
+import NodeHandle from "../Primitives/NodeHandle";
 
 type PlaylistProps = {
   id: string;

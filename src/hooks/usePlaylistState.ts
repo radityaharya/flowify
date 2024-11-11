@@ -1,5 +1,6 @@
 import React from "react";
 import { z } from "zod";
+
 import useStore from "~/app/states/store";
 import useBasicNodeState from "~/hooks/useBasicNodeState";
 
@@ -69,58 +70,64 @@ export const usePlaylistState = (id: string, data: Workflow.Playlist) => {
   // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   React.useEffect(() => {
     const searchPlaylist = async () => {
-      if (search.length > 0) {
+      if (session?.user) {
+        if (search.length > 0) {
+          try {
+            const response = await fetch(
+              `/api/user/${session.user.providerAccountId}/playlists?q=${search}`,
+            );
+            const data = await response.json();
+            const newPlaylists = userPlaylists.concat(data);
+            const dedupedPlaylists = newPlaylists.reduce((acc, current) => {
+              const x = acc.find(
+                (item) => item.playlistId === current.playlistId,
+              );
+              if (!x) {
+                return acc.concat([current]);
+              } else {
+                return acc;
+              }
+            }, []);
+
+            setUserPlaylistsStore(dedupedPlaylists);
+          } catch (err) {
+            console.error(err);
+          }
+        }
+      }
+    };
+
+    const userPlaylistsFetch = async () => {
+      if (session?.user) {
         try {
           const response = await fetch(
-            `/api/user/${session.user.providerAccountId}/playlists?q=${search}`,
+            `/api/user/${session.user.providerAccountId}/playlists`,
           );
           const data = await response.json();
-          const newPlaylists = userPlaylists.concat(data);
-          const dedupedPlaylists = newPlaylists.reduce((acc, current) => {
-            const x = acc.find(
-              (item) => item.playlistId === current.playlistId,
-            );
-            if (!x) {
-              return acc.concat([current]);
-            } else {
-              return acc;
-            }
-          }, []);
-
-          setUserPlaylistsStore(dedupedPlaylists);
+          setUserPlaylistsStore(data as any[]);
         } catch (err) {
           console.error(err);
         }
       }
     };
 
-    const userPlaylistsFetch = async () => {
-      try {
-        const response = await fetch(
-          `/api/user/${session.user.providerAccountId}/playlists`,
-        );
-        const data = await response.json();
-        setUserPlaylistsStore(data as any[]);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
     function setUserPlaylists() {
-      if (search.length > 0) {
-        searchPlaylist().catch((err) => {
-          console.error(err);
-        });
-      } else {
-        userPlaylistsFetch().catch((err) => {
-          console.error(err);
-        });
+      if (session?.user) {
+        if (search.length > 0) {
+          searchPlaylist().catch((err) => {
+            console.error(err);
+          });
+        } else {
+          userPlaylistsFetch().catch((err) => {
+            console.error(err);
+          });
+        }
       }
     }
 
     // debounce({delay: 500}, setUserPlaylists)();
     setUserPlaylists();
-  }, [search, session?.user?.providerAccountId, setUserPlaylistsStore]);
+  }, [search, session, setUserPlaylistsStore]);
 
   const handleSelect = (playlist) => {
     console.info("handle select", playlist);

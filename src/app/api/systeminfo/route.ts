@@ -1,6 +1,7 @@
-import { db } from "@/server/db";
 import Redis from "ioredis";
 import { type NextRequest, NextResponse } from "next/server";
+
+import { db } from "@/server/db";
 import { env } from "~/env";
 import { Logger } from "~/lib/log";
 

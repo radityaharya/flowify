@@ -1,9 +1,10 @@
+import { type NextRequest, NextResponse } from "next/server";
+
 import { Logger } from "@/lib/log";
 import { Runner } from "@/lib/workflow/Workflow";
 import { auth } from "@/server/auth";
 import { db } from "@/server/db";
 import { getAccessTokenFromUserId } from "@/server/db/helper";
-import { type NextRequest, NextResponse } from "next/server";
 import { createWorkflowQueue } from "~/lib/workflow/utils/workflowQueue";
 import { WorkflowObjectSchema } from "~/schemas";
 
@@ -13,7 +14,7 @@ export async function POST(
   {
     params,
   }: {
-    params: { id: string };
+    params: Promise<{ id: string }>;
   },
 ) {
   log.info("running workflow");
@@ -31,7 +32,10 @@ export async function POST(
   const userId = session.user.id;
   if (!userId) {
     log.error("User ID is undefined");
-    return NextResponse.json({ error: "User ID is undefined" }, { status: 400 });
+    return NextResponse.json(
+      { error: "User ID is undefined" },
+      { status: 400 },
+    );
   }
   const accessToken = await getAccessTokenFromUserId(userId);
   if (!accessToken) {
@@ -41,7 +45,7 @@ export async function POST(
       { status: 500 },
     );
   }
-  const id = params.id;
+  const { id } = await params;
 
   const workflow = await db.query.workflowJobs.findFirst({
     where: (workflowJobs, { eq }) => eq(workflowJobs.id, id),

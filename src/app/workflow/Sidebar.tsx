@@ -1,10 +1,8 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
-import { DragableNode } from "@/components/DragableNode";
 import { useCallback, useMemo } from "react";
 import React from "react";
-import { Nodes } from "./Flow";
 
+import { DragableNode } from "@/components/DragableNode";
 import {
   Command,
   CommandGroup,
@@ -13,6 +11,8 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { ScrollArea } from "@/components/ui/scroll-area";
+
+import { Nodes } from "./Flow";
 type NodeType = {
   title: string;
   description: string;
@@ -56,21 +56,21 @@ function Sidebar() {
       onDragOver={onDragOver}
       onDrop={onDrop}
     >
-      <div className="flex flex-col gap-6 h-full">
-        <div className="flex-none px-6 pt-[4rem]">
+      <div className="flex h-full flex-col gap-6">
+        <div className="flex-none px-6 pt-16">
           <div className="flex flex-col justify-between gap-6">
             <div className="flex flex-row justify-between"></div>
           </div>
         </div>
         <div className="flex flex-col gap-1 px-6">
           <h2 className="font-bold tracking-wider">Workflow Builder</h2>
-          <p className="flex flex-row gap-1 font-normal text-xs opacity-80">
+          <p className="flex flex-row gap-1 text-xs font-normal opacity-80">
             Drag and drop nodes to the canvas to create a workflow
           </p>
         </div>
         <Command className="pl-6 pr-3">
           <CommandInput placeholder="Search..." className="pr-3" />
-          <ScrollArea className="w-full h-full">
+          <ScrollArea className="size-full">
             <CommandList className="pr-3">
               <CommandItems nodesByType={nodesByType} />
             </CommandList>

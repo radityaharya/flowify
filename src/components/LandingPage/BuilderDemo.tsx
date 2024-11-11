@@ -1,18 +1,18 @@
 "use client";
-import { nodeTypes } from "@/app/workflow/Flow";
+import "@xyflow/react/dist/style.css";
+
+import type { Edge, Node, ReactFlowState } from "@xyflow/react";
 import {
-  Edge,
-  Node,
+  getNodesBounds,
   ReactFlow,
   ReactFlowProvider,
-  ReactFlowState,
-  getNodesBounds,
   useReactFlow,
   useStore,
   useStoreApi,
 } from "@xyflow/react";
-import "@xyflow/react/dist/style.css";
 import { useCallback, useEffect, useState } from "react";
+
+import { nodeTypes } from "@/app/workflow/Flow";
 
 const proOptions = {
   hideAttribution: true,
@@ -401,7 +401,7 @@ function Flow({ initialColor = "#777", className }: FlowProps) {
   }, [viewportWidth]);
 
   return (
-    <div className="absolute top-0 right-0 left-0 z-[3] w-full h-full bg-gradient bg-no-repeat bg-[center_120px] lg:bg-[65%_center] lg:bg-[length:35%]">
+    <div className="bg-gradient absolute inset-x-0 top-0 z-[3] size-full bg-[center_120px] bg-no-repeat lg:bg-[length:35%] lg:bg-[65%_center]">
       <ReactFlow
         preventScrolling={false}
         zoomOnScroll={false}

@@ -1,5 +1,6 @@
-import { fetcher } from "@/app/utils/fetcher";
 import useSWR from "swr";
+
+import { fetcher } from "@/app/utils/fetcher";
 
 export function useWorkflowData(flowId: string) {
   const { data, error, mutate, isLoading } = useSWR(

@@ -3,7 +3,17 @@ WORKDIR /app
 ENV NODE_ENV="production"
 
 FROM base as deps
-RUN bun add postgres radash bullmq drizzle-orm ioredis spotify-web-api-node @t3-oss/env-nextjs lodash cron-parser @spotify/web-api-ts-sdk
+RUN bun add \
+    postgres@^3.4.4 \
+    radash@^12.1.0 \
+    bullmq@^5.12.0 \
+    drizzle-orm@latest \
+    ioredis@^5.4.1 \
+    spotify-web-api-node@^5.0.2 \
+    @t3-oss/env-nextjs@^0.11.1 \
+    lodash@^4.17.21 \
+    cron-parser \
+    @spotify/web-api-ts-sdk@^1.2.0
 
 FROM base as build
 COPY --from=deps /app/node_modules ./node_modules

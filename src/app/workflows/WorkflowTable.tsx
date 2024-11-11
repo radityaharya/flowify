@@ -1,4 +1,22 @@
 "use client";
+import "@tanstack/react-table";
+
+import {
+  type ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  getSortedRowModel,
+  type SortingState,
+  useReactTable,
+} from "@tanstack/react-table";
+import { formatDistanceToNow } from "date-fns";
+import { ArrowUpDown, ChevronsUpDown, RefreshCcw } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import useSWR from "swr";
+
 import {
   Collapsible,
   CollapsibleContent,
@@ -18,22 +36,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-  type ColumnDef,
-  type SortingState,
-  flexRender,
-  getCoreRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-import "@tanstack/react-table";
-import { formatDistanceToNow } from "date-fns";
-import { ArrowUpDown, ChevronsUpDown, RefreshCcw } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import useSWR from "swr";
 import { Button, buttonVariants } from "~/components/ui/button";
 import {
   Card,
@@ -133,7 +135,7 @@ function PlaylistCard({ source }: PlaylistCardProps) {
   return (
     <Card className="flex items-center gap-2 p-2" key={source.id}>
       <Image
-        className="h-8 w-8 rounded-sm"
+        className="size-8 rounded-sm"
         src={source.params.image}
         alt=""
         width={32}
@@ -141,7 +143,7 @@ function PlaylistCard({ source }: PlaylistCardProps) {
         unoptimized
       />
       <div className="flex w-full flex-col items-start">
-        <div className="max-w-[160px] overflow-hidden overflow-ellipsis whitespace-nowrap font-medium text-sm">
+        <div className="max-w-[160px] truncate text-sm font-medium">
           {source.params.name}
         </div>
         <div className="text-xs opacity-80">
@@ -155,7 +157,7 @@ function PlaylistCard({ source }: PlaylistCardProps) {
 function PlaylistCardSkeleton() {
   return (
     <Card className="flex items-center gap-2 p-2">
-      <Skeleton className="h-8 w-8 rounded-sm" />
+      <Skeleton className="size-8 rounded-sm" />
       <div className="flex w-full flex-col items-start gap-1">
         <Skeleton className="h-4 w-24 rounded-full" />
         <Skeleton className="h-3 w-16 rounded-full" />
@@ -168,7 +170,7 @@ function PlaylistCardTrigger({ source, setIsOpen }) {
   return (
     <Card className="flex items-center gap-2 p-2" key={source.id}>
       <Image
-        className="h-8 w-8 rounded-sm"
+        className="size-8 rounded-sm"
         src={source.params.image}
         alt=""
         width={32}
@@ -176,7 +178,7 @@ function PlaylistCardTrigger({ source, setIsOpen }) {
         unoptimized
       />
       <div className="flex w-full flex-col items-start">
-        <div className="max-w-full overflow-hidden overflow-ellipsis whitespace-nowrap font-medium text-sm">
+        <div className="max-w-full truncate text-sm font-medium">
           {source.params.name}
         </div>
         <div className="text-xs opacity-80">
@@ -188,7 +190,7 @@ function PlaylistCardTrigger({ source, setIsOpen }) {
         onClick={() => setIsOpen((prev) => !prev)}
         size={"sm"}
       >
-        <ChevronsUpDown className="h-4 w-4" />
+        <ChevronsUpDown className="size-4" />
       </Button>
     </Card>
   );
@@ -217,7 +219,7 @@ function ColapsiblePlaylists({ sources }: { sources: any[] }) {
             setIsOpen={setIsOpen}
           />
         </CollapsibleTrigger>
-        <CollapsibleContent className="space-y-2 CollapsibleContent">
+        <CollapsibleContent className="CollapsibleContent space-y-2">
           {sources.map((source, _index) => (
             <PlaylistCard source={source} key={source.id} />
           ))}
@@ -236,7 +238,7 @@ const columns: ColumnDef<WorkflowsTableColumn>[] = [
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           Name
-          <ArrowUpDown className="ml-2 h-4 w-4" />
+          <ArrowUpDown className="ml-2 size-4" />
         </Button>
       );
     },
@@ -406,7 +408,7 @@ export const fetcher = async (url: string) => {
     const json = await res.json();
     error.info = json.error;
     console.info(error);
-    throw error;
+    throw new Error(error.info);
   }
 
   const data = await res.json();
@@ -470,7 +472,7 @@ export function WorkflowTable({ workflows }: WorkflowTableProps) {
               onKeyPress={refreshData}
               size="sm"
             >
-              <RefreshCcw className="h-3 w-3" />
+              <RefreshCcw className="size-3" />
             </Button>
           </CardTitle>
           <CardDescription>Manage your workflows here.</CardDescription>

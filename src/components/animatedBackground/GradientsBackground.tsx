@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useRef, useEffect, useLayoutEffect } from "react";
+import React, { useEffect, useLayoutEffect, useRef } from "react";
+
 import { Gradient } from "./gradients";
 
 const gradient = new Gradient();

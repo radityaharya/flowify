@@ -1,3 +1,6 @@
+import Link from "next/link";
+import useSWR from "swr";
+
 import { fetcher } from "@/app/utils/fetcher";
 import { buttonVariants } from "@/components/ui/button";
 import {
@@ -7,8 +10,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import Link from "next/link";
-import useSWR from "swr";
 
 export function SystemInfo() {
   const { data, isLoading: workerLoading } = useSWR<Workflow.SystemInfo>(
@@ -42,13 +43,13 @@ export function SystemInfo() {
                 href="https://status.radityaharya.com/status/flowify"
                 className={cn(
                   buttonVariants({ variant: "outline" }),
-                  "text-white font-normal text-sm h-8",
+                  "h-8 text-sm font-normal text-white",
                 )}
                 target="_blank"
               >
                 <span
                   className={cn(
-                    "h-2 w-2 rounded-full inline-block  animate-pulse",
+                    "inline-block size-2 animate-pulse rounded-full",
                     status === "ok"
                       ? "bg-green-500"
                       : status === "degraded"

@@ -1,12 +1,12 @@
 "use client";
-import Link, { LinkProps } from "next/link";
+import { Github } from "lucide-react";
+import type { LinkProps } from "next/link";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
-
-import { cn } from "@/lib/utils";
+import type { Session } from "next-auth";
 
 import useStore from "@/app/states/store";
-import { Github } from "lucide-react";
-import { Session } from "next-auth";
+import { cn } from "@/lib/utils";
 
 interface NavLinkProps extends LinkProps {
   href: string;
@@ -52,7 +52,7 @@ export function MainNav() {
   return (
     <div className="mr-4 flex">
       <Link href="/" className="mr-6 flex items-center space-x-2">
-        <div className="flex items-center py-1 font-medium text-lg">
+        <div className="flex items-center py-1 text-lg font-medium">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
@@ -61,14 +61,14 @@ export function MainNav() {
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="mr-2 h-6 w-6"
+            className="mr-2 size-6"
           >
             <path d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3" />
           </svg>
           Flowify
         </div>
       </Link>
-      <nav className="hidden sm:flex items-center gap-2 text-sm">
+      <nav className="hidden items-center gap-2 text-sm sm:flex">
         <NavLink
           href="/workflow"
           onClick={() => resetReactFlow()}
@@ -85,7 +85,7 @@ export function MainNav() {
         <NavLink
           href="https://github.com/radityaharya/flowify"
           className={cn(
-            "hidden text-foreground/60 transition-colors lg:block hover:text-foreground/80",
+            "hidden text-foreground/60 transition-colors hover:text-foreground/80 lg:block",
           )}
         >
           GitHub
@@ -106,14 +106,16 @@ export default function Footer() {
     <footer className="w-full">
       <div
         className={cn(
-          "z-[20] flex w-full flex-col border-t bg-accent/10 items-start justify-between px-4 md:px-10 py-6 backdrop-blur-md",
-          /\/workflow(?!s)/.test(pathname) ? "hidden" : "",
-          /\/auth/.test(pathname) ? "hidden" : "",
+          "z-20 flex w-full flex-col items-start justify-between border-t bg-accent/10 px-4 py-6 backdrop-blur-md md:px-10",
+          pathname.includes("/workflow") && !pathname.includes("/workflows")
+            ? "hidden"
+            : "",
+          pathname.includes("/auth") ? "hidden" : "",
         )}
       >
-        <div className="flex flex-col gap-6 w-full mb-4">
+        <div className="mb-4 flex w-full flex-col gap-6">
           <Link href="/">
-            <div className="flex items-center py-1 font-medium text-lg">
+            <div className="flex items-center py-1 text-lg font-medium">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
@@ -122,7 +124,7 @@ export default function Footer() {
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className="mr-2 h-6 w-6"
+                className="mr-2 size-6"
               >
                 <path d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3" />
               </svg>
@@ -130,8 +132,8 @@ export default function Footer() {
             </div>
           </Link>
         </div>
-        <div className="border-t md:flex justify-between items-center text-sm w-full">
-          <div className="flex flex-col md:flex-row my-6 gap-4 underline underline-offset-4 text-muted-foreground">
+        <div className="w-full items-center justify-between border-t text-sm md:flex">
+          <div className="my-6 flex flex-col gap-4 text-muted-foreground underline underline-offset-4 md:flex-row">
             <Link href="/privacy-policy">Privacy Policy</Link>
             <Link href="/terms-of-service">Terms of Service</Link>
           </div>
@@ -139,7 +141,7 @@ export default function Footer() {
             <Link
               href="https://github.com/radityaharya/flowify"
               target="_blank"
-              className="flex flex-row gap-2 items"
+              className="items flex flex-row gap-2"
             >
               <Github className="size-4" />
               radityaharya/flowify

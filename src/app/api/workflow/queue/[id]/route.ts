@@ -1,18 +1,23 @@
-import { auth } from "@/server/auth";
-import { db } from "@/server/db";
 import { eq } from "drizzle-orm";
 import { type NextRequest, NextResponse } from "next/server";
+
+import { auth } from "@/server/auth";
+import { db } from "@/server/db";
 import { workflowRuns } from "~/server/db/schema";
+
+type Params = Promise<{ id: string }>;
+
 export async function GET(
   request: NextRequest,
   {
     params,
   }: {
-    params: { id: string };
+    params: Params;
   },
 ) {
   const session = await auth();
-  const id = params.id;
+  const { id } = await params;
+
   if (!id) {
     return NextResponse.json(
       {

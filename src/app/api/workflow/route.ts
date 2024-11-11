@@ -1,5 +1,3 @@
-import { Logger } from "@/lib/log";
-import { auth } from "@/server/auth";
 import {
   storeWorkflowJob,
   updateWorkflowJob,
@@ -7,6 +5,9 @@ import {
 } from "@lib/workflow/utils/workflowQueue";
 import { type NextRequest, NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
+
+import { Logger } from "@/lib/log";
+import { auth } from "@/server/auth";
 import { WorkflowObjectSchema } from "~/schemas";
 
 const log = new Logger("/api/workflow");

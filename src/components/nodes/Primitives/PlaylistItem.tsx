@@ -4,7 +4,7 @@ export function PlaylistItem(props: any) {
   return (
     <div className="flex items-center gap-2">
       <Image
-        className="h-8 w-8 rounded-sm"
+        className="size-8 rounded-sm"
         src={props.playlist.image ?? "/images/spotify.png"}
         alt=""
         width={32}

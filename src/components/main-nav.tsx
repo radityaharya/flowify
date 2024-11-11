@@ -1,5 +1,13 @@
 "use client";
 
+import { SquareArrowOutUpRight } from "lucide-react";
+import Link, { type LinkProps } from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { type Session } from "next-auth";
+import { signOut, useSession } from "next-auth/react";
+import { useCallback, useMemo } from "react";
+
+import useStore from "@/app/states/store";
 import { SystemInfo } from "@/components/SystemInfo";
 import {
   DropdownMenu,
@@ -10,24 +18,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import Link, { LinkProps } from "next/link";
-import { usePathname, useRouter } from "next/navigation";
 import { Button, buttonVariants } from "~/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 
-import useStore from "@/app/states/store";
-import { SquareArrowOutUpRight } from "lucide-react";
-import { Session } from "next-auth";
-import { signOut } from "next-auth/react";
-import { useMemo } from "react";
-import useSWR from "swr";
-import { fetcher } from "~/app/utils/fetcher";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 
 interface NavLinkProps extends LinkProps {
   href: string;
   activePath?: string | RegExp;
   children: React.ReactNode;
-
   className?: string;
 }
 
@@ -39,10 +37,13 @@ const NavLink: React.FC<NavLinkProps> = ({
   ...props
 }) => {
   const path = usePathname();
-  const isActive =
-    activePath instanceof RegExp
-      ? activePath.test(path)
-      : path.startsWith(activePath || "");
+  const isActive = useMemo(
+    () =>
+      activePath instanceof RegExp
+        ? activePath.test(path)
+        : path.startsWith(activePath || ""),
+    [path, activePath],
+  );
 
   return (
     <Link
@@ -60,14 +61,16 @@ const NavLink: React.FC<NavLinkProps> = ({
 };
 
 export function MainNav() {
-  const { resetReactFlow } = useStore((state) => ({
-    resetReactFlow: state.resetReactFlow,
-  }));
+  const resetReactFlow = useStore((state) => state.resetReactFlow);
+
+  const handleResetReactFlow = useCallback(() => {
+    resetReactFlow();
+  }, [resetReactFlow]);
 
   return (
     <div className="mr-4 flex">
       <Link href="/" className="mr-6 flex items-center space-x-2">
-        <div className="flex items-center py-1 font-medium text-lg">
+        <div className="flex items-center py-1 text-lg font-medium">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
@@ -76,17 +79,17 @@ export function MainNav() {
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="mr-2 h-6 w-6"
+            className="mr-2 size-6"
           >
             <path d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3" />
           </svg>
           Flowify
         </div>
       </Link>
-      <nav className="hidden sm:flex items-center gap-2 text-sm">
+      <nav className="hidden items-center gap-2 text-sm sm:flex">
         <NavLink
           href="/workflow"
-          onClick={() => resetReactFlow()}
+          onClick={handleResetReactFlow}
           activePath={/\/workflow(?!s)/}
         >
           Builder
@@ -100,7 +103,7 @@ export function MainNav() {
         <NavLink
           href="https://github.com/radityaharya/flowify"
           className={cn(
-            "hidden text-foreground/60 transition-colors lg:block hover:text-foreground/80",
+            "hidden text-foreground/60 transition-colors hover:text-foreground/80 lg:block",
           )}
         >
           GitHub
@@ -109,23 +112,21 @@ export function MainNav() {
     </div>
   );
 }
+
 interface SiteNavProps {
   className?: string;
   session: Session | null;
 }
 
-export function SiteNav({ className, session }: SiteNavProps) {
-  // const { data: session } = useSession();
-  const { data: sessionData } = useSWR("/api/auth/session", fetcher, {
-    fallbackData: session || undefined,
-  });
+export function SiteNav({ className }: SiteNavProps) {
+  const { data: sessionData } = useSession();
   const pathname = usePathname();
   const router = useRouter();
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     signOut();
-    router.push("/");
-  };
+    router.push("/auth/login");
+  }, [router]);
 
   const navClass = useMemo(() => {
     let classes =
@@ -143,7 +144,7 @@ export function SiteNav({ className, session }: SiteNavProps) {
   return (
     <div className={cn(navClass, className)}>
       <MainNav />
-      <div className="flex flex-row gap-6 items-center">
+      <div className="flex flex-row items-center gap-6">
         <div className="hidden sm:block">
           <SystemInfo />
         </div>
@@ -153,26 +154,28 @@ export function SiteNav({ className, session }: SiteNavProps) {
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="outline"
-                  className="overflow-hidden rounded-full h-8 w-8"
+                  className="size-8 overflow-hidden rounded-full"
                 >
-                  <Avatar className="h-8 w-8">
+                  <Avatar className="size-8">
                     <AvatarImage
                       src={sessionData?.user?.image ?? ""}
                       alt={sessionData?.user?.name ?? ""}
                     />
-                    <AvatarFallback className="font-medium text-sm">
-                      {/* biome-ignore lint/correctness/useJsxKeyInIterable: <explanation> */}
-                      {sessionData?.user?.name?.split(" ").map((n) => n[0])}
+                    <AvatarFallback className="text-sm font-medium">
+                      {sessionData?.user?.name
+                        ?.split(" ")
+                        .map((n) => n[0])
+                        .join("")}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel className="flex flex-col">
-                  <p className="font-medium text-foreground text-sm">
+                  <p className="text-sm font-medium text-foreground">
                     {`${sessionData.user.name}`}
                   </p>
-                  <p className="text-muted-foreground text-xs">
+                  <p className="text-xs text-muted-foreground">
                     {`${sessionData.user.email}`}
                   </p>
                 </DropdownMenuLabel>
@@ -181,7 +184,7 @@ export function SiteNav({ className, session }: SiteNavProps) {
                   <Link
                     href="https://www.spotify.com/account/overview/"
                     target="_blank"
-                    className="flex flex-row gap-2 items-center"
+                    className="flex flex-row items-center gap-2"
                   >
                     <span>Spotify Account</span>
                     <SquareArrowOutUpRight className="size-3" />
@@ -195,13 +198,13 @@ export function SiteNav({ className, session }: SiteNavProps) {
             </DropdownMenu>
           </div>
         ) : (
-          <div className="h-8 flex items-center">
+          <div className="flex h-8 items-center">
             <Link
               href="/auth/login"
               className={cn(
                 "border",
                 buttonVariants({ variant: "ghost" }),
-                pathname.startsWith("/auth/login") ?? "hidden",
+                pathname.startsWith("/auth/login") ? "hidden" : "",
               )}
             >
               Login

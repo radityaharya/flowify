@@ -1,4 +1,5 @@
 import { type NextFetchEvent, NextRequest } from "next/server";
+
 import { Logger } from "~/lib/log";
 
 const logger = new Logger("middleware:prettyPath");
@@ -14,7 +15,7 @@ const handlePath = (
   logger.debug("pathname:", pathname);
   const uuidPattern =
     /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/;
-  const uuidMatch = pathname.match(uuidPattern);
+  const uuidMatch = uuidPattern.exec(pathname);
   logger.debug("uuidMatch:", uuidMatch);
   let newPathname = pathname;
 
@@ -47,8 +48,8 @@ const handlePath = (
 const isWorkflowNamespace = (pathname: string) => {
   const uuidPattern =
     /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/;
-  const uuidMatch = pathname.match(uuidPattern);
-  return uuidMatch;
+  const uuidMatch = uuidPattern.exec(pathname);
+  return uuidMatch !== null;
 };
 
 const handleWorkflowPath = (request: NextRequest) =>

@@ -1,27 +1,24 @@
 "use client";
 
 import { type Edge, type Node } from "@xyflow/react";
-
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { memo, useCallback, useEffect, useRef } from "react";
-import Flow from "./Flow";
+import type { ImperativePanelHandle } from "react-resizable-panels";
+import { toast } from "sonner";
+import { useShallow } from "zustand/react/shallow";
 
 import useStore from "@/app/states/store";
-import { useShallow } from "zustand/react/shallow";
-import Sidebar from "./Sidebar";
-
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
-import { ImperativePanelHandle } from "react-resizable-panels";
-
-import { toast } from "sonner";
-
-import { useRouter } from "next/navigation";
 import { LoadingWithText } from "~/components/LoadingSpinner";
 import { useWorkflowData } from "~/hooks/useWorkflowData";
+
+import Flow from "./Flow";
+import Sidebar from "./Sidebar";
 
 function Builder({
   params,
@@ -205,5 +202,7 @@ const Loading = memo(() => (
     <LoadingWithText size={24} />
   </div>
 ));
+
+Loading.displayName = "Loading";
 
 export default Builder;

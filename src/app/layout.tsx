@@ -1,7 +1,8 @@
 import "~/styles/globals.css";
 
-import { Toaster } from "@/components/ui/sonner";
 import { Inter } from "next/font/google";
+
+import { Toaster } from "@/components/ui/sonner";
 import Footer from "~/components/main-footer";
 import { SiteNav } from "~/components/main-nav";
 import NextAuthProvider from "~/providers/NextAuthProvider";

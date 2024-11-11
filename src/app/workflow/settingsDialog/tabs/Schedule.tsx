@@ -1,5 +1,8 @@
 "use client";
 
+import cronstrue from "cronstrue";
+import { useEffect, useMemo, useState } from "react";
+
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Form, FormField, FormItem, FormLabel } from "@/components/ui/form";
@@ -11,10 +14,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { TimePicker12 } from "@/components/ui/time-picker/time-picker-12h";
-import cronstrue from "cronstrue";
-import { useEffect, useMemo, useState } from "react";
-import { UseFormReturn } from "react-hook-form";
-import type { SubmitHandler } from "react-hook-form";
 
 interface FormValues {
   interval: string;
@@ -26,16 +25,21 @@ interface FormValues {
 const UNSET_SCHEDULE = "unset";
 
 interface WorkflowSchedulerProps {
-  form: UseFormReturn<FormValues>;
-  onSubmit: SubmitHandler<FormValues>;
+  form: any;
+  onSubmit: any;
 }
 
-const WorkflowScheduler: React.FC<WorkflowSchedulerProps> = ({ form, onSubmit }) => {
+const WorkflowScheduler: React.FC<WorkflowSchedulerProps> = ({
+  form,
+  onSubmit,
+}) => {
   const [cronExpression, setCronExpression] = useState("");
   const [isScheduleLoading, setIsScheduleLoading] = useState(true);
 
+  const formValues = form.getValues();
+  const { interval, scheduleTime, dayOfWeek, dayOfMonth } = formValues;
+
   const getCronExpression = useMemo(() => {
-    const { interval, scheduleTime, dayOfWeek, dayOfMonth } = form.getValues();
     const minutes = scheduleTime?.getMinutes() ?? 0;
     const hours = scheduleTime?.getHours() ?? 0;
 
@@ -53,7 +57,7 @@ const WorkflowScheduler: React.FC<WorkflowSchedulerProps> = ({ form, onSubmit })
       default:
         return "";
     }
-  }, [form, form.watch("interval"), form.watch("scheduleTime"), form.watch("dayOfWeek"), form.watch("dayOfMonth")]);
+  }, [interval, scheduleTime, dayOfWeek, dayOfMonth]);
 
   useEffect(() => {
     if (getCronExpression === UNSET_SCHEDULE) {
@@ -75,8 +79,8 @@ const WorkflowScheduler: React.FC<WorkflowSchedulerProps> = ({ form, onSubmit })
     };
   }, [form, getCronExpression]);
 
-  const interval = form.watch("interval");
-  const memoizedInterval = useMemo(() => interval, [interval]);
+  const intervalValue = form.watch("interval");
+  const memoizedInterval = useMemo(() => intervalValue, [intervalValue]);
 
   useEffect(() => {
     setIsScheduleLoading(false);
@@ -92,7 +96,7 @@ const WorkflowScheduler: React.FC<WorkflowSchedulerProps> = ({ form, onSubmit })
           className="flex flex-col gap-4"
           onSubmit={form.handleSubmit(onSubmit)}
         >
-          <h2 className="mb-2 font-semibold text-xl leading-none tracking-tight">
+          <h2 className="mb-2 text-xl font-semibold leading-none tracking-tight">
             Work Schedule
           </h2>
           <FormField
@@ -186,7 +190,7 @@ const WorkflowScheduler: React.FC<WorkflowSchedulerProps> = ({ form, onSubmit })
               )}
             </AlertDescription>
           </Alert>
-          <Button size="sm" className="w-[fit-content]" type="submit">
+          <Button size="sm" className="w-fit" type="submit">
             Save schedule
           </Button>
         </form>

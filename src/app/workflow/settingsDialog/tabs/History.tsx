@@ -1,14 +1,16 @@
+import "@tanstack/react-table";
+
 import {
   type ColumnDef,
-  type SortingState,
   flexRender,
   getCoreRowModel,
   getSortedRowModel,
+  type SortingState,
   useReactTable,
 } from "@tanstack/react-table";
+import { ArrowUpDown } from "lucide-react";
 import React, { useState } from "react";
 import useSWR from "swr";
-import useStore from "~/app/states/store";
 
 import { fetcher } from "@/app/utils/fetcher";
 import {
@@ -19,8 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import "@tanstack/react-table";
-import { ArrowUpDown } from "lucide-react";
+import useStore from "~/app/states/store";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Skeleton } from "~/components/ui/skeleton";
@@ -57,7 +58,7 @@ const columns: ColumnDef<HistoryResponseItem>[] = [
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           Started At
-          <ArrowUpDown className="ml-2 h-4 w-4" />
+          <ArrowUpDown className="ml-2 size-4" />
         </Button>
       );
     },
@@ -71,7 +72,7 @@ const columns: ColumnDef<HistoryResponseItem>[] = [
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           Completed At
-          <ArrowUpDown className="ml-2 h-4 w-4" />
+          <ArrowUpDown className="ml-2 size-4" />
         </Button>
       );
     },
@@ -227,7 +228,7 @@ const History = () => {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h2 className="mb-2 font-semibold text-xl leading-none tracking-tight">
+        <h2 className="mb-2 text-xl font-semibold leading-none tracking-tight">
           History
         </h2>
         <Button onClick={refreshData}>Refresh</Button>

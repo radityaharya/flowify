@@ -1,9 +1,10 @@
+import { Copy, Info } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Form, FormField, FormItem } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import useClipboard from "@/hooks/useClipboard";
-import { Copy, Info } from "lucide-react";
 import useStore from "~/app/states/store";
 
 const General = ({ form, onSubmit }) => {
@@ -17,7 +18,7 @@ const General = ({ form, onSubmit }) => {
   return (
     <Form {...form}>
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
-        <h2 className="mb-2 font-semibold text-xl leading-none tracking-tight">
+        <h2 className="mb-2 text-xl font-semibold leading-none tracking-tight">
           Workflow Info
         </h2>
         <FormField
@@ -80,7 +81,7 @@ const General = ({ form, onSubmit }) => {
             Use this ID to reference your workflow in the API
           </p>
         </div>
-        <Button size="sm" className="w-[fit-content]" type="submit">
+        <Button size="sm" className="w-fit" type="submit">
           {flowState.id ? "Update workflow" : "Create workflow"}
         </Button>
       </form>

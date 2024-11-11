@@ -1,5 +1,7 @@
 "use client";
 
+import * as React from "react";
+
 import {
   Select,
   SelectContent,
@@ -7,8 +9,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import * as React from "react";
-import { Period, display12HourValue, setDateByType } from "./time-picker-utils";
+
+import {
+  display12HourValue,
+  type Period,
+  setDateByType,
+} from "./time-picker-utils";
 
 export interface PeriodSelectorProps {
   period: Period;

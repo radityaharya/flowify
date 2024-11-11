@@ -1,7 +1,8 @@
-import { Logger } from "@/lib/log";
-import { auth } from "@/server/auth";
 import { WorkflowObjectSchema } from "@schema";
 import { type NextRequest, NextResponse } from "next/server";
+
+import { Logger } from "@/lib/log";
+import { auth } from "@/server/auth";
 import { getAccessTokenFromUserId } from "~/server/db/helper";
 
 const log = new Logger("/api/workflow/validate");

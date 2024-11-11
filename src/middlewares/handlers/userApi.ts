@@ -1,15 +1,16 @@
-import { getToken } from "next-auth/jwt";
 import { type NextFetchEvent, NextRequest, NextResponse } from "next/server";
+import { getToken } from "next-auth/jwt";
+
 import { Logger } from "~/lib/log";
 
 const logger = new Logger("middleware:userApi");
 
 const matchPaths = ["/api/user", "/api/workflow", "/workflow"];
 
-const secret = process.env.NEXTAUTH_SECRET;
+const secret = process.env.AUTH_SECRET;
 
 async function fetchSession(req: NextRequest) {
-  const response = await fetch(process.env.NEXTAUTH_URL + "/api/auth/session", {
+  const response = await fetch(process.env.AUTH_URL + "/api/auth/session", {
     headers: {
       "Content-Type": "application/json",
       Cookie: req.headers.get("cookie") ?? "",
@@ -22,6 +23,9 @@ async function fetchSession(req: NextRequest) {
   }
 
   const session = await response.json();
+  if (!session) {
+    return null;
+  }
   return session.user;
 }
 
@@ -82,7 +86,7 @@ const handleUserPath = (request: NextRequest, user: any) => {
     const userId = user.providerAccountId as string;
     const url = new URL(
       pathname.replace("@me", encodeURIComponent(userId)) + search,
-      process.env.NEXTAUTH_URL,
+      process.env.AUTH_URL,
     );
     logger.debug(`REWRITE: ${url.href}`);
     const sessionToken = request.headers

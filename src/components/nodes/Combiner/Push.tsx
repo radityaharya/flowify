@@ -1,15 +1,14 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { Position } from "@xyflow/react";
-import NodeHandle from "../Primitives/NodeHandle";
-
 import React from "react";
+
 import { Separator } from "~/components/ui/separator";
 import useBasicNodeState from "~/hooks/useBasicNodeState";
+
 import { CardWithHeader } from "../Primitives/Card";
 import Debug from "../Primitives/Debug";
+import NodeHandle from "../Primitives/NodeHandle";
 import { SourceList } from "../Primitives/SourceList";
 
 type PlaylistProps = {

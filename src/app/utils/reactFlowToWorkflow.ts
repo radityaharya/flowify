@@ -1,6 +1,6 @@
 import { type Edge, type Node } from "@xyflow/react";
 import { toast } from "sonner";
-/* eslint-disable @typescript-eslint/no-floating-promises */
+
 import useStore from "../states/store";
 import { validateWorkflow } from "./validateWorkflow";
 

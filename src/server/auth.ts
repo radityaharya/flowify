@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 import { type TokenSet } from "@auth/core/types";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { Logger } from "@lib/log";
@@ -6,6 +5,7 @@ import { and, eq } from "drizzle-orm";
 import NextAuth, { type DefaultSession } from "next-auth";
 import { type DefaultJWT } from "next-auth/jwt";
 import SpotifyProvider from "next-auth/providers/spotify";
+
 import { env } from "~/env";
 import { db } from "~/server/db";
 import { accounts, users } from "~/server/db/schema";
@@ -70,7 +70,7 @@ async function fetchNewTokens(refreshToken: string): Promise<TokenSet> {
 
   const tokens: TokenSet = await response.json();
 
-  if (!response.ok) throw tokens;
+  if (!response.ok) throw new Error("Error fetching new tokens");
 
   return tokens;
 }
@@ -186,7 +186,9 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     SpotifyProvider({
       clientId: env.SPOTIFY_CLIENT_ID,
       clientSecret: env.SPOTIFY_CLIENT_SECRET,
-      authorization: { params: { scope: spotifyScopes.join(" ") } },
+      authorization: `https://accounts.spotify.com/authorize?scope=${encodeURIComponent(
+        spotifyScopes.join(" "),
+      )}`,
     }),
   ],
   session: {
@@ -197,5 +199,5 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
   pages: {
     signIn: "/auth/login",
   },
-  secret: env.NEXTAUTH_SECRET,
+  secret: env.AUTH_SECRET,
 });

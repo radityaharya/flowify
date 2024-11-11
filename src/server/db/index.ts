@@ -1,14 +1,13 @@
 import { drizzle } from "drizzle-orm/postgres-js";
+import { type PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 
 import { env } from "~/env.js";
-import * as schema from "./schema";
 
-import { type PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import * as schema from "./schema";
 
 // Fix for "sorry, too many clients already"
 declare global {
-  // eslint-disable-next-line no-var -- only var works here
   var db: PostgresJsDatabase<typeof schema> | undefined;
 }
 

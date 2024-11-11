@@ -1,7 +1,8 @@
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import { CheckIcon, DotIcon, InfoIcon } from "lucide-react";
 import * as React from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { workflowRunStore } from "~/app/states/store";
 import { LoadingSpinner } from "~/components/LoadingSpinner";
 import { Separator } from "~/components/ui/separator";
@@ -19,22 +20,16 @@ interface CardWithHeaderProps {
 
 const StatusBadge = React.memo(
   ({ operationStatus }: { operationStatus: string | undefined }) => {
-    const [isVisible, setIsVisible] = React.useState(false);
-
-    React.useEffect(() => {
-      setIsVisible(true);
-    }, []);
-
     const statusMapping = {
       completed: (
-        <div className="flex flex-row gap-1 items-center">
-          <CheckIcon className="w-4 h-4" />
+        <div className="flex flex-row items-center gap-1">
+          <CheckIcon className="size-4" />
           {"Completed"}
         </div>
       ),
       default: (
-        <div className="flex flex-row gap-1 items-center">
-          <LoadingSpinner className="w-4 h-4" />
+        <div className="flex flex-row items-center gap-1">
+          <LoadingSpinner className="size-4" />
           {"Pending"}
         </div>
       ),
@@ -44,13 +39,10 @@ const StatusBadge = React.memo(
       <Badge
         variant={operationStatus === "completed" ? "outline" : "secondary"}
         className={cn(
-          "text-sm space-x-2 bg-amber-500/40 border-2 border-amber-500 transition-all duration-500 ease-in-out transform",
-          {
-            "bg-green-500/40 border-2 border-green-500":
-              operationStatus === "completed",
-            "-translate-y-4": !isVisible,
-            "translate-y-0": isVisible,
-          },
+          "space-x-2 transition-colors duration-300",
+          operationStatus === "completed"
+            ? "border-2 border-green-500 bg-green-500/40"
+            : "border-2 border-amber-500 bg-amber-500/40",
         )}
       >
         {statusMapping[operationStatus as keyof typeof statusMapping] ||
@@ -60,6 +52,7 @@ const StatusBadge = React.memo(
   },
 );
 
+StatusBadge.displayName = "StatusBadge";
 export function CardWithHeader({
   children,
   id,
@@ -82,9 +75,9 @@ export function CardWithHeader({
   const isRunning = workflowRun?.id;
 
   return (
-    <div className="bg-transparent flex flex-col">
+    <div className="flex flex-col bg-transparent">
       <div className="flex flex-row">
-        <div className="flex flex-col gap-2 h-10 py-1">
+        <div className="flex h-10 flex-col gap-2 py-1">
           {isRunning && (
             <StatusBadge
               key={operationStatus}
@@ -99,7 +92,7 @@ export function CardWithHeader({
           className,
         )}
       >
-        <div className="flex w-full flex-row gap-2 rounded-lg bg-accent p-2 justify-between">
+        <div className="flex w-full flex-row justify-between gap-2 rounded-lg bg-accent p-2">
           <div className="flex flex-row">
             <DotIcon
               size={24}
@@ -109,7 +102,7 @@ export function CardWithHeader({
                 "text-gray-500": status === "loading",
               })}
             />
-            <span className="font-medium text-sm">{title}</span>
+            <span className="text-sm font-medium">{title}</span>
           </div>
           <Badge>{type}</Badge>
         </div>
@@ -117,7 +110,7 @@ export function CardWithHeader({
           <div className="flex flex-col gap-6 p-6 py-3">
             <div className="flex flex-row gap-2">
               <InfoIcon size={16} className="mt-[4px] min-w-4" />
-              <p className="font-medium text-sm opacity-80">{info}</p>
+              <p className="text-sm font-medium opacity-80">{info}</p>
             </div>
             <Separator />
           </div>

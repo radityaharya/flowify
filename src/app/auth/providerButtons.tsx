@@ -1,8 +1,9 @@
 "use client";
 
-import { getProviders, signIn, useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
+import { getProviders, signIn, useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
+
 import { LoadingSpinner } from "~/components/LoadingSpinner";
 import { Button } from "~/components/ui/button";
 
@@ -25,28 +26,30 @@ const popupCenter = ({
   w: number;
   h: number;
 }) => {
-  const {
-    screen,
-    innerWidth,
-    innerHeight,
-    screenLeft,
-    screenTop,
-    screenX,
-    screenY,
-    open,
-  } = window;
-  const dualScreenLeft = screenLeft ?? screenX;
-  const dualScreenTop = screenTop ?? screenY;
+  // Get window properties safely
+  const win = typeof window !== "undefined" ? window : null;
+  if (!win) return null;
 
-  const width =
-    innerWidth || document.documentElement.clientWidth || screen.width;
-  const height =
-    innerHeight || document.documentElement.clientHeight || screen.height;
+  // Get screen dimensions
+  const screenWidth = win.screen.width;
+  const screenHeight = win.screen.height;
+  const screenAvailWidth = win.screen.availWidth;
 
-  const systemZoom = width / screen.availWidth;
-  const left = (width - w) / 2 / systemZoom + dualScreenLeft;
-  const top = (height - h) / 2 / systemZoom + dualScreenTop;
-  const newWindow = open(
+  // Get window dimensions
+  const windowWidth =
+    win.innerWidth || document.documentElement.clientWidth || screenWidth;
+  const windowHeight =
+    win.innerHeight || document.documentElement.clientHeight || screenHeight;
+
+  // Get screen position
+  const dualScreenLeft = win.screenLeft ?? win.screenX;
+  const dualScreenTop = win.screenTop ?? win.screenY;
+
+  const systemZoom = windowWidth / screenAvailWidth;
+  const left = (windowWidth - w) / 2 / systemZoom + dualScreenLeft;
+  const top = (windowHeight - h) / 2 / systemZoom + dualScreenTop;
+
+  const newWindow = win.open(
     url,
     title,
     `scrollbars=yes, width=${w / systemZoom}, height=${
@@ -126,7 +129,7 @@ export default function ProviderButtons() {
             )}
             {status === "loading" ? (
               <span>
-                <LoadingSpinner className="h-2 w-2" />
+                <LoadingSpinner className="size-2" />
                 Authenticating...
               </span>
             ) : (

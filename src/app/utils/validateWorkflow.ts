@@ -1,5 +1,5 @@
 import { toast } from "sonner";
-import { ZodError } from "zod";
+import type { ZodError } from "zod";
 type validationResponse =
   | { success: true; data: Workflow.WorkflowObject }
   | { success: false; error: ZodError };

@@ -1,22 +1,21 @@
 import {
+  addEdge,
+  applyEdgeChanges,
+  applyNodeChanges,
   type Connection,
   type Edge,
+  getConnectedEdges,
+  getIncomers,
+  getOutgoers,
   type Node,
   type OnConnect,
   type OnEdgesChange,
   type OnNodesChange,
   type ReactFlowInstance,
-  addEdge,
-  applyEdgeChanges,
-  applyNodeChanges,
-  getConnectedEdges,
-  getIncomers,
-  getOutgoers,
 } from "@xyflow/react";
 import { generate } from "random-words";
-import { create } from "zustand";
-
 import { v4 as uuidv4 } from "uuid";
+import { create } from "zustand";
 
 type RFState = {
   rightBarSize: number;

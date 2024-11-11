@@ -1,3 +1,7 @@
+import { Info } from "lucide-react";
+import { type JSX } from "react";
+import type { Control, UseFormRegister } from "react-hook-form";
+
 import {
   FormControl,
   FormDescription,
@@ -7,14 +11,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-
 import {
   Select,
   SelectContent,
@@ -22,9 +18,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-import { Info } from "lucide-react";
-import type { Control, UseFormRegister } from "react-hook-form";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 type InputPrimitiveProps = {
   control: Control;

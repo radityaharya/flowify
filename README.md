@@ -109,8 +109,8 @@ To get started with Flowify, follow these steps:
    | Variable              | Description                        |
    | --------------------- | -----------------------------------|
    | DATABASE_URL          | Postgres connection string         |
-   | NEXTAUTH_SECRET       | NextAuth secret key                |
-   | NEXTAUTH_URL          | NextAuth application URL           |
+   | AUTH_SECRET       | NextAuth secret key                |
+   | AUTH_URL          | NextAuth application URL           |
    | SPOTIFY_CLIENT_ID     | Spotify API client ID              |
    | SPOTIFY_CLIENT_SECRET | Spotify API client secret          |
    | REDIS_URL             | Redis connection URL               |

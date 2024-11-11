@@ -1,7 +1,8 @@
-import { Logger } from "@/lib/log";
-import { auth } from "@/server/auth";
 import { type NextRequest, NextResponse } from "next/server";
 import { isUUID } from "validator";
+
+import { Logger } from "@/lib/log";
+import { auth } from "@/server/auth";
 import { deleteWorkflowJob } from "~/lib/workflow/utils/workflowQueue";
 
 const log = new Logger("/api/workflow/[id]");
@@ -11,13 +12,14 @@ export async function POST(
   {
     params,
   }: {
-    params: { id: string };
+    params: Promise<{ id: string }>;
   },
 ) {
   try {
     const session = await auth();
+    const { id } = await params;
 
-    if (!(params.id && isUUID(params.id))) {
+    if (!(id && isUUID(id))) {
       log.error("No id provided");
       return NextResponse.json(
         {
@@ -27,7 +29,7 @@ export async function POST(
       );
     }
 
-    if (!(session?.user)) {
+    if (!session?.user) {
       log.error("Not authenticated");
       return NextResponse.json(
         {
@@ -38,13 +40,13 @@ export async function POST(
     }
 
     try {
-      await deleteWorkflowJob(params.id);
+      await deleteWorkflowJob(id);
     } catch (error) {
       log.error("Error deleting workflow", error);
       return NextResponse.json("Unexpected error", { status: 500 });
     }
 
-    log.info(`Returning workflow ${params.id} for user ${session.user.id}`);
+    log.info(`Returning workflow ${id} for user ${session.user.id}`);
     return NextResponse.json({
       status: "success",
     });

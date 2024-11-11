@@ -1,6 +1,7 @@
 "use client";
 import { signIn, useSession } from "next-auth/react";
 import { useEffect } from "react";
+
 import { LoadingSpinner } from "~/components/LoadingSpinner";
 
 const SignInPage = () => {
@@ -36,7 +37,7 @@ const SignInPage = () => {
     <div className="flex h-screen w-screen items-center justify-center bg-[#121212]">
       <div className="flex flex-col items-center">
         <div role="status">
-          <LoadingSpinner className="h-8 w-8" />
+          <LoadingSpinner className="size-8" />
           <span className="sr-only">Loading...</span>
         </div>
         <p className="mt-4 text-lg text-white">{renderContent()}</p>

@@ -32,7 +32,6 @@
         "noStaticOnlyClass": "off"
       },
       "nursery": {
-        "noUndeclaredDependencies": "off",
         "useImportRestrictions": "off",
         "useSortedClasses": "off"
       },
@@ -47,7 +46,7 @@
       },
       "correctness": {
         "noUndeclaredVariables": "off",
-        "useExhaustiveDependencies":"warn"
+        "useExhaustiveDependencies": "warn"
       }
     }
   },
@@ -55,7 +54,6 @@
     "formatter": {
       "jsxQuoteStyle": "double",
       "quoteProperties": "asNeeded",
-      "trailingCommas": "all",
       "semicolons": "always",
       "arrowParentheses": "always",
       "bracketSpacing": true,

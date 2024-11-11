@@ -1,16 +1,17 @@
 "use client";
 
+import { formatDistanceToNow } from "date-fns";
+import { Clock } from "lucide-react";
+import { useState } from "react";
+import useSWR from "swr";
+import { mutate } from "swr";
+
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { formatDistanceToNow } from "date-fns";
-import { Clock } from "lucide-react";
-import { useState } from "react";
-import useSWR from "swr";
-import { mutate } from "swr";
 import { Badge } from "~/components/ui/badge";
 import {
   Card,
@@ -20,8 +21,6 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 import { Skeleton } from "~/components/ui/skeleton";
-import { fetcher } from "./WorkflowGrid";
-
 import {
   Timeline,
   TimelineContent,
@@ -30,6 +29,8 @@ import {
   TimelineItem,
   TimelineLine,
 } from "~/components/ui/timeline";
+
+import { fetcher } from "./WorkflowGrid";
 
 function relativeDate(date: number) {
   const dateObj = new Date(date);
@@ -97,7 +98,9 @@ const EmptyRunCard = () => (
       <CardTitle></CardTitle>
     </CardHeader>
     <CardContent className="flex flex-row gap-1 pb-2">
-      <span className="text-muted-foreground">You'll find your runs here!</span>
+      <span className="text-muted-foreground">
+        You&apos;ll find your runs here!
+      </span>
     </CardContent>
     <CardFooter className="flex flex-row gap-1"></CardFooter>
   </Card>
@@ -138,14 +141,14 @@ export function RunsGrid() {
     .slice(0, 10);
 
   return (
-    <div className="pt-2 min-w-60">
-      <div id="workflow-runs" className="flex flex-col items-start flex-shrink">
-        <div className="pb-1 flex flex-row items-start">
+    <div className="min-w-60 pt-2">
+      <div id="workflow-runs" className="flex shrink flex-col items-start">
+        <div className="flex flex-row items-start pb-1">
           <h1 className="text-xl font-medium leading-9 tracking-tight">
             Latest Runs
           </h1>
         </div>
-        <div className="py-3 flex flex-col gap-2 w-full">
+        <div className="flex w-full flex-col gap-2 py-3">
           <Timeline>
             {isLoading ? (
               Array.from({ length: 6 }, (_, i) => (
@@ -154,7 +157,7 @@ export function RunsGrid() {
                   <TimelineDot status="default" />
                   <TimelineLine done={false} />
                   <TimelineContent>
-                    <Skeleton className="h-4 w-30" />
+                    <Skeleton className="w-30 h-4" />
                   </TimelineContent>
                 </TimelineItem>
               ))
@@ -178,7 +181,7 @@ export function RunsGrid() {
                           minute: "2-digit",
                         })}
                       </div>
-                      <div className="text-muted-foreground text-xs font-normal">
+                      <div className="text-xs font-normal text-muted-foreground">
                         {relativeDate(run.startedAt)}
                       </div>
                     </TimelineHeading>
@@ -196,24 +199,24 @@ export function RunsGrid() {
                     />
                     <TimelineLine done={!!run.completedAt} />
                     <TimelineContent className="w-full">
-                      <Card className="w-full my-2 px-4 py-2 flex flex-col gap-1">
+                      <Card className="my-2 flex w-full flex-col gap-1 px-4 py-2">
                         <CardTitle className="text-base">
                           {run.workflow.workflow.name}
                         </CardTitle>
                         {run.error ? (
-                          <div className="text-red-500  text-xs text-muted-foreground">
+                          <div className="text-xs text-red-500">
                             Error: {run.error}
                           </div>
                         ) : run.startedAt && run.completedAt ? (
                           <div className="flex flex-row items-center gap-1 text-xs text-muted-foreground">
-                            <Clock className="h-3 w-3" />
+                            <Clock className="size-3" />
                             {(new Date(run.completedAt).getTime() -
                               new Date(run.startedAt).getTime()) /
                               1000}{" "}
                             seconds
                           </div>
                         ) : (
-                          <div className="text-xs text-muted-foreground flex flex-row gap-2 items-center">
+                          <div className="flex flex-row items-center gap-2 text-xs text-muted-foreground">
                             <RunProgress runId={run.id} />
                             {`Currently running`}
                           </div>

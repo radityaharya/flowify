@@ -1,18 +1,20 @@
-import { env } from "~/env";
-import { Runner } from "@lib/workflow/Workflow";
-import { getAccessTokenFromUserId } from "~/server/db/helper";
-import { Worker } from "bullmq";
+import os from "node:os";
+
+import { Logger } from "@lib/log";
 import {
   compressReturnValues,
   updateWorkflowRun,
   updateWorkflowRunOperation,
 } from "@lib/workflow/utils/workflowQueue";
-import Redis from "ioredis";
-import os from "node:os";
-import { Logger } from "@lib/log";
-import { db } from "@/server/db";
-import { workerPool } from "~/server/db/schema";
+import { Runner } from "@lib/workflow/Workflow";
+import { Worker } from "bullmq";
 import { eq } from "drizzle-orm";
+import Redis from "ioredis";
+
+import { db } from "@/server/db";
+import { env } from "~/env";
+import { getAccessTokenFromUserId } from "~/server/db/helper";
+import { workerPool } from "~/server/db/schema";
 
 const log = new Logger("worker");
 
@@ -64,6 +66,9 @@ const worker = new Worker(
 
     await updateWorkflowRun(job.id, "active", WORKER_ID);
 
+
+    console.log("debug: userid: " + data.userId)
+
     const userToken = await getAccessTokenFromUserId(data.userId as string);
     if (!userToken) {
       await reportIdle();
@@ -108,11 +113,9 @@ const worker = new Worker(
     concurrency: CONCURRENCY,
     removeOnComplete: { count: 1000 },
     removeOnFail: { count: 5000 },
-    useWorkerThreads: true,
   },
 );
 
-// eslint-disable-next-line @typescript-eslint/no-misused-promises
 worker.on("completed", async (job) => {
   log.info(`Job ${job.id} completed`);
   await updateWorkflowRun(job.id!, "completed", WORKER_ID);
@@ -123,7 +126,6 @@ worker.on("drained", () => {
   reportIdle();
 });
 
-// eslint-disable-next-line @typescript-eslint/no-misused-promises
 worker.on("failed", async (job, err) => {
   log.error(`Job ${job?.id} failed`, err);
   if (job) {

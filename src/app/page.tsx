@@ -15,7 +15,7 @@ export default async function IndexPage() {
   const session = await auth();
 
   return (
-    <div className="relative h-[70dvh] md:h-[100dvh]">
+    <div className="relative h-[70dvh] md:h-dvh">
       <PageHeader>
         <Announcement />
         <PageHeaderHeading>Flows For Your Playlists!</PageHeaderHeading>

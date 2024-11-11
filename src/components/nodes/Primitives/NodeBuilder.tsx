@@ -1,8 +1,10 @@
-import { Form } from "@/components/ui/form";
 import { Position } from "@xyflow/react";
 import React from "react";
-import { ZodObject } from "zod";
+import type { ZodObject } from "zod";
+
+import { Form } from "@/components/ui/form";
 import useBasicNodeState from "~/hooks/useBasicNodeState";
+
 import { CardWithHeader } from "../Primitives/Card";
 import Debug from "../Primitives/Debug";
 import NodeHandle from "../Primitives/NodeHandle";

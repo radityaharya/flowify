@@ -1,8 +1,9 @@
+import { type NextRequest, NextResponse } from "next/server";
+import { isUUID } from "validator";
+
 import { Logger } from "@/lib/log";
 import { auth } from "@/server/auth";
 import { db } from "@/server/db";
-import { type NextRequest, NextResponse } from "next/server";
-import { isUUID } from "validator";
 
 const log = new Logger("/api/workflow/[id]");
 
@@ -11,13 +12,14 @@ export async function GET(
   {
     params,
   }: {
-    params: { id: string };
+    params: Promise<{ id: string }>;
   },
 ) {
   try {
     const session = await auth();
+    const { id } = await params;
 
-    if (!(params.id && isUUID(params.id))) {
+    if (!(id && isUUID(id))) {
       log.error("No id provided");
       return NextResponse.json(
         {
@@ -39,10 +41,10 @@ export async function GET(
 
     const [workflow, runs] = await Promise.all([
       db.query.workflowJobs.findFirst({
-        where: (workflowJobs, { eq }) => eq(workflowJobs.id, params.id),
+        where: (workflowJobs, { eq }) => eq(workflowJobs.id, id),
       }),
       db.query.workflowRuns.findMany({
-        where: (workflowRuns, { eq }) => eq(workflowRuns.workflowId, params.id),
+        where: (workflowRuns, { eq }) => eq(workflowRuns.workflowId, id),
       }),
     ]);
 
@@ -70,7 +72,7 @@ export async function GET(
       })),
     };
 
-    log.info(`Returning workflow ${params.id} for user ${session.user?.id}`);
+    log.info(`Returning workflow ${id} for user ${session.user?.id}`);
     return NextResponse.json(res);
   } catch (error) {
     log.error("Error getting workflow", error);

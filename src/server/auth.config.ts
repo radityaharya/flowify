@@ -1,5 +1,6 @@
-import SpotifyProvider from "next-auth/providers/spotify";
 import type { NextAuthConfig } from "next-auth";
+import SpotifyProvider from "next-auth/providers/spotify";
+
 import { env } from "~/env";
 
 const spotifyScopes = [
@@ -29,7 +30,6 @@ export default {
     SpotifyProvider({
       clientId: env.SPOTIFY_CLIENT_ID,
       clientSecret: env.SPOTIFY_CLIENT_SECRET,
-      // authorization: { params: { scope: spotifyScopes.join(" ") } },
       authorization: `https://accounts.spotify.com/authorize?scope=${encodeURIComponent(
         spotifyScopes.join(" "),
       )}`,
@@ -43,5 +43,5 @@ export default {
   pages: {
     signIn: "/auth/login",
   },
-  secret: env.NEXTAUTH_SECRET,
+  secret: env.AUTH_SECRET,
 } satisfies NextAuthConfig;
