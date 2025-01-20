@@ -234,8 +234,16 @@ export function App() {
       event.dataTransfer.dropEffect = "move";
 
       const url = event.dataTransfer.getData("text/plain");
+      let host;
+      try {
+        host = new URL(url).host;
+      } catch (e) {
+        console.error("Invalid URL:", url);
+        return;
+      }
+      const allowedHosts = ["open.spotify.com", "play.spotify.com"];
 
-      if (url?.includes("spotify.com") && url.includes("/playlist/")) {
+      if (allowedHosts.includes(host) && url.includes("/playlist/")) {
         const position = reactFlowInstance!.screenToFlowPosition({
           x: event.clientX,
           y: event.clientY,
